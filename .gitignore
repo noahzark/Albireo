@@ -1,0 +1,7 @@
+config/config.yml
+logfile
+db-start.sh
+db-shutdown.sh
+pgsql
+.DS_Store
+.idea

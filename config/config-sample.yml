@@ -1,0 +1,7 @@
+database:
+  dbname: albireo
+#  user:
+#  password:
+#  host:
+#  port: 5432
+poolConnections: 10
