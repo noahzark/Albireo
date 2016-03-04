@@ -3,6 +3,10 @@ from utils.DBManager import getConn, putConn
 
 class BangumiStore:
 
+    STATUS_UNSTARTED = 0
+    STATUS_ONAIR = 1
+    STATUS_FINISHED = 2
+
     def __init__(self, bgm_dict):
         for k, v in bgm_dict.items():
             setattr(self, k, v)
@@ -55,3 +59,6 @@ class BangumiStore:
             putConn(conn)
 
         return True
+
+    def get_pending_episodes(self):
+        pass
