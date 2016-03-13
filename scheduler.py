@@ -1,29 +1,65 @@
-from utils.DBManager import getConn, putConn
-from store.BangumiStore import BangumiStore
 from feed.FeedFromDMHY import FeedFromDMHY
+from yaml import load
+from utils.SessionManager import SessionManager
+from domain.Bangumi import Bangumi
+from domain.Episode import Episode
+import schedule
+import threading
+import time
+
 
 class Scheduler:
 
+    def __init__(self):
+        fr = open('./config/config.yml', 'r')
+        config = load(fr)
+        self.interval = config['task']['interval']
+
+    def __run_infinitely(self):
+
+        cease_continuous_run = threading.Event()
+
+        class ScheduleThread(threading.Thread):
+
+            @classmethod
+            def run(cls):
+                while not cease_continuous_run.is_set():
+                    schedule.run_pending()
+                    time.sleep(1)
+
+        continuous_thread = ScheduleThread()
+        continuous_thread.start()
+        return cease_continuous_run
+
+    def start(self):
+        schedule.every(self.interval).minutes.do(self.scan_bangumi)
+        self.cease_scheduler = self.__run_infinitely()
+
+    def stop(self):
+        self.cease_scheduler.set()
+
+
     def scan_bangumi(self):
-        conn = getConn()
-        cur = conn.cursor()
+        pass
 
-        cur.execute('select * from bangumi where status != %s and rss is not null')
-        bgm_list = []
-        column_definition = [desc[0] for desc in cur.description]
-        for record in cur:
-            bgm = {}
-            for index, column in enumerate(column_definition):
-                bgm[column] = record[index]
 
-            bgm_list.append(bgm)
+class ScanThread(threading.Thread):
 
-        putConn(conn)
+    def __init__(self, thread_id):
+        threading.Thread.__init__(self)
+        self.threadId = thread_id
 
-        for bgm in bgm_list:
-            bangumi = BangumiStore(bgm)
-            pending_episodes = bangumi.get_pending_episodes()
-            task = FeedFromDMHY(bangumi, pending_episodes)
+    def run(self):
+        session = SessionManager.Session
+
+        result = session.query(Bangumi).\
+            filter(Bangumi.status == Bangumi.STATUS_ON_AIR)
+
+        for bangumi in result:
+            episode_result = session.query(Episode).\
+                filter(Episode.bangumi==bangumi).\
+                filter(Episode.status==Episode.STATUS_NOT_DOWNLOADED)
+
+            task = FeedFromDMHY(bangumi, episode_result)
 
             task.parse_feed()
-

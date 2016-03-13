@@ -1,7 +1,9 @@
 database:
-  dbname: albireo
+  database: albireo
 #  user:
 #  password:
 #  host:
 #  port: 5432
-poolConnections: 10
+
+task:
+  interval: 15  # unit minute
