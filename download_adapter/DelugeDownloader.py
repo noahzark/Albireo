@@ -5,7 +5,9 @@ from deluge.ui.client import client
 
 class DelugeDownloader(Downloader):
 
-    def __init__(self):
+    def __init__(self, listener):
+        self.listener = listener
+
         fr = open('../config/config.yml', 'r')
         config = load(fr)
         self.delugeConfig = config['deluge']
@@ -30,5 +32,6 @@ class DelugeDownloader(Downloader):
         deferred.addCallback(self.__on_connect_success)
         deferred.addErrback(self.__on_connect_fail)
 
-    def __on_download_completed(self):
-        pass
+    def __on_download_completed(self, torrent_id):
+        if self.listener is not None:
+            self.listener.on_download_completed(torrent_id)

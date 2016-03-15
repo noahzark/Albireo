@@ -35,6 +35,7 @@ CREATE TABLE episodes (
     duration int  NULL,
     air_date date  NULL,
     status int  NOT NULL,
+    torrent_id VARCHAR(256)  NULL,
     CONSTRAINT episodes_pk PRIMARY KEY (id)
 );
 

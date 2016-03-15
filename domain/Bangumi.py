@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, TEXT, DATE
+from sqlalchemy import Column, Integer, TEXT, DATE, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import relationship
@@ -22,6 +22,7 @@ class Bangumi(Base):
     rss = Column(TEXT)
     eps_regex = Column(TEXT)
     status = Column(Integer)
+    torrent_id = Column(String)
 
     episodes = relationship('Episode', order_by=Episode.id, back_populates='bangumi')
 
