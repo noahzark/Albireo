@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, TEXT, DATE
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import relationship
-from domain.Episode import Episode
+from Episode import Episode
 
 Base = declarative_base()
 
