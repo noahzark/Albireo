@@ -5,5 +5,10 @@ database:
 #  host:
 #  port: 5432
 
+deluge:
+#  host:
+#  port:
+#  username:
+
 task:
   interval: 15  # unit minute
