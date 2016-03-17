@@ -1,5 +1,7 @@
 import feedparser
 import re
+from utils.DownloadManager import download_manager
+from domain.Episode import Episode
 
 
 class FeedFromDMHY:
@@ -29,4 +31,14 @@ class FeedFromDMHY:
                 self.add_to_download(item, eps_no)
 
     def add_to_download(self, item, eps_no):
-        pass
+        magnet_uri = item.enclosures[0].uri
+        torrent_id = download_manager.download(magnet_uri)
+        print(torrent_id)
+        episode = None
+        for eps in self.episode_list:
+            if eps_no == eps.eps_no:
+                episode = eps
+                break
+
+        episode.torrent_id = torrent_id
+        episode.status = Episode.STATUS_DOWNLOADING

@@ -38,7 +38,6 @@ class Scheduler:
     def stop(self):
         self.cease_scheduler.set()
 
-
     def scan_bangumi(self):
         pass
 
@@ -63,3 +62,5 @@ class ScanThread(threading.Thread):
             task = FeedFromDMHY(bangumi, episode_result)
 
             task.parse_feed()
+
+            session.commit()
