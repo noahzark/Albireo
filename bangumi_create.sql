@@ -16,8 +16,8 @@ CREATE TABLE bangumi (
     image text  NOT NULL,
     air_date date  NOT NULL,
     air_weekday int  NOT NULL,
-    rss text  NOT NULL,
-    eps_regex text  NOT NULL,
+    rss text  NULL,
+    eps_regex text  NULL,
     status int  NOT NULL,
     CONSTRAINT bangumi_pk PRIMARY KEY (id)
 );
@@ -32,8 +32,8 @@ CREATE TABLE episodes (
     episode_no int  NOT NULL,
     name text  NULL,
     name_cn text  NULL,
-    duration int  NULL,
-    air_date date  NULL,
+    duration VARCHAR(256) NULL,
+    airdate date  NULL,
     status int  NOT NULL,
     torrent_id VARCHAR(256)  NULL,
     CONSTRAINT episodes_pk PRIMARY KEY (id)

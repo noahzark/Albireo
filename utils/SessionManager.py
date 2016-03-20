@@ -6,7 +6,7 @@ from yaml import load
 
 class SessionManager:
 
-    __fr = open('../config/config.yml', 'r')
+    __fr = open('./config/config.yml', 'r')
     __config = load(__fr)
 
     __dbConfig = __config['database']

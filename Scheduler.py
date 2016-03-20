@@ -1,8 +1,7 @@
 from feed.FeedFromDMHY import FeedFromDMHY
 from yaml import load
 from utils.SessionManager import SessionManager
-from domain.Bangumi import Bangumi
-from domain.Episode import Episode
+from domain.bangumi_model import Episode, Bangumi
 import schedule
 import threading
 import time

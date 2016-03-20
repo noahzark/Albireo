@@ -1,7 +1,7 @@
 import feedparser
 import re
 from utils.DownloadManager import download_manager
-from domain.Episode import Episode
+from domain.bangumi_model import Episode
 
 
 class FeedFromDMHY:

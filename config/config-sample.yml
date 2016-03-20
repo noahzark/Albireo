@@ -1,6 +1,6 @@
 database:
   database: albireo
-#  user:
+#  username:
 #  password:
 #  host:
 #  port: 5432
