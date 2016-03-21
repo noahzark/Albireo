@@ -1,7 +1,9 @@
-from flask import request, make_response, Blueprint
+from flask import request, Blueprint
 from domain.bangumi_model import Episode, Bangumi
 from datetime import datetime
 from utils.SessionManager import SessionManager
+from utils.http import json_resp
+from utils.db import row2dict
 
 import json
 
@@ -66,27 +68,79 @@ def __add_bangumi():
 
         session.commit()
 
-        session.remove()
+        SessionManager.Session.remove()
 
-        resp = make_response(json.dumps({'msg':'ok'}), 200)
-        resp.headers['Content-Type'] = 'application/json'
-        return resp
+        return json_resp({'msg':'ok'})
     except Exception as exception:
         raise exception
-        # resp = make_response(json.dumps({'msg': 'error'}), 500)
+        # resp = make_response(jsonify({'msg': 'error'}), 500)
         # resp.headers['Content-Type'] = 'application/json'
         # return resp
 
-def __update_bangumi():
+def __update_bangumi(id, bangumi_dict):
+    try:
+        session = SessionManager.Session()
+        bangumi = session.query(Bangumi).filter(Bangumi.id == id).one()
 
+        bangumi.name = bangumi_dict['name']
+        bangumi.name_cn = bangumi_dict['name_cn']
+        bangumi.summary = bangumi_dict['summary']
+        bangumi.eps = bangumi_dict['eps']
+        bangumi.eps_regex = bangumi_dict['eps_regex']
+        bangumi.image = bangumi_dict['image']
+        bangumi.air_date = bangumi_dict['air_date']
+        bangumi.air_weekday = bangumi_dict['air_weekday']
+        bangumi.rss = bangumi_dict['rss']
 
-    pass
+        session.commit()
 
-@bangumi_api.route('/bangumi', methods=['POST', 'GET', 'PUT'])
+        SessionManager.Session.remove()
+
+        return json_resp({'msg':'ok'})
+    except Exception as exception:
+        raise exception
+
+def __get_bangumi(id):
+    try:
+        session = SessionManager.Session()
+        bangumi = session.query(Bangumi).filter(Bangumi.id == id).one()
+
+        bangumi_dict = row2dict(bangumi)
+
+        SessionManager.Session.remove()
+
+        return json_resp(bangumi_dict)
+    except Exception as exception:
+        raise exception
+
+def __delete_bangumi(id):
+    try:
+        session = SessionManager.Session()
+
+        bangumi = session.query(Bangumi).filter(Bangumi.id == id).one()
+
+        session.delete(bangumi)
+
+        session.commit()
+
+        SessionManager.Session.remove()
+
+        return json_resp({'msg': 'ok'})
+    except Exception as exception:
+        raise exception
+
+@bangumi_api.route('/bangumi', methods=['POST', 'GET'])
 def collection():
     if request.method == 'POST':
         return __add_bangumi()
-    elif request.method == 'PUT':
-        return __update_bangumi()
     else:
         return __list_bangumi()
+
+@bangumi_api.route('/bangumi/<id>', methods=['PUT', 'GET', 'DELETE'])
+def one(id):
+    if request.method == 'PUT':
+        return __update_bangumi(id, json.loads(request.get_data(True, as_text=True)))
+    elif request.method == 'GET':
+        return __get_bangumi(id)
+    else:
+        return __delete_bangumi(id)

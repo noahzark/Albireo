@@ -45,7 +45,8 @@ class Bangumi(Base):
     eps_regex = Column(TEXT, nullable=True)
     status = Column(Integer)
 
-    episodes = relationship('Episode', order_by=Episode.episode_no, back_populates='bangumi')
+    episodes = relationship('Episode', order_by=Episode.episode_no, back_populates='bangumi',
+                            cascade='all, delete, delete-orphan')
 
     # constant of bangumi status
     # A pending bangumi is not started to show on tv yet
