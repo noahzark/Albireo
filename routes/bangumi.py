@@ -1,9 +1,10 @@
 from flask import request, Blueprint
 from domain.bangumi_model import Episode, Bangumi
-from datetime import datetime
+from datetime import datetime, date
 from utils.SessionManager import SessionManager
 from utils.http import json_resp
 from utils.db import row2dict
+from sqlalchemy.sql.expression import or_
 
 import json
 
@@ -28,11 +29,26 @@ def __get_bangumi_status(air_date):
         return Bangumi.STATUS_PENDING
 
 def __list_bangumi():
-    print('query bangumi...')
+
+    page = int(request.args.get('page', 1))
+    count = int(request.args.get('count', 10))
+    order_by = request.args.get('order_by', 'update_time')
+    sort = request.args.get('sort', 'desc')
+    name = request.args.get('name', None)
+
     session = SessionManager.Session()
-    bangumi = session.query(Bangumi)
-    print(bangumi)
-    return 'OK'
+    query_object = session.query(Bangumi)
+    if name is not None:
+        query_object = query_object.filter(or_(Bangumi.name==name, Bangumi.name_cn==name))
+
+    offset = (page - 1) * count
+
+    bangumi_list = query_object.order_by(order_by + ' ' + sort).offset(offset).limit(count).all()
+    bangumi_dict_list = [row2dict(bangumi) for bangumi in bangumi_list]
+
+    SessionManager.Session.remove()
+
+    return json_resp(bangumi_dict_list)
 
 def __add_bangumi():
     try:
@@ -88,9 +104,10 @@ def __update_bangumi(id, bangumi_dict):
         bangumi.eps = bangumi_dict['eps']
         bangumi.eps_regex = bangumi_dict['eps_regex']
         bangumi.image = bangumi_dict['image']
-        bangumi.air_date = bangumi_dict['air_date']
+        bangumi.air_date = datetime.strptime(bangumi_dict['air_date'], '%Y-%m-%d')
         bangumi.air_weekday = bangumi_dict['air_weekday']
         bangumi.rss = bangumi_dict['rss']
+        bangumi.update_time = datetime.now()
 
         session.commit()
 

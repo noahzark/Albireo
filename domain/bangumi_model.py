@@ -1,8 +1,9 @@
-from sqlalchemy import Column, Integer, TEXT, DATE, ForeignKey, String
+from sqlalchemy import Column, Integer, TEXT, DATE, ForeignKey, String, TIMESTAMP
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import relationship
 from uuid import uuid4
+from datetime import datetime
 
 Base = declarative_base()
 
@@ -20,6 +21,8 @@ class Episode(Base):
     airdate = Column(DATE, nullable=True)
     status = Column(Integer)
     torrent_id = Column(String, nullable=True)
+    create_time = Column(TIMESTAMP, default=datetime.now())
+    update_time = Column(TIMESTAMP, default=datetime.now())
 
     bangumi = relationship('Bangumi', back_populates='episodes')
 
@@ -44,6 +47,8 @@ class Bangumi(Base):
     rss = Column(TEXT, nullable=True)
     eps_regex = Column(TEXT, nullable=True)
     status = Column(Integer)
+    create_time = Column(TIMESTAMP, default=datetime.now())
+    update_time = Column(TIMESTAMP, default=datetime.now())
 
     episodes = relationship('Episode', order_by=Episode.episode_no, back_populates='bangumi',
                             cascade='all, delete, delete-orphan')
