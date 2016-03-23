@@ -1,10 +1,10 @@
 from flask import request, Blueprint
 from domain.bangumi_model import Episode, Bangumi
-from datetime import datetime, date
+from datetime import datetime
 from utils.SessionManager import SessionManager
 from utils.http import json_resp
 from utils.db import row2dict
-from sqlalchemy.sql.expression import or_
+from sqlalchemy.sql.expression import or_, desc, asc
 
 import json
 
@@ -32,8 +32,8 @@ def __list_bangumi():
 
     page = int(request.args.get('page', 1))
     count = int(request.args.get('count', 10))
-    order_by = request.args.get('order_by', 'update_time')
-    sort = request.args.get('sort', 'desc')
+    sort_field = request.args.get('order_by', 'update_time')
+    sort_order = request.args.get('sort', 'desc')
     name = request.args.get('name', None)
 
     session = SessionManager.Session()
@@ -43,7 +43,11 @@ def __list_bangumi():
 
     offset = (page - 1) * count
 
-    bangumi_list = query_object.order_by(order_by + ' ' + sort).offset(offset).limit(count).all()
+    if(sort_order == 'desc'):
+        bangumi_list = query_object.order_by(desc(getattr(Bangumi, sort_field))).offset(offset).limit(count).all()
+    else:
+        bangumi_list = query_object.order_by(asc(getattr(Bangumi, sort_field))).offset(offset).limit(count).all()
+
     bangumi_dict_list = [row2dict(bangumi) for bangumi in bangumi_list]
 
     SessionManager.Session.remove()
