@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from flask import request, Blueprint
 from domain.bangumi_model import Episode, Bangumi
 from datetime import datetime
@@ -5,7 +6,8 @@ from utils.SessionManager import SessionManager
 from utils.http import json_resp
 from utils.db import row2dict
 from sqlalchemy.sql.expression import or_, desc, asc
-
+from sqlalchemy.sql import select
+import httplib2
 import json
 
 
@@ -165,3 +167,52 @@ def one(id):
         return __get_bangumi(id)
     else:
         return __delete_bangumi(id)
+
+@bangumi_api.route('/query', methods=['GET'])
+def search_bangumi():
+    bangumi_tv_url_base = 'http://api.bgm.tv/search/subject/'
+    bangumi_tv_url_param = '?responseGroup=simple&max_result=10&start=0'
+    name = request.args.get('name', None)
+    result = {"data": {}}
+    if name is not None:
+        bangumi_tv_url = bangumi_tv_url_base + name + bangumi_tv_url_param
+        h = httplib2.Http('.cache')
+        (resp, content) = h.request(bangumi_tv_url, 'GET')
+        if resp.status == 200:
+            bgm_content = json.loads(content)
+            list = bgm_content['list']
+            bgm_id_list = [bgm['id'] for bgm in list]
+            s = select([Bangumi.id, Bangumi.bgm_id]).where(Bangumi.bgm_id.in_(bgm_id_list)).select_from(Bangumi)
+            bangumi_list = SessionManager.engine.execute(s).fetchall()
+
+            for bgm in list:
+                bgm['bgm_id'] = bgm['id']
+                bgm['id'] = None
+                # if bgm_id has found in database, give the database id to bgm.id
+                # that's we know that this bangumi exists in our database
+                for bangumi in bangumi_list:
+                    if bgm['bgm_id'] == bangumi.bgm_id:
+                        bgm['id'] = bangumi.id
+                        break
+                bgm['image'] = bgm['images']['large']
+                # remove useless keys
+                bgm.pop('images', None)
+                bgm.pop('collection', None)
+                bgm.pop('url', None)
+                bgm.pop('type', None)
+
+            result['data'] = list
+
+    return json_resp(result)
+
+@bangumi_api.route('/query/<bgm_id>', methods=['GET'])
+def query_one_bangumi(bgm_id):
+    bangumi_tv_url_base = 'http;//api.bgm.tv/subject/'
+    bangumi_tv_url_param = '?responseGroup=large'
+    if bgm_id is not None:
+        bangumi_tv_url = bangumi_tv_url_base + bgm_id + bangumi_tv_url_param
+        h = httplib2.Http('.cache')
+        (resp, content) = h.request(bangumi_tv_url, 'GET')
+        return content
+    else:
+        return json_resp({})

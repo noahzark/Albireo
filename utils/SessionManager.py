@@ -13,7 +13,7 @@ class SessionManager:
     # dsn = ' '.join('%s=%s' % (k,v) for k,v in dbConfig.items())
 
     __engine_url = URL('postgresql', **__dbConfig)
-
-    __session_factory = sessionmaker(bind=create_engine(__engine_url))
+    engine = create_engine(__engine_url)
+    __session_factory = sessionmaker(bind=engine)
 
     Session = scoped_session(__session_factory)
