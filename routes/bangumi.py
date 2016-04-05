@@ -180,7 +180,7 @@ def search_bangumi():
         (resp, content) = h.request(bangumi_tv_url, 'GET')
         if resp.status == 200:
             bgm_content = json.loads(content)
-            list = bgm_content['list']
+            list = [bgm for bgm in bgm_content['list'] if bgm['type'] == 2]
             bgm_id_list = [bgm['id'] for bgm in list]
             s = select([Bangumi.id, Bangumi.bgm_id]).where(Bangumi.bgm_id.in_(bgm_id_list)).select_from(Bangumi)
             bangumi_list = SessionManager.engine.execute(s).fetchall()
