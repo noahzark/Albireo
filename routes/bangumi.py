@@ -173,7 +173,7 @@ def search_bangumi():
     bangumi_tv_url_base = 'http://api.bgm.tv/search/subject/'
     bangumi_tv_url_param = '?responseGroup=simple&max_result=10&start=0'
     name = request.args.get('name', None)
-    result = {"data": {}}
+    result = {"data": []}
     if name is not None:
         bangumi_tv_url = bangumi_tv_url_base + name + bangumi_tv_url_param
         h = httplib2.Http('.cache')
@@ -202,6 +202,9 @@ def search_bangumi():
                 bgm.pop('type', None)
 
             result['data'] = list
+        elif resp.status == 502:
+            # when bangumi.tv is down
+            result['msg'] = 'bangumi is down'
 
     return json_resp(result)
 
