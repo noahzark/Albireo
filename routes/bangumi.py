@@ -61,25 +61,22 @@ def __add_bangumi():
         content = request.get_data(True, as_text=True)
         bangumi_data = json.loads(content)
 
-        bangumi = Bangumi(bgm_id=bangumi_data['id'],
+        bangumi = Bangumi(bgm_id=bangumi_data['bgm_id'],
                           name=bangumi_data['name'],
                           name_cn=bangumi_data['name_cn'],
                           summary=bangumi_data['summary'],
-                          eps=__get_eps_len(bangumi_data['eps']),
-                          image=bangumi_data['images']['large'], # only save large image
+                          eps=bangumi_data['eps'],
+                          image=bangumi_data['image'],
                           air_date=bangumi_data['air_date'],
                           air_weekday=bangumi_data['air_weekday'],
+                          eps_regex=bangumi_data['eps_regex'],
                           status=__get_bangumi_status(bangumi_data['air_date']))
-
-        session = SessionManager.Session()
-
-        session.add(bangumi)
 
         bangumi.episodes = []
 
-        for eps_item in bangumi_data['eps']:
-            eps = Episode(bgm_eps_id=eps_item['id'],
-                          episode_no=eps_item['sort'],
+        for eps_item in bangumi_data['episodes']:
+            eps = Episode(bgm_eps_id=eps_item['bgm_eps_id'],
+                          episode_no=eps_item['episode_no'],
                           name=eps_item['name'],
                           name_cn=eps_item['name_cn'],
                           duration=eps_item['duration'],
@@ -88,11 +85,17 @@ def __add_bangumi():
             eps.bangumi = bangumi
             bangumi.episodes.append(eps)
 
+        session = SessionManager.Session()
+
+        session.add(bangumi)
+
         session.commit()
+
+        bangumi_id = str(bangumi.id)
 
         SessionManager.Session.remove()
 
-        return json_resp({'msg':'ok'})
+        return json_resp({'data': {'id': bangumi_id}})
     except Exception as exception:
         raise exception
         # resp = make_response(jsonify({'msg': 'error'}), 500)
@@ -181,6 +184,9 @@ def search_bangumi():
         if resp.status == 200:
             bgm_content = json.loads(content)
             list = [bgm for bgm in bgm_content['list'] if bgm['type'] == 2]
+            if len(list) == 0:
+                return json_resp(result)
+
             bgm_id_list = [bgm['id'] for bgm in list]
             s = select([Bangumi.id, Bangumi.bgm_id]).where(Bangumi.bgm_id.in_(bgm_id_list)).select_from(Bangumi)
             bangumi_list = SessionManager.engine.execute(s).fetchall()
@@ -210,7 +216,7 @@ def search_bangumi():
 
 @bangumi_api.route('/query/<bgm_id>', methods=['GET'])
 def query_one_bangumi(bgm_id):
-    bangumi_tv_url_base = 'http;//api.bgm.tv/subject/'
+    bangumi_tv_url_base = 'http://api.bgm.tv/subject/'
     bangumi_tv_url_param = '?responseGroup=large'
     if bgm_id is not None:
         bangumi_tv_url = bangumi_tv_url_base + bgm_id + bangumi_tv_url_param
