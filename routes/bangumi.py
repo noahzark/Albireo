@@ -6,7 +6,7 @@ from utils.SessionManager import SessionManager
 from utils.http import json_resp
 from utils.db import row2dict
 from sqlalchemy.sql.expression import or_, desc, asc
-from sqlalchemy.sql import select
+from sqlalchemy.sql import select, func
 import httplib2
 import json
 
@@ -40,8 +40,13 @@ def __list_bangumi():
 
     session = SessionManager.Session()
     query_object = session.query(Bangumi)
+
     if name is not None:
         query_object = query_object.filter(or_(Bangumi.name==name, Bangumi.name_cn==name))
+        # count total rows
+        total = session.query(func.count(Bangumi.id)).filter(or_(Bangumi.name==name, Bangumi.name_cn==name)).scalar()
+    else:
+        total = session.query(func.count(Bangumi.id)).scalar()
 
     offset = (page - 1) * count
 
@@ -54,7 +59,7 @@ def __list_bangumi():
 
     SessionManager.Session.remove()
 
-    return json_resp(bangumi_dict_list)
+    return json_resp({'data': bangumi_dict_list, 'total': total})
 
 def __add_bangumi():
     try:
@@ -71,6 +76,9 @@ def __add_bangumi():
                           air_weekday=bangumi_data['air_weekday'],
                           eps_regex=bangumi_data['eps_regex'],
                           status=__get_bangumi_status(bangumi_data['air_date']))
+
+        if 'rss' in bangumi_data:
+            bangumi.rss = bangumi_data['rss']
 
         bangumi.episodes = []
 
@@ -135,7 +143,7 @@ def __get_bangumi(id):
 
         SessionManager.Session.remove()
 
-        return json_resp(bangumi_dict)
+        return json_resp({'data': bangumi_dict})
     except Exception as exception:
         raise exception
 
