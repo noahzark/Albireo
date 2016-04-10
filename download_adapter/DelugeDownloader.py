@@ -7,7 +7,7 @@ class DelugeDownloader(Downloader):
 
     def __init__(self, on_download_completed_callback):
 
-        fr = open('../config/config.yml', 'r')
+        fr = open('./config/config.yml', 'r')
         config = load(fr)
         self.delugeConfig = config['deluge']
 

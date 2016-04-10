@@ -45,6 +45,15 @@ CREATE TABLE episodes (
 
 
 
+-- Table: torrentfile
+CREATE TABLE torrentfile (
+    id uuid  NOT NULL,
+    episode_id uuid NOT NULL,
+    torrent_id int NOT NULL,
+    file_path TEXT NULL,
+    CONSTRAINT torrentfile_pk PRIMARY  KEY (id)
+);
+
 
 
 
@@ -61,6 +70,15 @@ ALTER TABLE episodes ADD CONSTRAINT episodes_bangumi
 
 
 
+-- foreign keys
+-- Reference: torrentfile_episodes (table: torrentfile)
+
+ALTER TABLE torrentfile ADD CONSTRAINT torrentfile_episodes
+    FOREIGN KEY (episode_id)
+    REFERENCES episodes (id)
+    NOT DEFERRABLE
+    INITIALLY IMMEDIATE
+;
 
 
 

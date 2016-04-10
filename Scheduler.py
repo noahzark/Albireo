@@ -13,6 +13,11 @@ class Scheduler:
         fr = open('./config/config.yml', 'r')
         config = load(fr)
         self.interval = config['task']['interval']
+        self.scan_thread_id = 0
+
+    def get_id(self):
+        self.scan_thread_id = self.scan_thread_id + 1
+        return self.scan_thread_id
 
     def __run_infinitely(self):
 
@@ -38,7 +43,8 @@ class Scheduler:
         self.cease_scheduler.set()
 
     def scan_bangumi(self):
-        pass
+        scan_thread = ScanThread(self.get_id())
+        scan_thread.start()
 
 
 class ScanThread(threading.Thread):

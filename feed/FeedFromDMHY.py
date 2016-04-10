@@ -12,18 +12,19 @@ class FeedFromDMHY:
 
     def __parse_episode_number(self, eps_title):
         try:
-            search_result = re.search(self.bangumi.regex, eps_title, re.U)
+            search_result = re.search(self.bangumi.eps_regex, eps_title, re.U)
             if search_result and len(search_result.group()):
-                return int(search_result.group()[0])
+                return int(search_result.group(1))
             else:
                 return -1
-        except:
+        except Exception as exception:
+            print(exception)
             return -1
 
     def parse_feed(self):
         url = self.bangumi.rss
         # eps no list
-        eps_no_list = [eps.eps_no for eps in self.episode_list]
+        eps_no_list = [eps.episode_no for eps in self.episode_list]
         feed_dict = feedparser.parse(url)
         for item in feed_dict.entries:
             eps_no = self.__parse_episode_number(item['title'])
@@ -31,14 +32,18 @@ class FeedFromDMHY:
                 self.add_to_download(item, eps_no)
 
     def add_to_download(self, item, eps_no):
-        magnet_uri = item.enclosures[0].uri
-        torrent_id = download_manager.download(magnet_uri)
-        print(torrent_id)
+        magnet_uri = item.enclosures[0].href
+        torrent_file = download_manager.download(magnet_uri)
+
         episode = None
         for eps in self.episode_list:
-            if eps_no == eps.eps_no:
+            if eps_no == eps.episode_no:
                 episode = eps
                 break
 
-        episode.torrent_id = torrent_id
+        if episode.torrent_files is not list:
+            episode.torrent_files = []
+
+        episode.torrent_files.append(torrent_file)
+
         episode.status = Episode.STATUS_DOWNLOADING

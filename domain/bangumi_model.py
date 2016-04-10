@@ -8,6 +8,17 @@ from datetime import datetime
 Base = declarative_base()
 
 
+class TorrentFile(Base):
+    __tablename__ = 'torrentfile'
+
+    id = Column(postgresql.UUID(as_uuid=True), primary_key=True, default=uuid4)
+    episode_id = Column(postgresql.UUID(as_uuid=True), ForeignKey('episodes.id'))
+    torrent_id = Column(Integer)
+    file_path = Column(TEXT)
+
+    episode = relationship('Episode', back_populates='torrent_files')
+
+
 class Episode(Base):
     __tablename__ = 'episodes'
 
@@ -25,6 +36,9 @@ class Episode(Base):
     update_time = Column(TIMESTAMP, default=datetime.now())
 
     bangumi = relationship('Bangumi', back_populates='episodes')
+
+    torrent_files = relationship('TorrentFile', order_by=TorrentFile.episode_id, back_populates='episode',
+                                 cascade='all, delete, delete-orphan')
 
     STATUS_NOT_DOWNLOADED = 0
     STATUS_DOWNLOADING = 1

@@ -80,6 +80,10 @@ def __add_bangumi():
         if 'rss' in bangumi_data:
             bangumi.rss = bangumi_data['rss']
 
+        session = SessionManager.Session()
+
+        session.add(bangumi)
+
         bangumi.episodes = []
 
         for eps_item in bangumi_data['episodes']:
@@ -92,10 +96,6 @@ def __add_bangumi():
                           status=Episode.STATUS_NOT_DOWNLOADED)
             eps.bangumi = bangumi
             bangumi.episodes.append(eps)
-
-        session = SessionManager.Session()
-
-        session.add(bangumi)
 
         session.commit()
 
