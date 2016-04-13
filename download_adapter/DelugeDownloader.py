@@ -1,6 +1,10 @@
 from Downloader import Downloader
 from yaml import load
 from deluge.ui.client import client
+from twisted.internet.defer import inlineCallbacks, returnValue
+# Set up the logger to print out errors
+from deluge.log import setupLogger, LOG
+setupLogger(level='info')
 
 
 class DelugeDownloader(Downloader):
@@ -13,28 +17,35 @@ class DelugeDownloader(Downloader):
 
         self.__on_download_completed_callback = on_download_completed_callback
 
-        self.__connect_to_daemon()
-
-    def __on_connect_success(self):
+    def __on_connect_success(self, result):
         '''
         : add event handlers
         '''
-        client.register_event_handler('TorrentFileFinished', self.__on_download_completed)
+        LOG.info('Connection was successful')
+        client.register_event_handler('TorrentFinishedEvent', self.__on_download_completed)
+        return result
 
-    def __on_connect_fail(self):
+    def __on_connect_fail(self, result):
         '''
         :throw a exception
         '''
         raise Exception()
 
-    def __connect_to_daemon(self):
+    def connect_to_daemon(self):
         deferred = client.connect(**self.delugeConfig)
 
         deferred.addCallback(self.__on_connect_success)
         deferred.addErrback(self.__on_connect_fail)
 
+        return deferred
+
     def __on_download_completed(self, torrent_id):
         self.__on_download_completed_callback(torrent_id)
 
-    def download(self, magnet_uri):
-        return client.core.add_torrent_magnet(magnet_uri)
+    @inlineCallbacks
+    def download(self, magnet_uri, download_location):
+        torrent_id = yield client.core.add_torrent_magnet(magnet_uri, {'download_location': download_location})
+        # if move_done_path is not None:
+        #     result = yield client.core.set_torrent_move_completed_path(torrent_id, move_done_path)
+        #     print(result)
+        returnValue(torrent_id)
