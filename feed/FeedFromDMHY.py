@@ -2,6 +2,7 @@ import feedparser
 import re
 from utils.DownloadManager import download_manager
 from domain.bangumi_model import Episode
+from twisted.internet import reactor, threads
 
 
 class FeedFromDMHY:
@@ -33,7 +34,7 @@ class FeedFromDMHY:
 
     def add_to_download(self, item, eps_no):
         magnet_uri = item.enclosures[0].href
-        torrent_file = download_manager.download(magnet_uri)
+        torrent_file = yield threads.blockingCallFromThread(reactor, download_manager.download, magnet_uri)
 
         episode = None
         for eps in self.episode_list:

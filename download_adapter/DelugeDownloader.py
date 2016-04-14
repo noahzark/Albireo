@@ -45,7 +45,11 @@ class DelugeDownloader(Downloader):
     @inlineCallbacks
     def download(self, magnet_uri, download_location):
         torrent_id = yield client.core.add_torrent_magnet(magnet_uri, {'download_location': download_location})
-        # if move_done_path is not None:
-        #     result = yield client.core.set_torrent_move_completed_path(torrent_id, move_done_path)
-        #     print(result)
+
         returnValue(torrent_id)
+
+    @inlineCallbacks
+    def get_files(self, torrent_id):
+        files = yield client.core.get_torrent_status(torrent_id, ['files'])
+        print files
+        returnValue(files)

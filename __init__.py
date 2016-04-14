@@ -6,7 +6,7 @@ def file_added(torrent_file):
 
 def onConnect(result):
 
-    magnet_uri = 'magnet:?xt=urn:btih:00163C7C108B2055ED1D51C2B150FBDE5C5F6A84&dn=%5bSumiSora%5d%5baokana%5d%5b12%5d%5bGB%5d%5b720p%5d.mp4&tr=http%3a%2f%2f192.168.1.3%3a8000%2fannounce'
+    magnet_uri = 'magnet:?xt=urn:btih:EAE94773C601303A2E9BB9E7C062DA93EF140C44&dn=%5bTUZI%5d%5bGochuumon%20wa%20Usagi%20Desuka2%5d%5b01%5d%5bGB%5d%5b1280X720%5d&tr=http%3a%2f%2f192.168.1.3%3a8000%2fannounce'
 
     d = download_manager.download(magnet_uri, '/home/konomi/Desktop')
     d.addCallback(file_added)

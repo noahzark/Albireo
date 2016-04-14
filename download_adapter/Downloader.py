@@ -7,3 +7,6 @@ class Downloader:
 
     def connect_to_daemon(self):
         pass
+
+    def get_files(self, torrent_id):
+        pass

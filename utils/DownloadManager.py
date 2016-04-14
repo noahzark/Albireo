@@ -19,6 +19,10 @@ class DownloadManager:
     def on_download_completed(self, torrent_id):
         print 'Download complete'
         print 'torrent_id %s' % torrent_id
+        def get_files(files):
+            print files
+        d = self.downloader.get_files(torrent_id)
+        d.addCallback(get_files)
 
     @inlineCallbacks
     def download(self, magnet_uri, move_done_path):
