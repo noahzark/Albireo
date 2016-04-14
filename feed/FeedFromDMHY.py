@@ -36,6 +36,8 @@ class FeedFromDMHY:
         magnet_uri = item.enclosures[0].href
         torrent_file = yield threads.blockingCallFromThread(reactor, download_manager.download, magnet_uri)
 
+        print torrent_file.torrent_id
+
         episode = None
         for eps in self.episode_list:
             if eps_no == eps.episode_no:

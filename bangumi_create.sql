@@ -49,7 +49,7 @@ CREATE TABLE episodes (
 CREATE TABLE torrentfile (
     id uuid  NOT NULL,
     episode_id uuid NOT NULL,
-    torrent_id int NOT NULL,
+    torrent_id VARCHAR(256) NOT NULL,
     file_path TEXT NULL,
     CONSTRAINT torrentfile_pk PRIMARY  KEY (id)
 );

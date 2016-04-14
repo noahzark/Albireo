@@ -13,7 +13,7 @@ class TorrentFile(Base):
 
     id = Column(postgresql.UUID(as_uuid=True), primary_key=True, default=uuid4)
     episode_id = Column(postgresql.UUID(as_uuid=True), ForeignKey('episodes.id'))
-    torrent_id = Column(Integer)
+    torrent_id = Column(String)
     file_path = Column(TEXT)
 
     episode = relationship('Episode', back_populates='torrent_files')

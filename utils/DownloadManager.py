@@ -25,8 +25,8 @@ class DownloadManager:
         d.addCallback(get_files)
 
     @inlineCallbacks
-    def download(self, magnet_uri, move_done_path):
-        torrent_id = yield self.downloader.download(magnet_uri, move_done_path)
+    def download(self, magnet_uri, download_location):
+        torrent_id = yield self.downloader.download(magnet_uri, download_location)
         returnValue(TorrentFile(torrent_id=torrent_id))
 
 download_manager = DownloadManager(DelugeDownloader)
