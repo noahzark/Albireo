@@ -17,6 +17,7 @@ class DownloadManager:
         return self.downloader.connect_to_daemon()
 
     def on_download_completed(self, torrent_id):
+        # TODO: need to process download complete event
         print 'Download complete'
         print 'torrent_id %s' % torrent_id
         def get_files(files):

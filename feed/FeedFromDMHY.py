@@ -3,13 +3,26 @@ import re
 from utils.DownloadManager import download_manager
 from domain.bangumi_model import Episode
 from twisted.internet import reactor, threads
+from twisted.internet.defer import inlineCallbacks, returnValue
+import os, errno
 
 
 class FeedFromDMHY:
 
-    def __init__(self, bangumi, episode_list):
+    def __init__(self, bangumi, episode_list, base_path):
         self.bangumi = bangumi
         self.episode_list = episode_list
+        self.bangumi_path = base_path + '/' + str(self.bangumi.id)
+        try:
+            if not os.path.exists(self.bangumi_path):
+                os.makedirs(self.bangumi_path)
+                # TODO: fail to write name into info.txt
+                info_file = open(self.bangumi_path + '/info.txt', 'w')
+                info_file.write(self.bangumi.name.encode('utf-8'))
+                info_file.close()
+        except OSError as exception:
+            if exception.errno != errno.EEXIST:
+                raise exception
 
     def __parse_episode_number(self, eps_title):
         try:
@@ -30,11 +43,13 @@ class FeedFromDMHY:
         for item in feed_dict.entries:
             eps_no = self.__parse_episode_number(item['title'])
             if eps_no in eps_no_list:
-                self.add_to_download(item, eps_no)
+                d = self.add_to_download(item, eps_no)
+                d.addCallback(self.download_callback)
 
+    @inlineCallbacks
     def add_to_download(self, item, eps_no):
         magnet_uri = item.enclosures[0].href
-        torrent_file = yield threads.blockingCallFromThread(reactor, download_manager.download, magnet_uri)
+        torrent_file = yield threads.blockingCallFromThread(reactor, download_manager.download, magnet_uri, self.bangumi_path)
 
         print torrent_file.torrent_id
 
@@ -50,3 +65,8 @@ class FeedFromDMHY:
         episode.torrent_files.append(torrent_file)
 
         episode.status = Episode.STATUS_DOWNLOADING
+
+        returnValue(eps_no)
+
+    def download_callback(self, eps_no):
+        print('episode %s added' % eps_no)

@@ -15,6 +15,8 @@ from utils.SessionManager import SessionManager
 from domain.bangumi_model import Episode, Bangumi
 from twisted.internet.task import LoopingCall
 from utils.DownloadManager import download_manager
+import os, errno
+
 
 class Scheduler:
 
@@ -22,6 +24,16 @@ class Scheduler:
         fr = open('./config/config.yml', 'r')
         config = load(fr)
         self.interval = int(config['task']['interval']) * 60
+        self.base_path = config['download']['location']
+        try:
+            if not os.path.exists(self.base_path):
+                os.makedirs(self.base_path)
+        except OSError as exception:
+            if exception.errno == errno.EACCES:
+                # permission denied
+                raise exception
+            else:
+                print exception
 
     def start(self):
         lc = LoopingCall(self.scan_bangumi)
@@ -32,17 +44,20 @@ class Scheduler:
 
         result = session.query(Bangumi).\
             filter(Bangumi.status == Bangumi.STATUS_ON_AIR)
+        try:
 
-        for bangumi in result:
-            episode_result = session.query(Episode).\
-                filter(Episode.bangumi==bangumi).\
-                filter(Episode.status==Episode.STATUS_NOT_DOWNLOADED)
+            for bangumi in result:
+                episode_result = session.query(Episode).\
+                    filter(Episode.bangumi==bangumi).\
+                    filter(Episode.status==Episode.STATUS_NOT_DOWNLOADED)
 
-            task = FeedFromDMHY(bangumi, episode_result)
+                task = FeedFromDMHY(bangumi, episode_result, self.base_path)
 
-            task.parse_feed()
+                task.parse_feed()
 
-            session.commit()
+                session.commit()
+        except OSError as os_error:
+            print os_error
 
     def scan_bangumi(self):
         threads.deferToThread(self._scan_bangumi_in_thread)
