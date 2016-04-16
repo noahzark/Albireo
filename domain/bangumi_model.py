@@ -73,3 +73,5 @@ class Bangumi(Base):
     STATUS_ON_AIR = 1
     # A finished bangumi will no longer need to scanned
     STATUS_FINISHED = 2
+
+

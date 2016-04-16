@@ -1,7 +1,8 @@
 from twisted.internet.defer import inlineCallbacks, returnValue
 from twisted.internet import threads
 from download_adapter.DelugeDownloader import DelugeDownloader
-from domain.bangumi_model import TorrentFile, Episode
+from domain.TorrentFile import TorrentFile
+from domain.Episode import Episode
 from utils.SessionManager import SessionManager
 
 

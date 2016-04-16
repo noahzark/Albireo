@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from flask import request, Blueprint
-from domain.bangumi_model import Episode, Bangumi
+from domain.Episode import Episode
+from domain.Bangumi import Bangumi
 from datetime import datetime
 from utils.SessionManager import SessionManager
 from utils.http import json_resp

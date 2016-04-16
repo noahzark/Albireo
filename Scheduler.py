@@ -12,7 +12,8 @@ from twisted.internet import reactor, threads
 from feed.FeedFromDMHY import FeedFromDMHY
 from yaml import load
 from utils.SessionManager import SessionManager
-from domain.bangumi_model import Episode, Bangumi
+from domain.Episode import Episode
+from domain.Bangumi import Bangumi
 from twisted.internet.task import LoopingCall
 from utils.DownloadManager import download_manager
 import os, errno

@@ -1,7 +1,7 @@
 import feedparser
 import re
 from utils.DownloadManager import download_manager
-from domain.bangumi_model import Episode
+from domain.Episode import Episode
 from twisted.internet import reactor, threads
 from twisted.internet.defer import inlineCallbacks, returnValue
 import os, errno
@@ -16,7 +16,6 @@ class FeedFromDMHY:
         try:
             if not os.path.exists(self.bangumi_path):
                 os.makedirs(self.bangumi_path)
-                # TODO: fail to write name into info.txt
                 info_file = open(self.bangumi_path + '/info.txt', 'w')
                 info_file.write(self.bangumi.name.encode('utf-8'))
                 info_file.close()
