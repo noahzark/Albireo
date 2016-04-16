@@ -31,7 +31,6 @@ class Episode(Base):
     duration = Column(String, nullable=True)
     airdate = Column(DATE, nullable=True)
     status = Column(Integer)
-    torrent_id = Column(String, nullable=True)
     create_time = Column(TIMESTAMP, default=datetime.now())
     update_time = Column(TIMESTAMP, default=datetime.now())
 

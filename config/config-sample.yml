@@ -1,14 +1,18 @@
 database:
   database: albireo
-#  username:
-#  password:
-#  host:
-#  port: 5432
+  username: postgres
+  password: 123456
+  host: 127.0.0.1
+  port: 5432
 
 deluge:
-#  host:
-#  port:
-#  username:
+  host: 127.0.0.1
+  port: 58846
+  username: ''
+  password: deluge
 
 task:
   interval: 15  # unit minute
+
+download:
+  location: /  # change this location

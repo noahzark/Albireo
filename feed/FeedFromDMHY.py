@@ -51,22 +51,27 @@ class FeedFromDMHY:
         magnet_uri = item.enclosures[0].href
         torrent_file = yield threads.blockingCallFromThread(reactor, download_manager.download, magnet_uri, self.bangumi_path)
 
-        print torrent_file.torrent_id
+        if torrent_file is None:
+            returnValue(eps_no)
+        else:
+            print torrent_file.torrent_id
 
-        episode = None
-        for eps in self.episode_list:
-            if eps_no == eps.episode_no:
-                episode = eps
-                break
+            episode = None
+            for eps in self.episode_list:
+                if eps_no == eps.episode_no:
+                    episode = eps
+                    break
 
-        if episode.torrent_files is not list:
-            episode.torrent_files = []
+            if episode.torrent_files is not list:
+                episode.torrent_files = []
 
-        episode.torrent_files.append(torrent_file)
+            episode.torrent_files.append(torrent_file)
 
-        episode.status = Episode.STATUS_DOWNLOADING
+            episode.status = Episode.STATUS_DOWNLOADING
 
-        returnValue(eps_no)
+            print('episode %s added' % eps_no)
+
+            returnValue(eps_no)
 
     def download_callback(self, eps_no):
-        print('episode %s added' % eps_no)
+        pass

@@ -51,5 +51,4 @@ class DelugeDownloader(Downloader):
     @inlineCallbacks
     def get_files(self, torrent_id):
         files = yield client.core.get_torrent_status(torrent_id, ['files'])
-        print files
-        returnValue(files)
+        returnValue(files['files'])
