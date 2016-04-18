@@ -46,7 +46,7 @@ class UserCredential(UserMixin):
             invite_code = session.query(InviteCode).filter(InviteCode.code == invite_code).one()
             user = User(name=name,
                         password=generate_password_hash(password),
-                        is_admin=False)
+                        level=0)
             session.add(user)
             session.commit()
             invite_code.used_by = user.id

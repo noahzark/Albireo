@@ -1,6 +1,9 @@
 from flask import Flask
 from flask_login import LoginManager
 
+from utils.http import json_resp
+from utils.exceptions import ClientError, ServerError
+
 from service.user import UserCredential
 
 ## blueprints
@@ -12,6 +15,15 @@ login_manager = LoginManager()
 login_manager.session_protection = 'strong'
 
 app = Flask(__name__)
+
+@app.error_handlers(ClientError)
+def handle_client_exception(error):
+    return json_resp(error)
+
+@app.error_handlers(ServerError)
+def handle_server_exception(error):
+    return json_resp(error)
+
 
 app.register_blueprint(bangumi_api, url_prefix='/api/admin')
 app.register_blueprint(user_api, url_prefix='/api/user')

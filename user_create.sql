@@ -10,7 +10,7 @@ CREATE TABLE user (
     id uuid  NOT NULL,
     name VARCHAR(256) NOT NULL,
     password text  NOT NULL,
-    is_admin boolean NOT NULL,
+    level INT NOT NULL,
     CONSTRAINT user_pk PRIMARY KEY (id)
 );
 
