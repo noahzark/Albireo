@@ -6,7 +6,7 @@
 
 -- tables
 -- Table: user
-CREATE TABLE user (
+CREATE TABLE users (
     id uuid  NOT NULL,
     name VARCHAR(256) NOT NULL,
     password text  NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE user (
     CONSTRAINT user_pk PRIMARY KEY (id)
 );
 
--- Table: user
+-- Table: invite_code
 CREATE TABLE invite_code (
     code uuid  NOT NULL,
     used_by uuid NULL,

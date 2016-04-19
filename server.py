@@ -16,11 +16,11 @@ login_manager.session_protection = 'strong'
 
 app = Flask(__name__)
 
-@app.error_handlers(ClientError)
+@app.errorhandler(ClientError)
 def handle_client_exception(error):
     return json_resp(error)
 
-@app.error_handlers(ServerError)
+@app.errorhandler(ServerError)
 def handle_server_exception(error):
     return json_resp(error)
 

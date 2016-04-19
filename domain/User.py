@@ -6,7 +6,7 @@ from uuid import uuid4
 
 
 class User(Base):
-    __tablename__ = 'user'
+    __tablename__ = 'users'
 
     id = Column(postgresql.UUID(as_uuid=True), primary_key=True, default=uuid4)
     name = Column(String)
