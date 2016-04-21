@@ -9,7 +9,7 @@ class User(Base):
     __tablename__ = 'users'
 
     id = Column(postgresql.UUID(as_uuid=True), primary_key=True, default=uuid4)
-    name = Column(String)
+    name = Column(String, unique=True)
     password = Column(TEXT)
     # default user level is 0
     level = Column(Integer)

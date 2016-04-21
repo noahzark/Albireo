@@ -18,11 +18,11 @@ app = Flask(__name__)
 
 @app.errorhandler(ClientError)
 def handle_client_exception(error):
-    return json_resp(error)
+    return json_resp(error.to_dict(), error.status)
 
 @app.errorhandler(ServerError)
 def handle_server_exception(error):
-    return json_resp(error)
+    return json_resp(error.to_dict(), error.status)
 
 
 app.register_blueprint(bangumi_api, url_prefix='/api/admin')

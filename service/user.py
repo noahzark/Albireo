@@ -1,10 +1,14 @@
 from flask_login import UserMixin
+from sqlalchemy.exc import IntegrityError, DataError
 from sqlalchemy.orm.exc import NoResultFound
 
 from domain.InviteCode import InviteCode
 from utils.SessionManager import SessionManager
 from domain.User import User
 from werkzeug.security import generate_password_hash, check_password_hash
+
+from utils.exceptions import ClientError, ServerError
+
 
 class UserCredential(UserMixin):
 
@@ -44,6 +48,8 @@ class UserCredential(UserMixin):
         session = SessionManager.Session()
         try:
             invite_code = session.query(InviteCode).filter(InviteCode.code == invite_code).one()
+            if invite_code.used_by is not None:
+                raise ClientError('invite code already used')
             user = User(name=name,
                         password=generate_password_hash(password),
                         level=0)
@@ -51,7 +57,16 @@ class UserCredential(UserMixin):
             session.commit()
             invite_code.used_by = user.id
             session.commit()
-            SessionManager.Session.remove()
             return True
-        except:
-            return False
+        except NoResultFound:
+            raise ClientError('invalid invite code')
+        except DataError:
+            raise ClientError('invalid invite code')
+        except IntegrityError:
+            raise ClientError('duplicate name')
+        except ClientError as error:
+            raise error
+        except Exception as error:
+            raise ServerError(error.message)
+        finally:
+            SessionManager.Session.remove()

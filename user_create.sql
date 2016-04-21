@@ -8,7 +8,7 @@
 -- Table: user
 CREATE TABLE users (
     id uuid  NOT NULL,
-    name VARCHAR(256) NOT NULL,
+    name VARCHAR(256) NOT NULL UNIQUE,
     password text  NOT NULL,
     level INT NOT NULL,
     CONSTRAINT user_pk PRIMARY KEY (id)

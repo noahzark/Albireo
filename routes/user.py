@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from flask import request, Blueprint
+
+from utils.exceptions import ClientError
 from utils.http import json_resp
 import httplib2
 import json
@@ -66,13 +68,11 @@ def register():
             password_repeat = register_data['password_repeat']
             invite_code = register_data['invite_code']
             if password != password_repeat:
-                raise Exception()
+                raise ClientError('password not match')
             if UserCredential.register_user(name, password, invite_code):
                 return json_resp({'msg': 'OK'})
-            else:
-                return json_resp({'msg': 'invite code invalid'})
         else:
-            return json_resp({'msg': 'invalid parameters'}, 400)
+            raise ClientError('invalid parameters')
     except Exception as exception:
         raise exception
 
