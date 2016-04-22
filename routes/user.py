@@ -26,18 +26,12 @@ def login():
             password = login_data['password']
             remember = login_data['remember'] if 'remember' in login_data else False
             credential = UserCredential.login_user(name, password)
-            if credential is None:
-                return json_resp({'msg': 'invalid name or password'}, 400)
-            else:
-                login_user(credential, remember=remember)
-                return json_resp({'msg': 'OK'})
+            login_user(credential, remember=remember)
+            return json_resp({'msg': 'OK'})
         else:
-            return json_resp({'msg': 'invalid parameter'}, 400)
+            raise ClientError('invalid parameter')
     except Exception as exception:
         raise exception
-        # resp = make_response(jsonify({'msg': 'error'}), 500)
-        # resp.headers['Content-Type'] = 'application/json'
-        # return resp
 
 
 @user_api.route('/logout', methods=['POST'])

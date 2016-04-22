@@ -16,3 +16,5 @@ task:
 
 download:
   location: /  # change this location
+
+app_secret_key: amanogawa_saya

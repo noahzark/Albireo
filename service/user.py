@@ -16,7 +16,7 @@ class UserCredential(UserMixin):
         self.id = user.id
         self.name = user.name
         self.password = user.password
-        self.is_admin = user.is_admin
+        self.level = user.level
 
     @classmethod
     def get(cls, id):
@@ -39,9 +39,17 @@ class UserCredential(UserMixin):
                 SessionManager.Session.remove()
                 return credential
             else:
-                return None
+                ClientError('invalid name or password')
+        except NoResultFound:
+            raise ClientError('invalid name or password')
+        except DataError:
+            raise ClientError('invalid name or password')
+        except ClientError as error:
+            raise error
         except Exception as error:
-            return None
+            raise ServerError(error.message)
+        finally:
+            SessionManager.Session.remove()
 
     @staticmethod
     def register_user(name, password, invite_code):

@@ -9,12 +9,21 @@ from service.user import UserCredential
 ## blueprints
 from routes.bangumi import bangumi_api
 from routes.user import user_api
+import yaml
+
+def get_config(key):
+
+    __fr = open('./config/config.yml', 'r')
+    __config = yaml.load(__fr)
+    return __config[key] if key in __config else None
 
 
 login_manager = LoginManager()
 login_manager.session_protection = 'strong'
 
 app = Flask(__name__)
+
+app.secret_key = get_config('app_secret_key')
 
 @app.errorhandler(ClientError)
 def handle_client_exception(error):
