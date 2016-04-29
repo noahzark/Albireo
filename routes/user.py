@@ -7,7 +7,7 @@ import httplib2
 import json
 from service.admin import admin_service
 from service.user import UserCredential
-from flask_login import login_user, logout_user
+from flask_login import login_user, logout_user, login_required, fresh_login_required, current_user
 
 
 user_api = Blueprint('user', __name__)
@@ -35,6 +35,7 @@ def login():
 
 
 @user_api.route('/logout', methods=['POST'])
+@login_required
 def logout():
     '''
     logout a user
@@ -42,6 +43,7 @@ def logout():
     '''
     try:
         logout_user()
+        return json_resp({'msg': 'ok'})
     except Exception as exception:
         raise exception
 
@@ -72,14 +74,27 @@ def register():
 
 
 @user_api.route('/update_pass', methods=['POST'])
+@fresh_login_required
 def update_pass():
     '''
     update a user password, the original password is needed
     :return: response
     '''
+    try:
+        content = request.get_data(True, as_text=True)
+        user_data = json.loads(content)
+        if ('new_password' in user_data) and ('new_password_repeat' in user_data) and ('password' in user_data):
+            if(user_data['new_password'] != user_data['new_password_repeat']):
+                raise ClientError('password not match')
+            current_user.update_password(user_data['password'], user_data['new_password'])
+
+            return logout()
+    except Exception as exception:
+        raise exception
 
 
 @user_api.route('/promote_user', methods=['POST'])
+@fresh_login_required
 def promote_user():
     '''
     promote user as administrator

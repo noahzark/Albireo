@@ -18,6 +18,27 @@ class UserCredential(UserMixin):
         self.password = user.password
         self.level = user.level
 
+
+    def update_password(self, old_pass, new_pass):
+        try:
+            session = SessionManager.Session()
+            user = session.query(User).filter(User.id == self.id).one()
+            if check_password_hash(user.password, old_pass):
+                user.password = generate_password_hash(new_pass)
+                session.commit()
+                return True
+            else:
+                raise ClientError('password is incorrect')
+        except NoResultFound:
+            raise ServerError('user not found')
+        except ClientError as error:
+            raise error
+        except Exception as error:
+            raise error
+        finally:
+            SessionManager.Session.remove()
+
+
     @classmethod
     def get(cls, id):
         session = SessionManager.Session()
@@ -26,7 +47,7 @@ class UserCredential(UserMixin):
             credential =  cls(user)
             SessionManager.Session.remove()
             return credential
-        except Exception as error:
+        except Exception:
             return None
 
     @classmethod
@@ -39,7 +60,7 @@ class UserCredential(UserMixin):
                 SessionManager.Session.remove()
                 return credential
             else:
-                ClientError('invalid name or password')
+                raise ClientError('invalid name or password')
         except NoResultFound:
             raise ClientError('invalid name or password')
         except DataError:
@@ -78,3 +99,7 @@ class UserCredential(UserMixin):
             raise ServerError(error.message)
         finally:
             SessionManager.Session.remove()
+
+    @staticmethod
+    def update_pass():
+        pass
