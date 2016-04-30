@@ -4,12 +4,15 @@ from utils.http import json_resp
 import httplib2
 import json
 from service.admin import admin_service
+from service.auth import auth_user
 from flask_login import login_required
+from domain.User import User
 
 
 bangumi_api = Blueprint('bangumi', __name__)
 
 @bangumi_api.route('/bangumi', methods=['POST', 'GET'])
+@auth_user(User.LEVEL_ADMIN)
 @login_required
 def collection():
     if request.method == 'POST':
@@ -31,6 +34,7 @@ def collection():
 
 
 @bangumi_api.route('/bangumi/<id>', methods=['PUT', 'GET', 'DELETE'])
+@auth_user(User.LEVEL_ADMIN)
 @login_required
 def one(id):
     if request.method == 'PUT':
@@ -41,6 +45,7 @@ def one(id):
         return admin_service.delete_bangumi(id)
 
 @bangumi_api.route('/query', methods=['GET'])
+@auth_user(User.LEVEL_ADMIN)
 @login_required
 def search_bangumi():
     bangumi_tv_url_base = 'http://api.bgm.tv/search/subject/'
@@ -84,6 +89,7 @@ def search_bangumi():
     return json_resp(result)
 
 @bangumi_api.route('/query/<bgm_id>', methods=['GET'])
+@auth_user(User.LEVEL_ADMIN)
 @login_required
 def query_one_bangumi(bgm_id):
     bangumi_tv_url_base = 'http://api.bgm.tv/subject/'

@@ -3,11 +3,11 @@ from flask import request, Blueprint
 
 from utils.exceptions import ClientError
 from utils.http import json_resp
-import httplib2
 import json
-from service.admin import admin_service
 from service.user import UserCredential
 from flask_login import login_user, logout_user, login_required, fresh_login_required, current_user
+from service.auth import auth_user
+from domain.User import User
 
 
 user_api = Blueprint('user', __name__)
@@ -117,6 +117,7 @@ def reset_pass():
         raise exception
 
 @user_api.route('/promote_user', methods=['POST'])
+@auth_user(User.LEVEL_SUPER_USER)
 @fresh_login_required
 def promote_user():
     '''

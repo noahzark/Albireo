@@ -13,3 +13,9 @@ class User(Base):
     password = Column(TEXT)
     # default user level is 0
     level = Column(Integer)
+
+    # predefined user level
+    LEVEL_DEFAULT = 0
+    LEVEL_USER = 1
+    LEVEL_ADMIN = 2
+    LEVEL_SUPER_USER = 3
