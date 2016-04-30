@@ -1,4 +1,5 @@
 from flask_login import UserMixin
+from sqlalchemy import and_
 from sqlalchemy.exc import IntegrityError, DataError
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -76,15 +77,15 @@ class UserCredential(UserMixin):
     def register_user(name, password, invite_code):
         session = SessionManager.Session()
         try:
-            invite_code = session.query(InviteCode).filter(InviteCode.code == invite_code).one()
-            if invite_code.used_by is not None:
+            code = session.query(InviteCode).filter(InviteCode.code == invite_code).one()
+            if code.used_by is not None:
                 raise ClientError('invite code already used')
             user = User(name=name,
                         password=generate_password_hash(password),
                         level=0)
             session.add(user)
             session.commit()
-            invite_code.used_by = user.id
+            code.used_by = user.id
             session.commit()
             return True
         except NoResultFound:
@@ -103,3 +104,25 @@ class UserCredential(UserMixin):
     @staticmethod
     def update_pass():
         pass
+
+    @staticmethod
+    def reset_pass(name, password, invite_code):
+        session = SessionManager.Session()
+        try:
+            user = session.query(User).filter(User.name == name).one()
+            code = session.query(InviteCode).filter(and_(InviteCode.code == invite_code, InviteCode.used_by == user.id)).one()
+
+            user.password = generate_password_hash(password)
+
+            session.commit()
+            return True
+        except NoResultFound:
+            raise ClientError('invalid invite code')
+        except DataError:
+            raise ClientError('invalid invite code')
+        except ClientError as error:
+            raise error
+        except Exception as error:
+            raise ServerError(error.message)
+        finally:
+            SessionManager.Session.remove()

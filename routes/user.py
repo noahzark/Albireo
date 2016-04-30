@@ -93,6 +93,29 @@ def update_pass():
         raise exception
 
 
+@user_api.route('/reset_pass', methods=['POST'])
+def reset_pass():
+    '''
+    reset a user password, invite_code is required
+    :return:
+    '''
+    try:
+        content = request.get_data(True, as_text=True)
+        user_data = json.loads(content)
+        if ('name' in user_data) and ('password' in user_data) and ('password_repeat' in user_data) and ('invite_code' in user_data):
+            name = user_data['name']
+            password = user_data['password']
+            password_repeat = user_data['password_repeat']
+            invite_code = user_data['invite_code']
+            if password != password_repeat:
+                raise ClientError('password not match')
+            if UserCredential.reset_pass(name, password, invite_code):
+                return json_resp({'msg': 'OK'})
+        else:
+            raise ClientError('invalid parameters')
+    except Exception as exception:
+        raise exception
+
 @user_api.route('/promote_user', methods=['POST'])
 @fresh_login_required
 def promote_user():
