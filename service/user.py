@@ -61,11 +61,11 @@ class UserCredential(UserMixin):
                 SessionManager.Session.remove()
                 return credential
             else:
-                raise ClientError('invalid name or password')
+                raise ClientError(ClientError.LOGIN_FAIL)
         except NoResultFound:
-            raise ClientError('invalid name or password')
+            raise ClientError(ClientError.LOGIN_FAIL)
         except DataError:
-            raise ClientError('invalid name or password')
+            raise ClientError(ClientError.LOGIN_FAIL)
         except ClientError as error:
             raise error
         except Exception as error:

@@ -18,5 +18,9 @@ class ServerError(BasicError):
 
 class ClientError(BasicError):
 
+    LOGIN_FAIL = 'invalid name or password'
+
+    INVALID_REQUEST = 'invalid parameter'
+
     def __init__(self, message, status=400, payload=None):
         BasicError.__init__(self, message, status, payload)

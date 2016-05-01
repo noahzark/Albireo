@@ -29,7 +29,7 @@ def login():
             login_user(credential, remember=remember)
             return json_resp({'msg': 'OK'})
         else:
-            raise ClientError('invalid parameter')
+            raise ClientError(ClientError.INVALID_REQUEST)
     except Exception as exception:
         raise exception
 
@@ -125,3 +125,16 @@ def promote_user():
     :return: response
     '''
     pass
+
+
+@user_api.route('/info', methods=['GET'])
+@login_required
+def get_user_info():
+    '''
+    get current user name and level
+    :return: response
+    '''
+    user_info = {}
+    user_info['name'] = current_user.name
+    user_info['level'] = current_user.level
+    return json_resp({'data': user_info})

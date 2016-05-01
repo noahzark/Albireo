@@ -43,6 +43,10 @@ login_manager.init_app(app)
 def load_user(user_id):
     return UserCredential.get(user_id)
 
+@login_manager.unauthorized_handler
+def unauthorized():
+    return json_resp({'message': 'unauthorized access'}, 401)
+
 if __name__ == '__main__':
     app.debug = True
     app.run(host='0.0.0.0')
