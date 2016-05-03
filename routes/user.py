@@ -64,11 +64,11 @@ def register():
             password_repeat = register_data['password_repeat']
             invite_code = register_data['invite_code']
             if password != password_repeat:
-                raise ClientError('password not match')
+                raise ClientError(ClientError.PASSWORD_MISMATCH)
             if UserCredential.register_user(name, password, invite_code):
                 return json_resp({'msg': 'OK'})
         else:
-            raise ClientError('invalid parameters')
+            raise ClientError(ClientError.INVALID_REQUEST)
     except Exception as exception:
         raise exception
 

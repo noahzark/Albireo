@@ -29,7 +29,7 @@ class UserCredential(UserMixin):
                 session.commit()
                 return True
             else:
-                raise ClientError('password is incorrect')
+                raise ClientError(ClientError.PASSWORD_INCORRECT)
         except NoResultFound:
             raise ServerError('user not found')
         except ClientError as error:
@@ -79,7 +79,7 @@ class UserCredential(UserMixin):
         try:
             code = session.query(InviteCode).filter(InviteCode.code == invite_code).one()
             if code.used_by is not None:
-                raise ClientError('invite code already used')
+                raise ClientError(ClientError.INVALID_INVITE_CODE)
             user = User(name=name,
                         password=generate_password_hash(password),
                         level=0)
@@ -89,11 +89,11 @@ class UserCredential(UserMixin):
             session.commit()
             return True
         except NoResultFound:
-            raise ClientError('invalid invite code')
+            raise ClientError(ClientError.INVALID_INVITE_CODE)
         except DataError:
-            raise ClientError('invalid invite code')
+            raise ClientError(ClientError.INVALID_INVITE_CODE)
         except IntegrityError:
-            raise ClientError('duplicate name')
+            raise ClientError(ClientError.DUPLICATE_NAME)
         except ClientError as error:
             raise error
         except Exception as error:
@@ -117,9 +117,9 @@ class UserCredential(UserMixin):
             session.commit()
             return True
         except NoResultFound:
-            raise ClientError('invalid invite code')
+            raise ClientError(ClientError.INVALID_INVITE_CODE)
         except DataError:
-            raise ClientError('invalid invite code')
+            raise ClientError(ClientError.INVALID_INVITE_CODE)
         except ClientError as error:
             raise error
         except Exception as error:

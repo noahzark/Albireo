@@ -16,6 +16,7 @@ from domain.Episode import Episode
 from domain.Bangumi import Bangumi
 from twisted.internet.task import LoopingCall
 from utils.DownloadManager import download_manager
+from utils.exceptions import SchedulerError
 import os, errno
 
 
@@ -41,24 +42,30 @@ class Scheduler:
         lc.start(self.interval)
 
     def _scan_bangumi_in_thread(self):
+
+
         session = SessionManager.Session
 
         result = session.query(Bangumi).\
             filter(Bangumi.status == Bangumi.STATUS_ON_AIR)
         try:
-
             for bangumi in result:
                 episode_result = session.query(Episode).\
                     filter(Episode.bangumi==bangumi).\
                     filter(Episode.status==Episode.STATUS_NOT_DOWNLOADED)
 
                 task = FeedFromDMHY(bangumi, episode_result, self.base_path)
+                task_result = task.parse_feed()
+                if task_result is None:
+                    session.commit()
+                else:
+                    print task_result
 
-                task.parse_feed()
 
-                session.commit()
         except OSError as os_error:
             print os_error
+        except Exception as error:
+            print error
 
     def scan_bangumi(self):
         threads.deferToThread(self._scan_bangumi_in_thread)

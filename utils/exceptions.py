@@ -22,5 +22,17 @@ class ClientError(BasicError):
 
     INVALID_REQUEST = 'invalid parameter'
 
+    PASSWORD_MISMATCH = 'password not match'
+    INVALID_INVITE_CODE = 'invalid invite code'
+    DUPLICATE_NAME = 'duplicate name'
+
+    PASSWORD_INCORRECT = 'password incorrect'
+
     def __init__(self, message, status=400, payload=None):
         BasicError.__init__(self, message, status, payload)
+
+
+class SchedulerError(Exception):
+    def __init__(self, payload):
+        Exception.__init__(self, payload)
+        self.payload = payload

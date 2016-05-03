@@ -1,6 +1,7 @@
 import feedparser
 import re
 from utils.DownloadManager import download_manager
+from utils.exceptions import SchedulerError
 from domain.Episode import Episode
 from twisted.internet import reactor, threads
 from twisted.internet.defer import inlineCallbacks, returnValue
@@ -37,8 +38,13 @@ class FeedFromDMHY:
     def parse_feed(self):
         url = self.bangumi.rss
         # eps no list
+        print 'start scan %s (%s), url is %s' % (self.bangumi.name, self.bangumi.id, self.bangumi.rss)
         eps_no_list = [eps.episode_no for eps in self.episode_list]
         feed_dict = feedparser.parse(url)
+
+        if feed_dict.bozo != 0:
+            return feed_dict.bozo_exception
+
         for item in feed_dict.entries:
             eps_no = self.__parse_episode_number(item['title'])
             if eps_no in eps_no_list:
