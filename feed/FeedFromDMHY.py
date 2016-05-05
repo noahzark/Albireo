@@ -6,7 +6,11 @@ from domain.Episode import Episode
 from twisted.internet import reactor, threads
 from twisted.internet.defer import inlineCallbacks, returnValue
 import os, errno
+import logging
 
+logger = logging.getLogger(__name__)
+
+logger.propagate = True
 
 class FeedFromDMHY:
 
@@ -20,6 +24,7 @@ class FeedFromDMHY:
                 info_file = open(self.bangumi_path + '/info.txt', 'w')
                 info_file.write(self.bangumi.name.encode('utf-8'))
                 info_file.close()
+                logger.info('create dir for %s', self.bangumi.name)
         except OSError as exception:
             if exception.errno != errno.EEXIST:
                 raise exception
@@ -38,7 +43,7 @@ class FeedFromDMHY:
     def parse_feed(self):
         url = self.bangumi.rss
         # eps no list
-        print 'start scan %s (%s), url is %s' % (self.bangumi.name, self.bangumi.id, self.bangumi.rss)
+        logger.debug('start scan %s (%s), url is %s', self.bangumi.name, self.bangumi.id, self.bangumi.rss)
         eps_no_list = [eps.episode_no for eps in self.episode_list]
         feed_dict = feedparser.parse(url)
 
@@ -57,6 +62,7 @@ class FeedFromDMHY:
         torrent_file = yield threads.blockingCallFromThread(reactor, download_manager.download, magnet_uri, self.bangumi_path)
 
         if torrent_file is None:
+            logger.warn('episode %s of %s added failed', eps_no, self.bangumi.name)
             returnValue(eps_no)
         else:
             print torrent_file.torrent_id
@@ -74,7 +80,7 @@ class FeedFromDMHY:
 
             episode.status = Episode.STATUS_DOWNLOADING
 
-            print('episode %s added' % eps_no)
+            logger.info('episode %s of %s added', eps_no, self.bangumi.name)
 
             returnValue(eps_no)
 

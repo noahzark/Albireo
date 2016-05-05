@@ -4,6 +4,9 @@ from download_adapter.DelugeDownloader import DelugeDownloader
 from domain.TorrentFile import TorrentFile
 from domain.Episode import Episode
 from utils.SessionManager import SessionManager
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class DownloadManager:
@@ -20,8 +23,7 @@ class DownloadManager:
 
 
     def on_download_completed(self, torrent_id):
-        print 'Download complete'
-        print 'torrent_id %s' % torrent_id
+        logger.info('Download complete: %s', torrent_id)
 
         def update_torrent_file(file_path):
             session = SessionManager.Session
@@ -49,14 +51,14 @@ class DownloadManager:
 
                     file_path = main_file['path']
                 else:
-                    print 'no file found'
+                    logger.warn('no file found in %s', torrent_id)
 
                 if file_path is not None:
                     threads.deferToThread(update_torrent_file, file_path)
 
         def fail_to_get_files(result):
-            print 'fail to get files of %s' % torrent_id
-            print result
+            logger.warn('fail to get files of %s', torrent_id)
+            logger.warn(result)
 
         d = self.downloader.get_files(torrent_id)
         d.addCallback(get_files)
@@ -68,7 +70,7 @@ class DownloadManager:
             torrent_id = yield self.downloader.download(magnet_uri, download_location)
             returnValue(TorrentFile(torrent_id=torrent_id))
         except Exception as error:
-            print error
+            logger.warn(error)
             returnValue(None)
 
 
