@@ -5,7 +5,7 @@ The web client for this project is [Deneb](https://github.com/lordfriend/Deneb)
 
 ## Motivation
 
-There are an existed resolution for auto download bangumi from dmhy or other bt site by using flexget to parse the rss feed periodically. but that resolution is hard the manage the downloaded
+There are an existed resolution for auto download bangumi from dmhy or other bt site by using flexget to parse the rss feed periodically. but that resolution is hard to manage the downloaded
 file when the number of bangumi is growing. So I write this project to make the same way to auto download bangumi but associate the downloaded file with information provided by bangumi.tv.
 further more, the information can be used for more user friendly function.
 
