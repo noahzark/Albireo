@@ -61,8 +61,10 @@ To start the server, run `python server.py`, if you set the environment variable
 ### HTTP API
 
 Admin API
-**all api need login and user level >= 2**
+
 root: /api/admin/
+
+**all api need login and user level >= 2**
 
 #### List bangumi in database
 GET `/api/admin/bangumi?page=<page number>&count=<number per page>&sort_field=<sort field>&sort_order=<sort order>&name=<name>`
