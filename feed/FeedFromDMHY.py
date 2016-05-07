@@ -21,6 +21,7 @@ class FeedFromDMHY:
         self.bangumi_path = base_path + '/' + str(self.bangumi.id)
         self.proxy = proxy
         try:
+            # create an path for bangumi using bangumi.id
             if not os.path.exists(self.bangumi_path):
                 os.makedirs(self.bangumi_path)
                 info_file = open(self.bangumi_path + '/info.txt', 'w')
@@ -32,6 +33,11 @@ class FeedFromDMHY:
                 raise exception
 
     def __parse_episode_number(self, eps_title):
+        '''
+        parse the episode number from episode title using bangumi.regex regular expression
+        :param eps_title:
+        :return: the episode number if no episode number is found or any exception occurred -1 is returned
+        '''
         try:
             search_result = re.search(self.bangumi.eps_regex, eps_title, re.U)
             if search_result and len(search_result.group()):
@@ -43,6 +49,12 @@ class FeedFromDMHY:
             return -1
 
     def parse_feed(self, timeout=None):
+        '''
+        parse feed for current bangumi and find not downloaded episode in feed entries.
+        this method using an async call to add torrent.
+        :param timeout:
+        :return: if no error when get feed None is return otherwise return the error object
+        '''
         url = self.bangumi.rss
         # eps no list
         logger.debug('start scan %s (%s), url is %s', self.bangumi.name, self.bangumi.id, self.bangumi.rss)
@@ -77,6 +89,12 @@ class FeedFromDMHY:
 
     @inlineCallbacks
     def add_to_download(self, item, eps_no):
+        '''
+        add current episode to download, when download is added, update episode status and add torrent_file record
+        :param item: the item of corresponding episode, it contains an enclosure list which has magnet uri
+        :param eps_no: the episode number
+        :return: the episode number, the return value is useless
+        '''
         magnet_uri = item.enclosures[0].href
         torrent_file = yield threads.blockingCallFromThread(reactor, download_manager.download, magnet_uri, self.bangumi_path)
 
