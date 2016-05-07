@@ -9,6 +9,12 @@ There are an existed resolution for auto download bangumi from dmhy or other bt 
 file when the number of bangumi is growing. So I write this project to make the same way to auto download bangumi but associate the downloaded file with information provided by bangumi.tv.
 further more, the information can be used for more user friendly function.
 
+[Installation](#Installation)
+
+[Server](#Server)
+
+[Scheduler](#Scheduler)
+
 ## Installation
 
 requirements: python 2.7, deluge, postgresql 9.3 and above
@@ -265,4 +271,4 @@ totally same with bangumi.tv search api. see https://github.com/jabbany/dhufufu/
 
 Scheduler is the core of this project ,it work like an cron daemon and periodically visit the bangumi rss to see if there are episode need to be downloaded.
 
-To ru Scheduler, run `python scheduler.py` is enough, if you set environment variable DEBUG to True, debug info will be printed.
+To run Scheduler, run `python scheduler.py` is enough, if you set environment variable DEBUG to True, debug info will be printed.
