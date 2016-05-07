@@ -117,8 +117,8 @@ def reset_pass():
         raise exception
 
 @user_api.route('/promote_user', methods=['POST'])
-@auth_user(User.LEVEL_SUPER_USER)
 @fresh_login_required
+@auth_user(User.LEVEL_SUPER_USER)
 def promote_user():
     '''
     promote user as administrator

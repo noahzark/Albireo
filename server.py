@@ -10,6 +10,9 @@ from service.user import UserCredential
 from routes.bangumi import bangumi_api
 from routes.user import user_api
 import yaml
+import os
+
+isDebug = os.getenv('DEBUG', False)
 
 def get_config(key):
 
@@ -48,5 +51,5 @@ def unauthorized():
     return json_resp({'message': 'unauthorized access'}, 401)
 
 if __name__ == '__main__':
-    app.debug = True
+    app.debug = isDebug
     app.run(host='0.0.0.0')

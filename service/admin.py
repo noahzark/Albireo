@@ -67,11 +67,13 @@ class AdminService:
                               image=bangumi_data['image'],
                               air_date=bangumi_data['air_date'],
                               air_weekday=bangumi_data['air_weekday'],
-                              eps_regex=bangumi_data['eps_regex'],
                               status=self.__get_bangumi_status(bangumi_data['air_date']))
 
             if 'rss' in bangumi_data:
                 bangumi.rss = bangumi_data['rss']
+
+            if 'eps_regex' in bangumi_data:
+                bangumi.eps_regex = bangumi_data['eps_regex']
 
             session = SessionManager.Session()
 

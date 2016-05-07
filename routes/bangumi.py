@@ -12,8 +12,8 @@ from domain.User import User
 bangumi_api = Blueprint('bangumi', __name__)
 
 @bangumi_api.route('/bangumi', methods=['POST', 'GET'])
-@auth_user(User.LEVEL_ADMIN)
 @login_required
+@auth_user(User.LEVEL_ADMIN)
 def collection():
     if request.method == 'POST':
         try:
@@ -34,8 +34,8 @@ def collection():
 
 
 @bangumi_api.route('/bangumi/<id>', methods=['PUT', 'GET', 'DELETE'])
-@auth_user(User.LEVEL_ADMIN)
 @login_required
+@auth_user(User.LEVEL_ADMIN)
 def one(id):
     if request.method == 'PUT':
         return admin_service.update_bangumi(id, json.loads(request.get_data(True, as_text=True)))
@@ -45,8 +45,8 @@ def one(id):
         return admin_service.delete_bangumi(id)
 
 @bangumi_api.route('/query', methods=['GET'])
-@auth_user(User.LEVEL_ADMIN)
 @login_required
+@auth_user(User.LEVEL_ADMIN)
 def search_bangumi():
     bangumi_tv_url_base = 'http://api.bgm.tv/search/subject/'
     bangumi_tv_url_param = '?responseGroup=simple&max_result=10&start=0'
@@ -89,8 +89,8 @@ def search_bangumi():
     return json_resp(result)
 
 @bangumi_api.route('/query/<bgm_id>', methods=['GET'])
-@auth_user(User.LEVEL_ADMIN)
 @login_required
+@auth_user(User.LEVEL_ADMIN)
 def query_one_bangumi(bgm_id):
     bangumi_tv_url_base = 'http://api.bgm.tv/subject/'
     bangumi_tv_url_param = '?responseGroup=large'
