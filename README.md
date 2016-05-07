@@ -37,7 +37,13 @@ There are some config that must be modified before your run the project
 ### init database
 
 execute sql `bangumi_create.sql` and `user_create.sql` to init the database tables used by application. by default, you need to create an admin user to use the http admin API.
-there are and CLI tool for this, use tools.py to create invite code and promote admin user
+there are a CLI tool for this job, use tools.py to create invite code and promote admin user
+
+```bash
+$ python tools.py --user-add admin 1234  # admin is username 1234 is password
+
+$ python tools.py --user-promote admin 3  # admin is username 3 is the level, currently means super user
+```
 
 ## Server
 
