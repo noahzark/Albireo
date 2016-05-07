@@ -17,6 +17,7 @@ from domain.Bangumi import Bangumi
 from twisted.internet.task import LoopingCall
 from utils.DownloadManager import download_manager
 from utils.exceptions import SchedulerError
+from urlparse import urlparse
 import os, errno
 import logging
 
@@ -40,6 +41,7 @@ class Scheduler:
         config = load(fr)
         self.interval = int(config['task']['interval']) * 60
         self.base_path = config['download']['location']
+        self.feedparser = config['feedparser']
         try:
             if not os.path.exists(self.base_path):
                 os.makedirs(self.base_path)
@@ -55,26 +57,80 @@ class Scheduler:
         lc = LoopingCall(self.scan_bangumi)
         lc.start(self.interval)
 
+    def get_url_name(self, url):
+        '''
+        get the site name by given url
+        :param url:
+        :return: the site name if not found return default
+        '''
+        url_name_map = {
+            'share.dmhy.org': 'dmhy',
+            'share.dmhy.net': 'dmhy',
+            'bangumi.moe': 'bangumi',
+        }
+        location = urlparse(url)[1]
+
+        if location in url_name_map:
+            return url_name_map[location]
+        else:
+            return 'default'
+
+    def _get_proxy(self, rss_url):
+        '''
+        get the proxy config from config and given url,
+        if url specific config is not found using the default config.
+        if config is an string, treat it as proxy url, use it for all three schemes
+        if config is an dict, make sure it has all scheme set and use it directly
+        :param rss_url:
+        :return: an dict of config
+        '''
+        if 'proxy' in self.feedparser:
+            proxy_config = self.feedparser['proxy']
+            url_name = self.get_url_name(rss_url)
+            # find config by name, if not found, use default, if default is not set, return None
+            if url_name in proxy_config:
+                proxy_for_name = proxy_config[url_name]
+            elif 'default' in proxy_config:
+                proxy_for_name = proxy_config['default']
+            else:
+                return None
+
+            if type(proxy_for_name) is str:
+                return {'http': proxy_for_name, 'https': proxy_for_name, 'ftp': proxy_for_name}
+            elif type(proxy_for_name) is dict:
+                return proxy_for_name
+            else:
+                return None
+
     def _scan_bangumi_in_thread(self):
-        logger.info('start scan bangumi')
+        logger.debug('start scan bangumi')
 
         session = SessionManager.Session
 
         result = session.query(Bangumi).\
-            filter(Bangumi.status == Bangumi.STATUS_ON_AIR)
+            filter(Bangumi.status == Bangumi.STATUS_ON_AIR).\
+            filter(Bangumi.rss != None)
         try:
             for bangumi in result:
                 episode_result = session.query(Episode).\
                     filter(Episode.bangumi==bangumi).\
                     filter(Episode.status==Episode.STATUS_NOT_DOWNLOADED)
 
-                task = FeedFromDMHY(bangumi, episode_result, self.base_path)
-                task_result = task.parse_feed()
+                http_proxy = self._get_proxy(bangumi.rss)
+
+                task = FeedFromDMHY(bangumi, episode_result, self.base_path, http_proxy)
+
+                if 'timeout' in self.feedparser:
+                    timeout = int(self.feedparser['timeout'])
+                else:
+                    timeout = None
+
+                task_result = task.parse_feed(timeout)
                 if task_result is None:
                     session.commit()
-                    logger.info('scan finished')
+                    logger.debug('scan finished')
                 else:
-                    logger.warn('scan finished with exception')
+                    logger.warn('scan %s finished with exception', bangumi.id)
                     logger.warn(task_result)
 
 

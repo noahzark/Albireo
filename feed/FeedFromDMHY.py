@@ -5,8 +5,9 @@ from utils.exceptions import SchedulerError
 from domain.Episode import Episode
 from twisted.internet import reactor, threads
 from twisted.internet.defer import inlineCallbacks, returnValue
-import os, errno
-import logging
+import os, errno, socket
+import logging, urllib2
+from urlparse import urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -14,10 +15,11 @@ logger.propagate = True
 
 class FeedFromDMHY:
 
-    def __init__(self, bangumi, episode_list, base_path):
+    def __init__(self, bangumi, episode_list, base_path, proxy=None):
         self.bangumi = bangumi
         self.episode_list = episode_list
         self.bangumi_path = base_path + '/' + str(self.bangumi.id)
+        self.proxy = proxy
         try:
             if not os.path.exists(self.bangumi_path):
                 os.makedirs(self.bangumi_path)
@@ -37,17 +39,34 @@ class FeedFromDMHY:
             else:
                 return -1
         except Exception as exception:
-            print(exception)
+            logger.warn(exception)
             return -1
 
-    def parse_feed(self):
+    def parse_feed(self, timeout=None):
         url = self.bangumi.rss
         # eps no list
         logger.debug('start scan %s (%s), url is %s', self.bangumi.name, self.bangumi.id, self.bangumi.rss)
         eps_no_list = [eps.episode_no for eps in self.episode_list]
-        feed_dict = feedparser.parse(url)
+
+        default_timeout = socket.getdefaulttimeout()
+        # set timeout is provided
+        if timeout is not None:
+            socket.setdefaulttimeout(timeout)
+
+        # use handlers
+        if self.proxy is not None:
+            print self.proxy
+            proxy_handler = urllib2.ProxyHandler(self.proxy)
+            feed_dict = feedparser.parse(url, handlers=[proxy_handler])
+        else:
+            feed_dict = feedparser.parse(url)
+
+        # restore the default timeout
+        if timeout is not None:
+            socket.setdefaulttimeout(default_timeout)
 
         if feed_dict.bozo != 0:
+            print feed_dict
             return feed_dict.bozo_exception
 
         for item in feed_dict.entries:
