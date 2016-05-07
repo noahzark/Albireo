@@ -53,7 +53,7 @@ Admin API
 root: /api/admin/
 
 #### List bangumi in database
-GET /api/admin/bangumi?page=<page number>&count=<number per page>&sort_field=<sort field>&sort_order=<sort order>&name=<name>
+GET `/api/admin/bangumi?page=<page number>&count=<number per page>&sort_field=<sort field>&sort_order=<sort order>&name=<name>`
 
 Params
 - page: default 1, current page
@@ -94,7 +94,7 @@ body:
 ```
 
 #### Get a bangumi detail
-GET /api/admin/bangumi/:id
+GET `/api/admin/bangumi/:id`
 
 Params:
 - id the bangumi.id, note that this is not bgm_id
@@ -125,7 +125,7 @@ body:
 ```
 
 #### Add a bangumi
-POST /api/admin/bangumi
+POST `/api/admin/bangumi`
 
 Request Body:
 ```json
@@ -162,7 +162,7 @@ status: 200
 ```
 
 #### Update a bangumi
-PUT /api/admin/bangumi/:id
+PUT `/api/admin/bangumi/:id`
 
 Request Body:
 ```json
@@ -193,7 +193,7 @@ status: 200
 ```
 
 #### Delete a bangumi
-DELETE /api/admin/bangumi/:id
+DELETE `/api/admin/bangumi/:id`
 
 Return:
 ```json
@@ -203,7 +203,7 @@ Return:
 ```
 
 #### Search a bangumi
-GET /api/admin/query?name=<name>
+GET `/api/admin/query?name=<name>`
 
 Params:
 - name the name of the bangumi, this name will be used to search with bgm.tv search api
@@ -246,7 +246,7 @@ status: 200
 the return json format is almost the same with bgm.tv search api, but convert the id to bgm_id, and if id is existed, that means this bangumi is already added to database
 
 #### Search a bangumi detail
-GET /api/admin/query/:bgm_id
+GET `/api/admin/query/:bgm_id`
 
 Params:
 - bgm_id the bangumi.tv id
