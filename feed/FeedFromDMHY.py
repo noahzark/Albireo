@@ -67,7 +67,6 @@ class FeedFromDMHY:
 
         # use handlers
         if self.proxy is not None:
-            print self.proxy
             proxy_handler = urllib2.ProxyHandler(self.proxy)
             feed_dict = feedparser.parse(url, handlers=[proxy_handler])
         else:
@@ -78,7 +77,6 @@ class FeedFromDMHY:
             socket.setdefaulttimeout(default_timeout)
 
         if feed_dict.bozo != 0:
-            print feed_dict
             return feed_dict.bozo_exception
 
         for item in feed_dict.entries:
@@ -102,7 +100,6 @@ class FeedFromDMHY:
             logger.warn('episode %s of %s added failed', eps_no, self.bangumi.name)
             returnValue(eps_no)
         else:
-            print torrent_file.torrent_id
 
             episode = None
             for eps in self.episode_list:
