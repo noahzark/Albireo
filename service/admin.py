@@ -7,6 +7,7 @@ from utils.http import json_resp
 from utils.db import row2dict
 from sqlalchemy.sql.expression import or_, desc, asc
 from sqlalchemy.sql import select, func
+from sqlalchemy.orm import joinedload
 import json
 
 class AdminService:
@@ -30,30 +31,32 @@ class AdminService:
 
 
     def list_bangumi(self, page, count, sort_field, sort_order, name):
+        try:
 
-        session = SessionManager.Session()
-        query_object = session.query(Bangumi)
+            session = SessionManager.Session()
+            query_object = session.query(Bangumi)
 
-        if name is not None:
-            query_object = query_object.filter(or_(Bangumi.name==name, Bangumi.name_cn==name))
-            # count total rows
-            total = session.query(func.count(Bangumi.id)).filter(or_(Bangumi.name==name, Bangumi.name_cn==name)).scalar()
-        else:
-            total = session.query(func.count(Bangumi.id)).scalar()
+            if name is not None:
+                query_object = query_object.filter(or_(Bangumi.name==name, Bangumi.name_cn==name))
+                # count total rows
+                total = session.query(func.count(Bangumi.id)).filter(or_(Bangumi.name==name, Bangumi.name_cn==name)).scalar()
+            else:
+                total = session.query(func.count(Bangumi.id)).scalar()
 
-        offset = (page - 1) * count
+            offset = (page - 1) * count
 
-        if(sort_order == 'desc'):
-            bangumi_list = query_object.order_by(desc(getattr(Bangumi, sort_field))).offset(offset).limit(count).all()
-        else:
-            bangumi_list = query_object.order_by(asc(getattr(Bangumi, sort_field))).offset(offset).limit(count).all()
+            if(sort_order == 'desc'):
+                bangumi_list = query_object.order_by(desc(getattr(Bangumi, sort_field))).offset(offset).limit(count).all()
+            else:
+                bangumi_list = query_object.order_by(asc(getattr(Bangumi, sort_field))).offset(offset).limit(count).all()
 
-        bangumi_dict_list = [row2dict(bangumi) for bangumi in bangumi_list]
+            bangumi_dict_list = [row2dict(bangumi) for bangumi in bangumi_list]
 
-        SessionManager.Session.remove()
-
-        return json_resp({'data': bangumi_dict_list, 'total': total})
-
+            return json_resp({'data': bangumi_dict_list, 'total': total})
+        except Exception as exception:
+            raise exception
+        finally:
+            SessionManager.Session.remove()
 
     def add_bangumi(self, content):
         try:
@@ -133,9 +136,14 @@ class AdminService:
     def get_bangumi(self, id):
         try:
             session = SessionManager.Session()
-            bangumi = session.query(Bangumi).filter(Bangumi.id == id).one()
+
+            bangumi = session.query(Bangumi).options(joinedload(Bangumi.episodes)).filter(Bangumi.id == id).one()
+
+            episodes = [row2dict(episode) for episode in bangumi.episodes]
 
             bangumi_dict = row2dict(bangumi)
+
+            bangumi_dict['episodes'] = episodes
 
             SessionManager.Session.remove()
 
