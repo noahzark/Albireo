@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
+from sqlalchemy.orm.exc import NoResultFound
+
 from domain.Episode import Episode
 from domain.Bangumi import Bangumi
 from datetime import datetime
 from utils.SessionManager import SessionManager
+from utils.exceptions import ClientError
 from utils.http import json_resp
 from utils.db import row2dict
 from sqlalchemy.sql.expression import or_, desc, asc
@@ -99,15 +102,11 @@ class AdminService:
 
             bangumi_id = str(bangumi.id)
 
-            SessionManager.Session.remove()
-
             return json_resp({'data': {'id': bangumi_id}})
         except Exception as exception:
             raise exception
-            # resp = make_response(jsonify({'msg': 'error'}), 500)
-            # resp.headers['Content-Type'] = 'application/json'
-            # return resp
-
+        finally:
+            SessionManager.Session.remove()
 
     def update_bangumi(self, id, bangumi_dict):
         try:
@@ -127,11 +126,13 @@ class AdminService:
 
             session.commit()
 
-            SessionManager.Session.remove()
-
             return json_resp({'msg':'ok'})
+        except NoResultFound:
+            raise ClientError(ClientError.NOT_FOUND)
         except Exception as exception:
             raise exception
+        finally:
+            SessionManager.Session.remove()
 
     def get_bangumi(self, id):
         try:
@@ -145,11 +146,13 @@ class AdminService:
 
             bangumi_dict['episodes'] = episodes
 
-            SessionManager.Session.remove()
-
             return json_resp({'data': bangumi_dict})
+        except NoResultFound:
+            raise ClientError(ClientError.NOT_FOUND, 404)
         except Exception as exception:
             raise exception
+        finally:
+            SessionManager.Session.remove()
 
     def delete_bangumi(self, id):
         try:
@@ -161,14 +164,81 @@ class AdminService:
 
             session.commit()
 
-            SessionManager.Session.remove()
-
             return json_resp({'msg': 'ok'})
+        except NoResultFound:
+            raise ClientError(ClientError.NOT_FOUND, 404)
         except Exception as exception:
             raise exception
+        finally:
+            SessionManager.Session.remove()
 
     def get_bangumi_from_bgm_id_list(self, bgm_id_list):
         s = select([Bangumi.id, Bangumi.bgm_id]).where(Bangumi.bgm_id.in_(bgm_id_list)).select_from(Bangumi)
         return SessionManager.engine.execute(s).fetchall()
+
+
+    def update_episode(self, episode_id, episode_dict):
+        try:
+            session = SessionManager.Session()
+            episode = session.query(Episode).filter(Episode.id == episode_id).one()
+            episode.name = episode_dict['name']
+            episode.name_cn = episode_dict['name_cn']
+            episode.airdate = datetime.strptime(episode_dict['airdate'], '%Y-%m-%d')
+            episode.duration = episode_dict['duration']
+            episode.update_time = datetime.now()
+
+            session.commit()
+
+            return json_resp({'msg': 'ok'})
+
+        except NoResultFound:
+            raise ClientError(ClientError.NOT_FOUND, 404)
+        except Exception as error:
+            raise error
+        finally:
+            SessionManager.Session.remove()
+
+    def get_episode(self, episode_id):
+        try:
+            session = SessionManager.Session()
+            episode = session.query(Episode).filter(Episode.id == episode_id).one()
+            episode_dict = row2dict(episode)
+
+            return json_resp({'data': episode_dict})
+        except NoResultFound:
+            raise ClientError(ClientError.NOT_FOUND, 404)
+        except Exception as error:
+            raise error
+        finally:
+            SessionManager.Session.remove()
+
+    def list_episode(self, page, count, sort_field, sort_order, status):
+        try:
+
+            session = SessionManager.Session()
+            query_object = session.query(Episode)
+
+            if status is not None:
+                query_object = query_object.filter(Episode.status==status)
+                # count total rows
+                total = session.query(func.count(Episode.id)).filter(Episode.status==status).scalar()
+            else:
+                total = session.query(func.count(Episode.id)).scalar()
+
+            offset = (page - 1) * count
+
+            if(sort_order == 'desc'):
+                episode_list = query_object.order_by(desc(getattr(Episode, sort_field))).offset(offset).limit(count).all()
+            else:
+                episode_list = query_object.order_by(asc(getattr(Episode, sort_field))).offset(offset).limit(count).all()
+
+            episode_dict_list = [row2dict(episode) for episode in episode_list]
+
+            return json_resp({'data': episode_dict_list, 'total': total})
+        except Exception as exception:
+            raise exception
+        finally:
+            SessionManager.Session.remove()
+
 
 admin_service = AdminService()

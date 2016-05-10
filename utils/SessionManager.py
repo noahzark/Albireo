@@ -17,3 +17,4 @@ class SessionManager:
     __session_factory = sessionmaker(bind=engine)
 
     Session = scoped_session(__session_factory)
+

@@ -287,6 +287,39 @@ Return:
 totally same with bangumi.tv search api. see https://github.com/jabbany/dhufufu/blob/master/bangumi/api.txt#L176
 
 
+#### update an episode
+GET `/api/admin/bangumi/<bangumi_id>/episode/<episode_id>`
+
+Params:
+- bangumi_id the bangumi id of the episode
+- episode_id, episode id
+
+request body
+```json
+{
+    "status": 1,
+    "episode_no": 1,
+    "update_time": 1462176050495,
+    "name": "始まりの終わりと終わりの始まり",
+    "airdate": "2016-04-03",
+    "bangumi_id": "85a21948-b2e5-43dc-93e9-3ad71f662bdf",
+    "bgm_eps_id": 621357,
+    "name_cn": "起始的终结和终结的起始",
+    "create_time": 1462176050495,
+    "duration": "00:49:30",
+    "id": "d22659a3-9ed9-438d-9548-f573e26e72bc"
+},
+```
+
+**Note that only `name`, `name_cn`, `duration`, `airdate` will be updated**
+
+Returns
+```json
+{
+    'msg': 'ok'
+}
+```
+
 ### Scheduler
 
 Scheduler is the core of this project ,it work like an cron daemon and periodically visit the bangumi rss to see if there are episode need to be downloaded.

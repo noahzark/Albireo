@@ -28,6 +28,8 @@ class ClientError(BasicError):
 
     PASSWORD_INCORRECT = 'password incorrect'
 
+    NOT_FOUND = 'NOT FOUND'
+
     def __init__(self, message, status=400, payload=None):
         BasicError.__init__(self, message, status, payload)
 

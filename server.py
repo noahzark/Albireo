@@ -3,7 +3,7 @@ from flask_login import LoginManager
 
 from utils.http import json_resp
 from utils.exceptions import ClientError, ServerError
-
+from utils.SessionManager import SessionManager
 from service.user import UserCredential
 
 ## blueprints
