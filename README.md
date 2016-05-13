@@ -22,12 +22,14 @@ requirements: python 2.7, deluge, postgresql 9.3 and above
 ### dependencies:
 
 - SQLAlchemy 1.0
+- psycopg2
 - flask 0.10
 - flask-login 0.0.3
 - PyYAML
 - Twisted
 - feedparser
 - httplib2
+- service_identity
 
 ### config file
 
@@ -49,6 +51,14 @@ there are a CLI tool for this job, use tools.py to create invite code and promot
 $ python tools.py --user-add admin 1234  # admin is username 1234 is password
 
 $ python tools.py --user-promote admin 3  # admin is username 3 is the level, currently means super user
+```
+
+### vagrant
+you can also set up the development environment with [Vagrant](https://www.vagrantup.com/)
+
+```bash
+vagrant up
+vagrant ssh
 ```
 
 ## Server
