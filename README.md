@@ -56,6 +56,8 @@ $ python tools.py --user-promote admin 3  # admin is username 3 is the level, cu
 ### vagrant
 you can also set up the development environment with [Vagrant](https://www.vagrantup.com/)
 
+the vagrant vm is based on Ubuntu 14.04
+
 ```bash
 vagrant up
 vagrant ssh
