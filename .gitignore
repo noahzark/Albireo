@@ -5,3 +5,6 @@ db-shutdown.sh
 pgsql
 .DS_Store
 .idea
+*.pyc
+.vagrant
+.cache

@@ -1,0 +1,29 @@
+database:
+  database: albireo
+  username: postgres
+  password: 123456
+  host: 127.0.0.1
+  port: 5432
+
+deluge:
+  host: 127.0.0.1
+  port: 58846
+  username: ''
+  password: deluge
+
+task:
+  interval: 15  # unit minute
+
+download:
+  location: /home/vagrant/albireo
+
+app_secret_key: 'albireo'
+
+feedparser:
+  timeout: 60 # timeout in seconds
+  proxy:
+    default: # default http proxy for feedparser , for example http://127.0.0.1:8000
+#    dmhy: # proxy for dmhy, either an url string or a dictionary with http, https, ftp scheme
+#      http: http://127.0.0.1:8000/
+#      https: https://127.0.0.1:9000/
+#      ftp: http://127.0.0.1:8000/
