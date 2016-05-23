@@ -6,3 +6,6 @@ pgsql
 .DS_Store
 .idea
 alembic.ini
+*.pyc
+.vagrant
+.cache
