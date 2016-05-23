@@ -7,8 +7,9 @@ from utils.SessionManager import SessionManager
 from service.user import UserCredential
 
 ## blueprints
-from routes.bangumi import bangumi_api
+from routes.admin import admin_api
 from routes.user import user_api
+from routes.home import home_api
 import yaml
 import os
 
@@ -37,8 +38,9 @@ def handle_server_exception(error):
     return json_resp(error.to_dict(), error.status)
 
 
-app.register_blueprint(bangumi_api, url_prefix='/api/admin')
+app.register_blueprint(admin_api, url_prefix='/api/admin')
 app.register_blueprint(user_api, url_prefix='/api/user')
+app.register_blueprint(home_api, url_prefix='/api/home')
 
 login_manager.init_app(app)
 

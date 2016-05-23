@@ -9,9 +9,9 @@ from flask_login import login_required
 from domain.User import User
 
 
-bangumi_api = Blueprint('bangumi', __name__)
+admin_api = Blueprint('bangumi', __name__)
 
-@bangumi_api.route('/bangumi', methods=['POST', 'GET'])
+@admin_api.route('/bangumi', methods=['POST', 'GET'])
 @login_required
 @auth_user(User.LEVEL_ADMIN)
 def collection():
@@ -33,7 +33,7 @@ def collection():
         return admin_service.list_bangumi(page, count, sort_field, sort_order, name)
 
 
-@bangumi_api.route('/bangumi/<id>', methods=['PUT', 'GET', 'DELETE'])
+@admin_api.route('/bangumi/<id>', methods=['PUT', 'GET', 'DELETE'])
 @login_required
 @auth_user(User.LEVEL_ADMIN)
 def one(id):
@@ -44,7 +44,7 @@ def one(id):
     else:
         return admin_service.delete_bangumi(id)
 
-@bangumi_api.route('/query', methods=['GET'])
+@admin_api.route('/query', methods=['GET'])
 @login_required
 @auth_user(User.LEVEL_ADMIN)
 def search_bangumi():
@@ -88,7 +88,7 @@ def search_bangumi():
 
     return json_resp(result)
 
-@bangumi_api.route('/query/<bgm_id>', methods=['GET'])
+@admin_api.route('/query/<bgm_id>', methods=['GET'])
 @login_required
 @auth_user(User.LEVEL_ADMIN)
 def query_one_bangumi(bgm_id):
@@ -103,7 +103,7 @@ def query_one_bangumi(bgm_id):
         return json_resp({})
 
 
-@bangumi_api.route('/episode')
+@admin_api.route('/episode')
 @login_required
 @auth_user(User.LEVEL_ADMIN)
 def episode_list():
@@ -115,7 +115,7 @@ def episode_list():
         status = request.args.get('status', None)
         return admin_service.list_episode(page, count, sort_field, sort_order, status)
 
-@bangumi_api.route('/episode/<episode_id>', methods=['GET', 'PUT'])
+@admin_api.route('/episode/<episode_id>', methods=['GET', 'PUT'])
 @login_required
 @auth_user(User.LEVEL_ADMIN)
 def episode(episode_id):

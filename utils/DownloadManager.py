@@ -3,7 +3,9 @@ from twisted.internet import threads
 from download_adapter.DelugeDownloader import DelugeDownloader
 from domain.TorrentFile import TorrentFile
 from domain.Episode import Episode
+from domain.Bangumi import Bangumi
 from utils.SessionManager import SessionManager
+from datetime import datetime
 import logging
 
 logger = logging.getLogger(__name__)
@@ -32,7 +34,13 @@ class DownloadManager:
 
             # update status of episode
             episode = session.query(Episode).filter(Episode.torrent_files.contains(torrent_file)).one()
+            episode.update_time = datetime.now()
             episode.status = Episode.STATUS_DOWNLOADED
+
+            #update bangumi update_time
+
+            bangumi = session.query(Bangumi).filter(Bangumi.episodes.contains(episode)).one()
+            bangumi.update_time = datetime.now()
 
             session.commit()
 

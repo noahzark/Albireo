@@ -5,3 +5,4 @@ db-shutdown.sh
 pgsql
 .DS_Store
 .idea
+alembic.ini

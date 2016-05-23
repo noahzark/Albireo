@@ -1,3 +1,20 @@
+import logging
+import os, errno
+
+FORMAT = '%(asctime)-15s %(module)s:%(lineno)d %(message)s'
+
+logging.basicConfig(format=FORMAT, datefmt='%Y/%m/%d %H:%M:%S')
+
+logger = logging.getLogger()
+
+isDebug = os.getenv('DEBUG', False)
+
+if isDebug:
+    logger.setLevel(logging.DEBUG)
+else:
+    logger.setLevel(logging.INFO)
+
+
 import platform
 if platform.system() == 'Linux':
     from twisted.internet import epollreactor
@@ -18,21 +35,8 @@ from twisted.internet.task import LoopingCall
 from utils.DownloadManager import download_manager
 from utils.exceptions import SchedulerError
 from urlparse import urlparse
-import os, errno
-import logging
-
-logger = logging.getLogger()
-
-isDebug = os.getenv('DEBUG', False)
-
-if isDebug:
-    logger.setLevel(logging.DEBUG)
-else:
-    logger.setLevel(logging.INFO)
-
-FORMAT = '%(asctime)-15s %(message)s'
-
-logging.basicConfig(format=FORMAT)
+from sqlalchemy.sql import func
+import traceback
 
 class Scheduler:
 
@@ -127,6 +131,17 @@ class Scheduler:
 
                 task_result = task.parse_feed(timeout)
                 if task_result is None:
+
+                    # if bangumi has no not downloaded episode, we consider it's finished.
+                    episode_count = session.query(func.count(Episode.id)).\
+                        filter(Episode.bangumi==bangumi).\
+                        filter(Episode.status==Episode.STATUS_NOT_DOWNLOADED).\
+                        scalar()
+
+                    if (bangumi.status == Bangumi.STATUS_ON_AIR) and (episode_count == 0):
+                        bangumi.status = Bangumi.STATUS_FINISHED
+
+
                     session.commit()
                     logger.debug('scan finished')
                 else:
@@ -138,6 +153,7 @@ class Scheduler:
             logger.error(os_error)
         except Exception as error:
             logger.error(error)
+            traceback.print_exc()
 
     def scan_bangumi(self):
         threads.deferToThread(self._scan_bangumi_in_thread)
