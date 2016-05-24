@@ -13,6 +13,7 @@ from domain.User import User
 home_api = Blueprint('home', __name__)
 
 @home_api.route('/recent', methods=['GET'])
+@login_required
 def recent_update():
     days = int(request.args.get('days', 7))
     return bangumi_service.recent_update(days)
