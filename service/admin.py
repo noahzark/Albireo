@@ -3,6 +3,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from domain.Episode import Episode
 from domain.Bangumi import Bangumi
+from domain.TorrentFile import TorrentFile
 from datetime import datetime
 from utils.SessionManager import SessionManager
 from utils.exceptions import ClientError
@@ -11,9 +12,29 @@ from utils.db import row2dict
 from sqlalchemy.sql.expression import or_, desc, asc
 from sqlalchemy.sql import select, func
 from sqlalchemy.orm import joinedload
+from urllib import urlretrieve
+import yaml
 import json
+import os, errno
+from urlparse import urlparse
+from utils.VideoManager import video_manager
 
 class AdminService:
+
+    def __init__(self):
+        fr = open('./config/config.yml', 'r')
+        config = yaml.load(fr)
+        self.base_path = config['download']['location']
+        try:
+            if not os.path.exists(self.base_path):
+                os.makedirs(self.base_path)
+                print 'create base dir %s successfully' % self.base_path
+        except OSError as exception:
+            if exception.errno == errno.EACCES:
+                # permission denied
+                raise exception
+            else:
+                print exception
 
     def __get_eps_len(self, eps):
         EPISODE_TYPE = 0 # episode type = 0 is the normal episode type, even the episode is not a 24min length
@@ -32,6 +53,25 @@ class AdminService:
         else:
             return Bangumi.STATUS_PENDING
 
+    def __save_bangumi_cover(self, bangumi):
+        if not bangumi.image:
+            return
+        bangumi_path = self.base_path + '/' + str(bangumi.id)
+        try:
+            if not os.path.exists(bangumi_path):
+                os.makedirs(bangumi_path)
+                print 'create base dir %s successfully' % self.base_path
+        except OSError as exception:
+            if exception.errno == errno.EACCES:
+                # permission denied
+                raise exception
+            else:
+                print exception
+
+        path = urlparse(bangumi.image).path
+        extname = os.path.splitext(path)[1]
+        cover_path = bangumi_path + '/cover' + extname
+        urlretrieve(bangumi.image, cover_path)
 
     def list_bangumi(self, page, count, sort_field, sort_order, name):
         try:
@@ -101,6 +141,8 @@ class AdminService:
             session.commit()
 
             bangumi_id = str(bangumi.id)
+
+            self.__save_bangumi_cover(bangumi)
 
             return json_resp({'data': {'id': bangumi_id}})
         except Exception as exception:
@@ -239,6 +281,26 @@ class AdminService:
             raise exception
         finally:
             SessionManager.Session.remove()
+
+    def update_thumbnail(self, episode_id, time):
+        try:
+            session = SessionManager.Session()
+            episode = session.query(Episode).filter(Episode.id == episode_id).one()
+            if episode.status != Episode.STATUS_DOWNLOADED:
+                raise ClientError('Episode not downloaded', 412)
+
+            torrent_file = session.query(TorrentFile).filter(TorrentFile.episode_id == episode_id).all()[0]
+
+            video_manager.create_episode_thumbnail(episode, torrent_file.file_path, time)
+
+            return json_resp({'msg': 'ok'})
+        except NoResultFound:
+            raise ClientError(ClientError.NOT_FOUND, 404)
+        except Exception as error:
+            raise error
+        finally:
+            SessionManager.Session.remove()
+
 
 
 admin_service = AdminService()

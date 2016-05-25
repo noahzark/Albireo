@@ -115,6 +115,15 @@ def episode_list():
         status = request.args.get('status', None)
         return admin_service.list_episode(page, count, sort_field, sort_order, status)
 
+
+@admin_api.route('/episode/<episode_id>/thumbnail', methods=['PUT'])
+@login_required
+@auth_user(User.LEVEL_ADMIN)
+def episode_thumbnail(episode_id):
+    content = json.loads(request.get_data(True, as_text=True))
+    return admin_service.update_thumbnail(episode_id, content['time'])
+
+
 @admin_api.route('/episode/<episode_id>', methods=['GET', 'PUT'])
 @login_required
 @auth_user(User.LEVEL_ADMIN)
@@ -123,3 +132,4 @@ def episode(episode_id):
         return admin_service.get_episode(episode_id)
     elif request.method == 'PUT':
         return admin_service.update_episode(episode_id, json.loads(request.get_data(True, as_text=True)))
+

@@ -29,6 +29,7 @@ from twisted.internet import reactor, threads
 from feed.FeedFromDMHY import FeedFromDMHY
 from yaml import load
 from utils.SessionManager import SessionManager
+from utils.VideoManager import video_manager
 from domain.Episode import Episode
 from domain.Bangumi import Bangumi
 from twisted.internet.task import LoopingCall
@@ -160,6 +161,8 @@ class Scheduler:
 
 
 scheduler = Scheduler()
+
+video_manager.set_base_path(scheduler.base_path)
 
 def on_connected(result):
     # logger.info(result)

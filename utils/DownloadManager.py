@@ -5,6 +5,7 @@ from domain.TorrentFile import TorrentFile
 from domain.Episode import Episode
 from domain.Bangumi import Bangumi
 from utils.SessionManager import SessionManager
+from utils.VideoManager import video_manager
 from datetime import datetime
 import logging
 
@@ -27,6 +28,10 @@ class DownloadManager:
     def on_download_completed(self, torrent_id):
         logger.info('Download complete: %s', torrent_id)
 
+        def create_thumbnail(episode, file_path):
+            time = '00:02:00.000'
+            video_manager.create_episode_thumbnail(episode, file_path, time)
+
         def update_torrent_file(file_path):
             session = SessionManager.Session
             torrent_file = session.query(TorrentFile).filter(TorrentFile.torrent_id == torrent_id).one()
@@ -43,6 +48,9 @@ class DownloadManager:
             bangumi.update_time = datetime.now()
 
             session.commit()
+
+            create_thumbnail(episode, file_path)
+
 
         def get_files(files):
                 print files
