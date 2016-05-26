@@ -25,6 +25,7 @@ class AdminService:
         fr = open('./config/config.yml', 'r')
         config = yaml.load(fr)
         self.base_path = config['download']['location']
+        self.image_domain = config['domain']['image']
         try:
             if not os.path.exists(self.base_path):
                 os.makedirs(self.base_path)
@@ -72,6 +73,12 @@ class AdminService:
         extname = os.path.splitext(path)[1]
         cover_path = bangumi_path + '/cover' + extname
         urlretrieve(bangumi.image, cover_path)
+
+    def __generate_thumbnail_link(self, episode, bangumi):
+        thumbnail_url = '/thumbnail/' + str(bangumi.id) + '/' + str(episode.episode_no) + '.png'
+        if self.image_domain is not None:
+            thumbnail_url = self.image_domain + thumbnail_url
+        return thumbnail_url
 
     def list_bangumi(self, page, count, sort_field, sort_order, name):
         try:
@@ -182,7 +189,12 @@ class AdminService:
 
             bangumi = session.query(Bangumi).options(joinedload(Bangumi.episodes)).filter(Bangumi.id == id).one()
 
-            episodes = [row2dict(episode) for episode in bangumi.episodes]
+            episodes = []
+
+            for episode in bangumi.episodes:
+                eps = row2dict(episode)
+                eps['thumbnail'] = self.__generate_thumbnail_link(episode, bangumi)
+                episodes.append(eps)
 
             bangumi_dict = row2dict(bangumi)
 

@@ -1,3 +1,20 @@
+import logging
+import os, errno
+
+FORMAT = '%(asctime)-15s %(module)s:%(lineno)d %(message)s'
+
+logging.basicConfig(format=FORMAT, datefmt='%Y/%m/%d %H:%M:%S')
+
+logger = logging.getLogger()
+
+isDebug = os.getenv('DEBUG', False)
+
+if isDebug:
+    logger.setLevel(logging.DEBUG)
+else:
+    logger.setLevel(logging.INFO)
+
+
 from flask import Flask
 from flask_login import LoginManager
 
