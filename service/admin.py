@@ -80,6 +80,15 @@ class AdminService:
             thumbnail_url = self.image_domain + thumbnail_url
         return thumbnail_url
 
+    def generate_cover_link(self, bangumi):
+        path = urlparse(bangumi.image).path
+        extname = os.path.splitext(path)[1]
+        cover_url = '/cover/%s/cover.%s'.format(str(bangumi.id), extname)
+        if self.image_domain is not None:
+            cover_url = self.image_domain + cover_url
+        return cover_url
+
+
     def list_bangumi(self, page, count, sort_field, sort_order, name):
         try:
 
@@ -100,7 +109,11 @@ class AdminService:
             else:
                 bangumi_list = query_object.order_by(asc(getattr(Bangumi, sort_field))).offset(offset).limit(count).all()
 
-            bangumi_dict_list = [row2dict(bangumi) for bangumi in bangumi_list]
+            bangumi_dict_list = []
+            for bgm in bangumi_list:
+                bangumi = row2dict(bgm)
+                bangumi['cover'] = self.generate_cover_link(bgm)
+                bangumi_dict_list.append(bangumi)
 
             return json_resp({'data': bangumi_dict_list, 'total': total})
         except Exception as exception:
@@ -199,6 +212,8 @@ class AdminService:
             bangumi_dict = row2dict(bangumi)
 
             bangumi_dict['episodes'] = episodes
+
+            bangumi_dict['cover'] = self.generate_cover_link(bangumi)
 
             return json_resp({'data': bangumi_dict})
         except NoResultFound:

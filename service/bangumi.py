@@ -12,7 +12,7 @@ from sqlalchemy.sql.expression import or_, desc, asc
 from sqlalchemy.sql import select, func
 from sqlalchemy.orm import joinedload
 import json
-
+from service.admin import admin_service
 
 class BangumiService:
 
@@ -37,6 +37,7 @@ class BangumiService:
         for eps, bgm in result:
             episode = row2dict(eps)
             episode['bangumi'] = row2dict(bgm)
+            episode['bangumi']['cover'] = admin_service.generate_cover_link(bgm)
             episode_list.append(episode)
 
         return json_resp(episode_list)
