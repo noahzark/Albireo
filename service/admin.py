@@ -18,6 +18,7 @@ import json
 import os, errno
 from urlparse import urlparse
 from utils.VideoManager import video_manager
+from service.common import utils
 
 class AdminService:
 
@@ -74,21 +75,6 @@ class AdminService:
         cover_path = bangumi_path + '/cover' + extname
         urlretrieve(bangumi.image, cover_path)
 
-    def __generate_thumbnail_link(self, episode, bangumi):
-        thumbnail_url = '/pic/{0}/thumbnails/{1}.png'.format(str(bangumi.id), str(episode.episode_no))
-        if self.image_domain is not None:
-            thumbnail_url = self.image_domain + thumbnail_url
-        return thumbnail_url
-
-    def generate_cover_link(self, bangumi):
-        path = urlparse(bangumi.image).path
-        extname = os.path.splitext(path)[1]
-        cover_url = '/pic/{0}/cover.{1}'.format(str(bangumi.id), extname)
-        if self.image_domain is not None:
-            cover_url = self.image_domain + cover_url
-        return cover_url
-
-
     def list_bangumi(self, page, count, sort_field, sort_order, name):
         try:
 
@@ -96,23 +82,32 @@ class AdminService:
             query_object = session.query(Bangumi)
 
             if name is not None:
-                query_object = query_object.filter(or_(Bangumi.name==name, Bangumi.name_cn==name))
+                query_object = query_object.\
+                    filter(or_(Bangumi.name==name, Bangumi.name_cn==name))
                 # count total rows
-                total = session.query(func.count(Bangumi.id)).filter(or_(Bangumi.name==name, Bangumi.name_cn==name)).scalar()
+                total = session.query(func.count(Bangumi.id)).\
+                    filter(or_(Bangumi.name==name, Bangumi.name_cn==name)).\
+                    scalar()
             else:
                 total = session.query(func.count(Bangumi.id)).scalar()
 
             offset = (page - 1) * count
 
-            if(sort_order == 'desc'):
-                bangumi_list = query_object.order_by(desc(getattr(Bangumi, sort_field))).offset(offset).limit(count).all()
+            if sort_order == 'desc':
+                bangumi_list = query_object.\
+                    order_by(desc(getattr(Bangumi, sort_field))).\
+                    offset(offset).limit(count).\
+                    all()
             else:
-                bangumi_list = query_object.order_by(asc(getattr(Bangumi, sort_field))).offset(offset).limit(count).all()
+                bangumi_list = query_object.\
+                    order_by(asc(getattr(Bangumi, sort_field))).\
+                    offset(offset).limit(count).\
+                    all()
 
             bangumi_dict_list = []
             for bgm in bangumi_list:
                 bangumi = row2dict(bgm)
-                bangumi['cover'] = self.generate_cover_link(bgm)
+                bangumi['cover'] = utils.generate_cover_link(bgm)
                 bangumi_dict_list.append(bangumi)
 
             return json_resp({'data': bangumi_dict_list, 'total': total})
@@ -170,10 +165,10 @@ class AdminService:
         finally:
             SessionManager.Session.remove()
 
-    def update_bangumi(self, id, bangumi_dict):
+    def update_bangumi(self, bangumi_id, bangumi_dict):
         try:
             session = SessionManager.Session()
-            bangumi = session.query(Bangumi).filter(Bangumi.id == id).one()
+            bangumi = session.query(Bangumi).filter(Bangumi.id == bangumi_id).one()
 
             bangumi.name = bangumi_dict['name']
             bangumi.name_cn = bangumi_dict['name_cn']
@@ -188,7 +183,7 @@ class AdminService:
 
             session.commit()
 
-            return json_resp({'msg':'ok'})
+            return json_resp({'msg': 'ok'})
         except NoResultFound:
             raise ClientError(ClientError.NOT_FOUND)
         except Exception as exception:
@@ -206,14 +201,14 @@ class AdminService:
 
             for episode in bangumi.episodes:
                 eps = row2dict(episode)
-                eps['thumbnail'] = self.__generate_thumbnail_link(episode, bangumi)
+                eps['thumbnail'] = utils.generate_thumbnail_link(episode, bangumi)
                 episodes.append(eps)
 
             bangumi_dict = row2dict(bangumi)
 
             bangumi_dict['episodes'] = episodes
 
-            bangumi_dict['cover'] = self.generate_cover_link(bangumi)
+            bangumi_dict['cover'] = utils.generate_cover_link(bangumi)
 
             return json_resp({'data': bangumi_dict})
         except NoResultFound:
@@ -223,11 +218,11 @@ class AdminService:
         finally:
             SessionManager.Session.remove()
 
-    def delete_bangumi(self, id):
+    def delete_bangumi(self, bangumi_id):
         try:
             session = SessionManager.Session()
 
-            bangumi = session.query(Bangumi).filter(Bangumi.id == id).one()
+            bangumi = session.query(Bangumi).filter(Bangumi.id == bangumi_id).one()
 
             session.delete(bangumi)
 
@@ -296,10 +291,17 @@ class AdminService:
 
             offset = (page - 1) * count
 
-            if(sort_order == 'desc'):
-                episode_list = query_object.order_by(desc(getattr(Episode, sort_field))).offset(offset).limit(count).all()
+            if sort_order == 'desc':
+                episode_list = query_object.\
+                    order_by(desc(getattr(Episode, sort_field))).\
+                    offset(offset).\
+                    limit(count).\
+                    all()
             else:
-                episode_list = query_object.order_by(asc(getattr(Episode, sort_field))).offset(offset).limit(count).all()
+                episode_list = query_object.\
+                    order_by(asc(getattr(Episode, sort_field))).\
+                    offset(offset).limit(count).\
+                    all()
 
             episode_dict_list = [row2dict(episode) for episode in episode_list]
 
@@ -327,7 +329,6 @@ class AdminService:
             raise error
         finally:
             SessionManager.Session.remove()
-
 
 
 admin_service = AdminService()

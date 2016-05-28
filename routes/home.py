@@ -27,3 +27,8 @@ def on_air_bangumi():
 @home_api.route('/my_bangumi', methods=['GET'])
 def my_bangumi():
     pass
+
+@home_api.route('/episode/<episode_id>', methods=['GET'])
+@login_required
+def episode_detail(episode_id):
+    return bangumi_service.episode_detail(episode_id)
