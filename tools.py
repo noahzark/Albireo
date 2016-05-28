@@ -3,6 +3,7 @@ from utils.SessionManager import SessionManager
 from domain.InviteCode import InviteCode
 from domain.User import User
 from werkzeug.security import generate_password_hash
+from domain.base import Base
 
 parser = argparse.ArgumentParser(description='Tools for management database')
 group = parser.add_mutually_exclusive_group()
@@ -10,9 +11,9 @@ group.add_argument('--invite', type=int, metavar=('NUMBER'), help='generate n in
 group.add_argument('--user-add', nargs=2, metavar=('USERNAME', 'PASSWORD'), help='add an user')
 group.add_argument('--user-del', nargs=1, metavar=('USERNAME'), help='delete an user')
 group.add_argument('--user-promote', nargs=2, metavar=('USERNAME', 'LEVEL'), help='promote an user')
+group.add_argument('--db-init', action='store_true', help='init database, if tables not exists, create it')
 
 args = parser.parse_args()
-print args
 
 if args.invite is not None:
     session = SessionManager.Session()
@@ -56,3 +57,10 @@ elif args.user_promote is not None:
     session.commit()
     print('Update successfully')
     SessionManager.Session.remove()
+
+elif args.db_init:
+    Base.metadata.create_all(SessionManager.engine)
+    print('table initialized')
+
+else:
+    parser.print_help()
