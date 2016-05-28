@@ -57,6 +57,7 @@ class BangumiService:
                 filter(Episode.id == episode_id).one()
             episode_dict = row2dict(episode)
             episode_dict['bangumi'] = row2dict(bangumi)
+            episode_dict['thumbnail'] = utils.generate_thumbnail_link(episode, bangumi)
 
             if episode.status == Episode.STATUS_DOWNLOADED:
                 episode_dict['videos'] = []
