@@ -75,7 +75,7 @@ class AdminService:
         urlretrieve(bangumi.image, cover_path)
 
     def __generate_thumbnail_link(self, episode, bangumi):
-        thumbnail_url = '/thumbnail/' + str(bangumi.id) + '/' + str(episode.episode_no) + '.png'
+        thumbnail_url = '/pic/{0}/thumbnails/{1}.png'.format(str(bangumi.id), str(episode.episode_no))
         if self.image_domain is not None:
             thumbnail_url = self.image_domain + thumbnail_url
         return thumbnail_url
@@ -83,7 +83,7 @@ class AdminService:
     def generate_cover_link(self, bangumi):
         path = urlparse(bangumi.image).path
         extname = os.path.splitext(path)[1]
-        cover_url = '/cover/%s/cover.%s'.format(str(bangumi.id), extname)
+        cover_url = '/pic/{0}/cover.{1}'.format(str(bangumi.id), extname)
         if self.image_domain is not None:
             cover_url = self.image_domain + cover_url
         return cover_url
