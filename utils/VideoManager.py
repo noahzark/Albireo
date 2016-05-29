@@ -16,7 +16,7 @@ class VideoManager:
 
     def create_thumbnail(self, video_path, time, output_path):
         try:
-            subprocess.check_call(['ffmpeg -i "%s" -ss %s -vframes 1 "%s"' % (video_path, time, output_path)], shell=True)
+            subprocess.check_call(['ffmpeg -y -i "%s" -ss %s -vframes 1 "%s"' % (video_path, time, output_path)], shell=True)
             return True
         except OSError as error:
             logger.error(error)
