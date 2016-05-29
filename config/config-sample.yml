@@ -29,6 +29,7 @@ feedparser:
 #      ftp: http://127.0.0.1:8000/
 
 # Setting a different domain for resource will speed up your page load
+# a scheme is required, e.g. https://static.example.com
 # this is optional
 domain:
   image: # the image domain for your image resource, such as thumbnails and cover

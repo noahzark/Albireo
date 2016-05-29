@@ -9,3 +9,4 @@ alembic.ini
 *.pyc
 .vagrant
 .cache
+twistd.pid

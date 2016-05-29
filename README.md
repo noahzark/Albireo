@@ -68,10 +68,17 @@ vagrant ssh
 
 ## Server
 
-the server is a flask app which provide http API for management and end user page (planned but not added currently).
+the server is a flask app which provide http API for management and end user page (currently not completed).
 
+In development mode, using flask built-in server:
 
-To start the server, run `python server.py`, if you set the environment variable DEBUG=True, the debug info will be print to log
+run `python server.py`, if you set the environment variable DEBUG=True, the debug info will be print to log
+
+In production mode, using twistd as WSGI container
+
+```shell
+twistd -n web --port 5000 --wsgi appd.app
+```
 
 ### HTTP API
 

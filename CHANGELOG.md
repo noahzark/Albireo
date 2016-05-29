@@ -13,3 +13,4 @@
 - get bangumi api now return all episodes of this bangumi. access it with `episodes` field
 - init db using sql script is not recommended, using tools.py to init db.
 - ffmpeg is now a dependency to generate thumbnail for episode
+- server.py now only used in development, when deploying in production, use `twistd -n web --port 5000 --wsgi appd.app`
