@@ -1,3 +1,13 @@
+#0.3.0-alpha
+
+##Features Add
+
+- New API:
+    - on_air which list all bangumi currently on air,
+    - bangumi_detail which get an bangumi detail, this api is the same api of admin bangumi detail but without admin permission
+
+
+
 #0.2.0-alpha
 
 ##Features Add
