@@ -7,6 +7,7 @@ import json
 from service.bangumi import bangumi_service
 from flask_login import login_user, logout_user, login_required, fresh_login_required, current_user
 from service.auth import auth_user
+from service.admin import admin_service
 from domain.User import User
 
 
@@ -20,9 +21,9 @@ def recent_update():
 
 
 @home_api.route('/on_air', methods=['GET'])
+@login_required
 def on_air_bangumi():
-    pass
-
+    return bangumi_service.on_air_bangumi()
 
 @home_api.route('/my_bangumi', methods=['GET'])
 def my_bangumi():
@@ -32,3 +33,8 @@ def my_bangumi():
 @login_required
 def episode_detail(episode_id):
     return bangumi_service.episode_detail(episode_id)
+
+@home_api.route('/bangumi/<bangumi_id>', methods=['GET'])
+@login_required
+def bangumi_detail(bangumi_id):
+    return admin_service.get_bangumi(bangumi_id)

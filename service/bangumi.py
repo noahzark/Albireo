@@ -10,7 +10,7 @@ from utils.exceptions import ClientError
 from utils.http import json_resp
 from utils.db import row2dict
 from sqlalchemy.sql.expression import or_, desc, asc
-from sqlalchemy.sql import select, func
+from sqlalchemy.sql import select, func, distinct
 from sqlalchemy.orm import joinedload
 import json
 from service.common import utils
@@ -73,6 +73,31 @@ class BangumiService:
         finally:
             SessionManager.Session.remove()
 
+    def on_air_bangumi(self):
+        session = SessionManager.Session()
+        current_day = datetime.today()
+        start_time = datetime(current_day.year, current_day.month, 1)
+        if current_day.month == 12:
+            next_year = current_day.year + 1
+            next_month = 1
+        else:
+            next_year = current_day.year
+            next_month = current_day.month + 1
+        end_time = datetime(next_year, next_month, 1)
+
+        try:
+            result = session.query(distinct(Episode.bangumi_id), Bangumi).\
+                join(Bangumi).\
+                filter(Episode.airdate >= start_time).\
+                filter(Episode.airdate <= end_time)
+
+            bangumi_list = [row2dict(bangumi) for bangumi_id, bangumi in result]
+
+            return json_resp(bangumi_list)
+        except Exception as error:
+            raise error
+        finally:
+            SessionManager.Session.remove()
 
 
 bangumi_service = BangumiService()
