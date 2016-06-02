@@ -93,7 +93,7 @@ class BangumiService:
 
             bangumi_list = [row2dict(bangumi) for bangumi_id, bangumi in result]
 
-            return json_resp(bangumi_list)
+            return json_resp({'data': bangumi_list})
         except Exception as error:
             raise error
         finally:
