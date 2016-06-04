@@ -1,0 +1,8 @@
+SQLAlchemy
+Flask
+flask-login
+pyyaml
+twisted
+feedparser
+httplib2
+service_identity
