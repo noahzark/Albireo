@@ -56,14 +56,14 @@ $ python tools.py --user-add admin 1234  # admin is username 1234 is password
 $ python tools.py --user-promote admin 3  # admin is username 3 is the level, currently means super user
 ```
 
-### vagrant
-you can also set up the development environment with [Vagrant](https://www.vagrantup.com/)
+### Docker
+you can also set up the development environment with [Docker](https://www.docker.com/)
 
-the vagrant vm is based on Ubuntu 14.04
+Make sure you have copied config.yml
 
 ```bash
-vagrant up
-vagrant ssh
+docker build .
+docker run --rm -it -v "`pwd`:/albireo" -p 127.0.0.1:5000:5000 albireo
 ```
 
 ## Server
