@@ -27,3 +27,6 @@ feedparser:
 #      http: http://127.0.0.1:8000/
 #      https: https://127.0.0.1:9000/
 #      ftp: http://127.0.0.1:8000/
+domain:
+  image: # the image domain for your image resource, such as thumbnails and cover
+  video: # the video domain for your video resource
