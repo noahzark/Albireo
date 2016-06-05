@@ -6,6 +6,12 @@
     - on_air which list all bangumi currently on air,
     - bangumi_detail which get an bangumi detail, this api is the same api of admin bangumi detail but without admin permission
 
+- Docker support
+
+
+##Other changes
+
+- default auto generated thumbnail is set to 00:00:01.000 frame
 
 
 #0.2.0-alpha
