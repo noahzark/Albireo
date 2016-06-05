@@ -15,14 +15,16 @@ RUN sudo echo "deb http://mirrors.aliyun.com/ubuntu/ trusty-backports main restr
 RUN sudo echo "deb-src http://mirrors.aliyun.com/ubuntu/ trusty-backports main restricted universe multiverse" >> /etc/apt/sources.list
 # end F@ck GFW section
 
+RUN sudo echo "deb http://ppa.launchpad.net/kirillshkrogalev/ffmpeg-next/ubuntu trusty main" >> /etc/apt/sources.list
+
 RUN echo "Updating dependencies..."
-RUN sudo apt-get update
+RUN apt-get update
 
 RUN echo "Installing deluge, postgresql, etc.."
 RUN apt-get
 # avoide invoke-rc.d: policy-rc.d denied execution of start
 RUN echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d
-RUN sudo apt-get -y install deluged deluge-webui postgresql postgresql-contrib python-pip postgresql-client python-dev libyaml-dev python-psycopg2
+RUN sudo apt-get -y --force-yes install deluged deluge-webui postgresql postgresql-contrib python-pip postgresql-client python-dev libyaml-dev python-psycopg2 ffmpeg
 
 RUN echo "Setting up postgresql user and database..."
 # Adjust PostgreSQL configuration so that remote connections to the
@@ -66,3 +68,7 @@ RUN cp config/config-sample-vagrant.yml config/config.yml
 RUN echo "Initialing database..."
 USER root
 RUN /etc/init.d/postgresql start && python tools.py --db-init && python tools.py --user-add admin 1234 && python tools.py --user-promote admin 3
+
+EXPOSE 5000
+
+# docker run --rm -it -v "`pwd`:/albireo" -p 127.0.0.1:5000:5000 albireo
