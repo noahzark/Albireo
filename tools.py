@@ -1,8 +1,11 @@
 import argparse
 from utils.SessionManager import SessionManager
-from domain.InviteCode import InviteCode
-from domain.User import User
 from werkzeug.security import generate_password_hash
+from domain.Bangumi import Bangumi
+from domain.Episode import Episode
+from domain.InviteCode import InviteCode
+from domain.TorrentFile import TorrentFile
+from domain.User import User
 from domain.base import Base
 
 parser = argparse.ArgumentParser(description='Tools for management database')
