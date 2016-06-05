@@ -5,6 +5,7 @@
 - New API:
     - on_air which list all bangumi currently on air,
     - bangumi_detail which get an bangumi detail, this api is the same api of admin bangumi detail but without admin permission
+    - list_bangumi which is almost the same with admin api list bangumi
 
 - Docker support
 
