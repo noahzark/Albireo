@@ -64,7 +64,6 @@ RUN chmod -R 777 /home/albireo
 
 USER albireo
 RUN echo "Setting up config file..."
-RUN cp config/config-sample-vagrant.yml config/config.yml
 RUN echo "Initialing database..."
 USER root
 RUN /etc/init.d/postgresql start && python tools.py --db-init && python tools.py --user-add admin 1234 && python tools.py --user-promote admin 3
