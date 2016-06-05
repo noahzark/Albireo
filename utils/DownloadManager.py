@@ -29,7 +29,7 @@ class DownloadManager:
         logger.info('Download complete: %s', torrent_id)
 
         def create_thumbnail(episode, file_path):
-            time = '00:02:00.000'
+            time = '00:00:01.000'
             video_manager.create_episode_thumbnail(episode, file_path, time)
 
         def update_torrent_file(file_path):
