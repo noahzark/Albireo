@@ -52,12 +52,15 @@ def search_bangumi():
     bangumi_tv_url_param = '?responseGroup=simple&max_result=10&start=0'
     name = request.args.get('name', None)
     result = {"data": []}
-    if name is not None:
+    if name is not None and len(name) > 0:
         bangumi_tv_url = bangumi_tv_url_base + name + bangumi_tv_url_param
         h = httplib2.Http('.cache')
         (resp, content) = h.request(bangumi_tv_url, 'GET')
         if resp.status == 200:
-            bgm_content = json.loads(content)
+            try:
+                bgm_content = json.loads(content)
+            except ValueError as e:
+                return json_resp(result)
             list = [bgm for bgm in bgm_content['list'] if bgm['type'] == 2]
             if len(list) == 0:
                 return json_resp(result)
