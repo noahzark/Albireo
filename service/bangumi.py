@@ -57,6 +57,7 @@ class BangumiService:
                 filter(Episode.id == episode_id).one()
             episode_dict = row2dict(episode)
             episode_dict['bangumi'] = row2dict(bangumi)
+            episode_dict['bangumi']['cover'] = utils.generate_cover_link(bangumi)
             episode_dict['thumbnail'] = utils.generate_thumbnail_link(episode, bangumi)
 
             if episode.status == Episode.STATUS_DOWNLOADED:
@@ -91,7 +92,11 @@ class BangumiService:
                 filter(Episode.airdate >= start_time).\
                 filter(Episode.airdate <= end_time)
 
-            bangumi_list = [row2dict(bangumi) for bangumi_id, bangumi in result]
+            bangumi_list = []
+            for bangumi_id, bangumi in result:
+                bangumi_dict = row2dict(bangumi)
+                bangumi_dict['cover'] = utils.generate_cover_link(bangumi)
+                bangumi_list.append(bangumi_dict)
 
             return json_resp({'data': bangumi_list})
         except Exception as error:

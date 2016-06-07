@@ -31,7 +31,7 @@ class CommonUtils:
     def generate_cover_link(self, bangumi):
         path = urlparse(bangumi.image).path
         extname = os.path.splitext(path)[1]
-        cover_url = '/pic/{0}/cover.{1}'.format(str(bangumi.id), extname)
+        cover_url = '/pic/{0}/cover{1}'.format(str(bangumi.id), extname)
         if self.image_domain is not None:
             cover_url = self.image_domain + cover_url
         return cover_url
