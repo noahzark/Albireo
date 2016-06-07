@@ -1,3 +1,14 @@
+#0.4.0-alpha
+
+##Features Add
+
+- Add a CLI command to download bangumi cover image
+
+##Breaking Changes
+
+- Now, all client bangumi image will use bangumi.cover to get the cover image. if your see a broken image, using `tools.py --cover` to download missing bangumi cover.
+
+
 #0.3.0-alpha
 
 ##Features Add
