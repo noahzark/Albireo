@@ -7,7 +7,7 @@ from domain.TorrentFile import TorrentFile
 from datetime import datetime
 from utils.SessionManager import SessionManager
 from utils.exceptions import ClientError
-from utils.http import json_resp
+from utils.http import json_resp, FileDownloader
 from utils.db import row2dict
 from sqlalchemy.sql.expression import or_, desc, asc
 from sqlalchemy.sql import select, func
@@ -27,6 +27,7 @@ class AdminService:
         config = yaml.load(fr)
         self.base_path = config['download']['location']
         self.image_domain = config['domain']['image']
+        self.file_downloader = FileDownloader()
         try:
             if not os.path.exists(self.base_path):
                 os.makedirs(self.base_path)
@@ -73,7 +74,7 @@ class AdminService:
         path = urlparse(bangumi.image).path
         extname = os.path.splitext(path)[1]
         cover_path = bangumi_path + '/cover' + extname
-        urlretrieve(bangumi.image, cover_path)
+        self.file_downloader.download_file(bangumi.image, cover_path)
 
     def list_bangumi(self, page, count, sort_field, sort_order, name):
         try:
