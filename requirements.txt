@@ -6,3 +6,4 @@ twisted
 feedparser
 httplib2
 service_identity
+requests
