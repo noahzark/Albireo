@@ -8,6 +8,12 @@ from domain.TorrentFile import TorrentFile
 from domain.User import User
 from domain.base import Base
 
+from utils.http import FileDownloader
+import yaml
+import os
+import errno
+from urlparse import urlparse
+
 parser = argparse.ArgumentParser(description='Tools for management database')
 group = parser.add_mutually_exclusive_group()
 group.add_argument('--invite', type=int, metavar=('NUMBER'), help='generate n invite codes')
@@ -15,6 +21,7 @@ group.add_argument('--user-add', nargs=2, metavar=('USERNAME', 'PASSWORD'), help
 group.add_argument('--user-del', nargs=1, metavar=('USERNAME'), help='delete an user')
 group.add_argument('--user-promote', nargs=2, metavar=('USERNAME', 'LEVEL'), help='promote an user')
 group.add_argument('--db-init', action='store_true', help='init database, if tables not exists, create it')
+group.add_argument('--cover', action='store_true', help='scan bangumi, download missing cover')
 
 args = parser.parse_args()
 
@@ -64,6 +71,37 @@ elif args.user_promote is not None:
 elif args.db_init:
     Base.metadata.create_all(SessionManager.engine)
     print('table initialized')
+
+elif args.cover:
+    fr = open('./config/config.yml', 'r')
+    config = yaml.load(fr)
+    download_location = config['download']['location']
+    session = SessionManager.Session()
+    cur = session.query(Bangumi)
+    resp_cookies = None
+    file_downloader = FileDownloader()
+    for bangumi in cur:
+        if bangumi.image is not None:
+            try:
+                bangumi_dir = download_location + '/' + str(bangumi.id)
+                # if bangumi folder is not existence create it
+                if not os.path.exists(bangumi_dir):
+                    os.makedirs(bangumi_dir)
+                    print 'bangumi %s folder created' % (str(bangumi.id),)
+
+                path = urlparse(bangumi.image).path
+                extname = os.path.splitext(path)[1]
+                bangumi_cover_path = bangumi_dir + '/cover' + extname
+                if not os.path.exists(bangumi_cover_path):
+                    # download bangumi image
+                    print 'start to download bangumi cover of %s (%s)' % (bangumi.name, str(bangumi.id))
+                    file_downloader.download_file(bangumi.image, bangumi_cover_path)
+            except OSError as exception:
+                if exception.errno == errno.EACCES:
+                    # permission denied
+                    raise exception
+                else:
+                    print exception
 
 else:
     parser.print_help()

@@ -3,6 +3,7 @@ from datetime import date, datetime
 import time
 import json
 import uuid
+import requests
 
 
 def encode_datetime(obj):
@@ -25,3 +26,22 @@ def json_resp(obj, status=200):
     resp = make_response(json.dumps(obj, cls=DateTimeEncoder), status)
     resp.headers['Content-Type'] = 'application/json'
     return resp
+
+class FileDownloader:
+
+    def __init__(self):
+        self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0'
+        })
+
+    def download_file(self, url, file_path):
+        r = self.session.get(url, stream=True)
+
+        if r.status_code > 399:
+            r.raise_for_status()
+
+        with open(file_path, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=1024):
+                if chunk:
+                    f.write(chunk)
