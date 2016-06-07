@@ -30,6 +30,7 @@ requirements: python 2.7, deluge, postgresql 9.3 and above, ffmpeg
 - feedparser
 - httplib2
 - service_identity
+- requests
 
 NOTE: ffmpeg is presume accessible with `ffmpeg` command
 
