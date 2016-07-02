@@ -7,6 +7,7 @@ from domain.Bangumi import Bangumi
 from utils.SessionManager import SessionManager
 from utils.VideoManager import video_manager
 from datetime import datetime
+from sqlalchemy import exc
 import logging
 
 logger = logging.getLogger(__name__)
@@ -34,22 +35,26 @@ class DownloadManager:
 
         def update_torrent_file(file_path):
             session = SessionManager.Session
-            torrent_file = session.query(TorrentFile).filter(TorrentFile.torrent_id == torrent_id).one()
-            torrent_file.file_path = file_path
+            try:
+                torrent_file = session.query(TorrentFile).filter(TorrentFile.torrent_id == torrent_id).one()
+                torrent_file.file_path = file_path
 
-            # update status of episode
-            episode = session.query(Episode).filter(Episode.torrent_files.contains(torrent_file)).one()
-            episode.update_time = datetime.now()
-            episode.status = Episode.STATUS_DOWNLOADED
+                # update status of episode
+                episode = session.query(Episode).filter(Episode.torrent_files.contains(torrent_file)).one()
+                episode.update_time = datetime.now()
+                episode.status = Episode.STATUS_DOWNLOADED
 
-            #update bangumi update_time
+                #update bangumi update_time
 
-            bangumi = session.query(Bangumi).filter(Bangumi.episodes.contains(episode)).one()
-            bangumi.update_time = datetime.now()
+                bangumi = session.query(Bangumi).filter(Bangumi.episodes.contains(episode)).one()
+                bangumi.update_time = datetime.now()
 
-            session.commit()
+                session.commit()
 
-            create_thumbnail(episode, file_path)
+                create_thumbnail(episode, file_path)
+            except exc.DBAPIError as db_error:
+                if db_error.connection_invalidated:
+                    session.rollback()
 
 
         def get_files(files):

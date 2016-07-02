@@ -36,6 +36,7 @@ from twisted.internet.task import LoopingCall
 from utils.DownloadManager import download_manager
 from utils.exceptions import SchedulerError
 from urlparse import urlparse
+from sqlalchemy import exc
 from sqlalchemy.sql import func
 import traceback
 
@@ -152,6 +153,11 @@ class Scheduler:
 
         except OSError as os_error:
             logger.error(os_error)
+        except exc.DBAPIError as db_error:
+            logger.error(db_error)
+            # if connection is invalid rollback the session
+            if db_error.connection_invalidated:
+                session.rollback()
         except Exception as error:
             logger.error(error)
             traceback.print_exc()
