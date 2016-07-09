@@ -40,6 +40,9 @@ from sqlalchemy import exc
 from sqlalchemy.sql import func
 import traceback
 
+from taskrunner.InfoScanner import info_scanner
+
+
 class Scheduler:
 
     def __init__(self):
@@ -173,6 +176,7 @@ video_manager.set_base_path(scheduler.base_path)
 def on_connected(result):
     # logger.info(result)
     scheduler.start()
+    info_scanner.start()
 
 def on_connect_fail(result):
     logger.error(result)

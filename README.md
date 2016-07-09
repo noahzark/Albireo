@@ -57,6 +57,10 @@ $ python tools.py --user-add admin 1234  # admin is username 1234 is password
 $ python tools.py --user-promote admin 3  # admin is username 3 is the level, currently means super user
 ```
 
+### set your server locale
+
+To avoid some unicode issues, it is recommended to set locale of your server
+
 ### Docker
 you can also set up the development environment with [Docker](https://www.docker.com/)
 

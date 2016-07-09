@@ -1,3 +1,15 @@
+#0.6.0-alpha
+
+##Features Add
+
+- InfoScanner for scanning missing information (name, name_cn, duration) and auto fill those information from bangumi.tv, note that the name_cn is not always filled.
+
+##Bug fix
+
+- rollback session when db connection lost
+
+NOTE: this release require use to update their config.yml.
+
 #0.4.0-alpha
 
 ##Features Add
