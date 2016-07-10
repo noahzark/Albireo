@@ -1,4 +1,4 @@
-#0.5.0-alpha
+#0.6.0-alpha
 
 ##Features Add
 
