@@ -38,6 +38,7 @@ from utils.exceptions import SchedulerError
 from urlparse import urlparse
 from sqlalchemy import exc
 from sqlalchemy.sql import func
+from datetime import datetime
 import traceback
 
 from taskrunner.InfoScanner import info_scanner
@@ -117,10 +118,16 @@ class Scheduler:
         session = SessionManager.Session
 
         result = session.query(Bangumi).\
-            filter(Bangumi.status == Bangumi.STATUS_ON_AIR).\
+            filter(Bangumi.status != Bangumi.STATUS_FINISHED).\
             filter(Bangumi.rss != None)
         try:
             for bangumi in result:
+
+                print 'air_date %s, today %s' % (str(bangumi.air_date), str(datetime.today().date()))
+                # update status
+                if bangumi.air_date <= datetime.today().date():
+                    bangumi.status = Bangumi.STATUS_ON_AIR
+
                 episode_result = session.query(Episode).\
                     filter(Episode.bangumi==bangumi).\
                     filter(Episode.status==Episode.STATUS_NOT_DOWNLOADED)
