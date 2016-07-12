@@ -1,0 +1,67 @@
+#%RAML 1.0
+title: Albireo HTTP API
+version: v1
+baseUri: /api
+types:
+  episode:
+    type: object
+    properties:
+      id: string
+      bangumi_id: string
+      bgm_eps_id: integer
+      episode_no: integer
+      name: string
+      name_cn: string
+      duration: string
+      airdate: date-only
+      status: integer
+      create_time: integer
+      update_time: integer
+  bangumi:
+    type: object
+    properties:
+      id: string
+      bgm_id: integer
+      name: string
+      name_cn: string
+      summary: string
+      image: string
+      air_date: date-only
+      air_weekday: integer
+      rss: string
+      eps_regex: string
+      status: integer
+      create_time: integer
+      update_time: integer
+  bangumi_rich:
+    type: bangumi
+    properties:
+      cover: string
+  episode_rich:
+    type: episode
+    properties:
+      bangumi: bangumi_rich
+      thumbnail: string
+/home:
+  /recent:
+    get:
+      queryParameters:
+        days:
+          type: integer
+          default: 7
+          description: Indicate how many days before today
+      responses:
+        200:
+          body:
+            application/json:
+              properties:
+                data: episode_rich[]
+  /on_air:
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              properties:
+                data:
+                  type: bangumi_rich[]
