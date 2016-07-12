@@ -122,8 +122,6 @@ class Scheduler:
             filter(Bangumi.rss != None)
         try:
             for bangumi in result:
-
-                print 'air_date %s, today %s' % (str(bangumi.air_date), str(datetime.today().date()))
                 # update status
                 if bangumi.air_date <= datetime.today().date():
                     bangumi.status = Bangumi.STATUS_ON_AIR
