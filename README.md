@@ -13,6 +13,7 @@ further more, the information can be used for more user friendly function.
 
 [Server](#server)
 
+
 [Scheduler](#scheduler)
 
 ## Installation
@@ -84,6 +85,44 @@ In production mode, using twistd as WSGI container
 ```shell
 twistd -n web --port 5000 --wsgi appd.app
 ```
+
+## Nginx Configuration
+
+To serve the static files like images and videos, you need to setup a static file server, we recommend using nginx.
+Here are nginx configurations.
+
+**You need to serve the following url pattern.**
+
+- bangumi cover: `{http|https}://{youdomain}/pic/{bangumi_id}/cover.jpg`
+- episode thumbnail: `{http|https}://{youdomain}/pic/{bangumi_id}/thumbnails/{episode_no}.png`
+- video: `{http|https}://{youdomain}/video/{bangumi_id}/{path_to_video}`
+
+**explanation**
+- yourdomain is the configured domain in `config/config.yml` file `domain` section
+- bangumi_id is the bangumi id which is a uuid string
+- episode_no is the episode number for certain episode
+- path_to video is video file path relative to download path which configured in your config file.
+
+In fact, you just need to take the path part after `/pic/` and append to your download location. the actual file is there.
+
+For example your download path is `/path/to/videos` which is set in `config/config.yml` download location section
+
+```nginx
+server {
+	listen 8000 default_server;
+	
+	root /path/to/videos;
+	
+	server_name localhost;
+	
+	location ~ ^(?:/pic|/video)/(.+) {
+		try_files /$1 $uri=404;
+	}
+}
+```
+
+According to your environment and configuration, the nginx configuration may different from this example.
+
 
 ### HTTP API
 
