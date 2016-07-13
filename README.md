@@ -13,6 +13,7 @@ further more, the information can be used for more user friendly function.
 
 [Server](#server)
 
+[Nginx Configuration](#nginx_configuration)
 
 [Scheduler](#scheduler)
 
