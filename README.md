@@ -13,7 +13,7 @@ further more, the information can be used for more user friendly function.
 
 [Server](#server)
 
-[Nginx Configuration](#nginx_configuration)
+[Nginx Configuration](#nginx-configuration)
 
 [Scheduler](#scheduler)
 
@@ -130,3 +130,29 @@ According to your environment and configuration, the nginx configuration may dif
 Scheduler is the core of this project ,it work like an cron daemon and periodically visit the bangumi rss to see if there are episode need to be downloaded.
 
 To run Scheduler, run `python scheduler.py` is enough, if you set environment variable DEBUG to True, debug info will be printed.
+
+#### Rule of episode match
+
+The scheduler will automatic parse the feed item of your rss url, it use a regular expression which you provide to match the certain episode number.
+
+your regular expression must contain capture group that captures number of episode.
+
+For example, an item in feed is
+
+```xml
+<item>
+	<title>
+	<![CDATA[
+	【恶魔岛字幕组】★4月新番【Re：从零开始的异世界生活_Re - Zero Kara Hajimeru Isekai Seikatsu】[15][GB][720P][MP4][内附公告]
+	]]>
+	</title>
+	<pubDate>Mon, 11 Jul 2016 07:51:04 +0800</pubDate>
+	<enclosure url="magnet:?xt=urn:btih:57LCYNNOJDWR7A6K5DK6CDTNKXNUUCHV&dn=&tr=http%3A%2F%2F208.67.16.113%3A8000%2Fannounce&tr=udp%3A%2F%2F208.67.16.113%3A8000%2Fannounce&tr=http%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=http%3A%2F%2Ftracker.publicbt.com%3A80%2Fannounce&tr=http%3A%2F%2Ftracker.prq.to%2Fannounce&tr=http%3A%2F%2Fopen.acgtracker.com%3A1096%2Fannounce&tr=http%3A%2F%2Ftr.bangumi.moe%3A6969%2Fannounce&tr=https%3A%2F%2Ft-115.rhcloud.com%2Fonly_for_ylbud&tr=http%3A%2F%2Fbtfile.sdo.com%3A6961%2Fannounce&tr=http%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce&tr=https%3A%2F%2Ftr.bangumi.moe%3A9696%2Fannounce&tr=http%3A%2F%2Fopen.nyaatorrents.info%3A6544%2Fannounce&tr=http%3A%2F%2Ftracker.ktxp.com%3A6868%2Fannounce&tr=http%3A%2F%2Ftracker.ktxp.com%3A7070%2Fannounce&tr=http%3A%2F%2Ft2.popgo.org%3A7456%2Fannonce&tr=http%3A%2F%2Ftracker.openbittorrent.com%2Fannounce&tr=http%3A%2F%2Ftracker.publicbt.com%2Fannounce&tr=http%3A%2F%2Fshare.camoe.cn%3A8080%2Fannounce&tr=http%3A%2F%2Ftracker.dmhy.org%3A8000%2Fannounce&tr=http%3A%2F%2Fnyaatorrents.info%3A7266%2Fannounce&tr=http%3A%2F%2Ft.acg.rip%3A6699%2Fannounce" length="1" type="application/x-bittorrent"/>
+</item>
+```
+
+Your regular expression can be `.+?从零开始的异世界生活.*?\[(\d+)\].+`
+
+This regular expression will capture number `15` in the title `【恶魔岛字幕组】★4月新番【Re：从零开始的异世界生活_Re - Zero Kara Hajimeru Isekai Seikatsu】[15][GB][720P][MP4][内附公告]` of this item.
+
+It is recommended test your regular expression before saved, you can use a web tool to test your regular expression. like http://regex101.com/#python
