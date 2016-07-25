@@ -17,6 +17,8 @@ further more, the information can be used for more user friendly function.
 
 [Scheduler](#scheduler)
 
+[HTTP API](https://github.com/lordfriend/Albireo/wiki/HTTP-API)
+
 ## Installation
 
 requirements: python 2.7, deluge, postgresql 9.3 and above, ffmpeg
