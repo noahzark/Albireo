@@ -36,6 +36,7 @@ RUN echo "listen_addresses='*'" >> /etc/postgresql/9.3/main/postgresql.conf
 
 # Expose the PostgreSQL port
 EXPOSE 5432
+
 # http://askubuntu.com/questions/371832/how-can-run-sudo-commands-inside-another-user-or-grant-a-user-the-same-privileg
 RUN usermod -a -G sudo postgres
 USER postgres
@@ -66,8 +67,17 @@ USER albireo
 RUN echo "Setting up config file..."
 RUN echo "Initialing database..."
 USER root
-RUN /etc/init.d/postgresql start && python tools.py --db-init && python tools.py --user-add admin 1234 && python tools.py --user-promote admin 3
 
 EXPOSE 5000
 
-# docker run --rm -it -v "`pwd`:/albireo" -p 127.0.0.1:5000:5000 albireo
+# set up locale
+RUN locale-gen "en_US.UTF-8"
+ENV LC_ALL en_US.UTF-8
+
+# Add VOLUMEs to allow backup of config, logs and databases
+VOLUME  ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
+
+CMD ["bash", "-c", "/etc/init.d/postgresql start && python /albireo/server.py"]
+# /etc/init.d/postgresql start && python tools.py --db-init && python tools.py --user-add admin 1234 && python tools.py --user-promote admin 3
+# docker volume create --name postgres
+# docker run -it -v "`pwd`:/albireo" -v postgres:/var/lib/postgresql -p 5000:5000 albireo bash
