@@ -161,8 +161,6 @@ class AdminService:
             self.__save_bangumi_cover(bangumi)
 
             return json_resp({'data': {'id': bangumi_id}})
-        except Exception as exception:
-            raise exception
         finally:
             SessionManager.Session.remove()
 
