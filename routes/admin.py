@@ -16,14 +16,8 @@ admin_api = Blueprint('bangumi', __name__)
 @auth_user(User.LEVEL_ADMIN)
 def collection():
     if request.method == 'POST':
-        try:
-            content = request.get_data(True, as_text=True)
-            return admin_service.add_bangumi(content)
-        except Exception as exception:
-            raise exception
-            # resp = make_response(jsonify({'msg': 'error'}), 500)
-            # resp.headers['Content-Type'] = 'application/json'
-            # return resp
+          content = request.get_data(True, as_text=True)
+          return admin_service.add_bangumi(content)
     else:
         page = int(request.args.get('page', 1))
         count = int(request.args.get('count', 10))
