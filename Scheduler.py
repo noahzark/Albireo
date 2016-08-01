@@ -26,7 +26,7 @@ else:
 from twisted.internet import reactor, threads
 
 
-from feed.FeedFromDMHY import FeedFromDMHY
+from feed.DMHY import DMHY
 from yaml import load
 from utils.SessionManager import SessionManager
 from utils.VideoManager import video_manager
@@ -132,7 +132,7 @@ class Scheduler:
 
                 http_proxy = self._get_proxy(bangumi.rss)
 
-                task = FeedFromDMHY(bangumi, episode_result, self.base_path, http_proxy)
+                task = DMHY(bangumi, episode_result, self.base_path, http_proxy)
 
                 if 'timeout' in self.feedparser:
                     timeout = int(self.feedparser['timeout'])

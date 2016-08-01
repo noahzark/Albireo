@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 logger.propagate = True
 
-class FeedFromDMHY:
+class DMHY:
 
     def __init__(self, bangumi, episode_list, base_path, proxy=None):
         self.bangumi = bangumi
