@@ -7,6 +7,7 @@ from service.admin import admin_service
 from service.auth import auth_user
 from flask_login import login_required
 from domain.User import User
+from utils.exceptions import ClientError
 
 
 admin_api = Blueprint('bangumi', __name__)
@@ -130,3 +131,17 @@ def episode(episode_id):
     elif request.method == 'PUT':
         return admin_service.update_episode(episode_id, json.loads(request.get_data(True, as_text=True)))
 
+
+@admin_api.route('/episode/<episode_id>/upload', methods=['POST'])
+@login_required
+@auth_user(User.LEVEL_ADMIN)
+def upload_episode(episode_id):
+    if 'file' not in request.files:
+        raise ClientError(ClientError.NOT_VALID_BODY)
+
+    file = request.files['file']
+    if file.filename == '':
+        raise ClientError(ClientError.NOT_VALID_BODY)
+
+    if file:
+        return admin_service.upload_episode(episode_id, file)

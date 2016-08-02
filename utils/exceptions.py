@@ -30,6 +30,8 @@ class ClientError(BasicError):
 
     NOT_FOUND = 'NOT FOUND'
 
+    NOT_VALID_BODY = 'not valid body'
+
     def __init__(self, message, status=400, payload=None):
         BasicError.__init__(self, message, status, payload)
 
