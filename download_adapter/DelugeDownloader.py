@@ -2,6 +2,7 @@ from Downloader import Downloader
 from yaml import load
 from deluge.ui.client import client
 from twisted.internet.defer import inlineCallbacks, returnValue
+from utils.exceptions import SchedulerError
 # Set up the logger to print out errors
 from deluge.log import setupLogger, LOG
 setupLogger(level='info')
@@ -42,9 +43,25 @@ class DelugeDownloader(Downloader):
     def __on_download_completed(self, torrent_id):
         self.__on_download_completed_callback(torrent_id)
 
+
+    def __url_type(self, download_url):
+        if download_url.startswith('magnet:?'):
+            return 'magnet'
+        if download_url.endswith('.torrent'):
+            return 'torrent'
+        if download_url.endswith('.txt'):
+            return 'txt'
+        return 'unknown'
+
     @inlineCallbacks
-    def download(self, magnet_uri, download_location):
-        torrent_id = yield client.core.add_torrent_magnet(magnet_uri, {'download_location': download_location})
+    def download(self, download_url, download_location):
+        url_type =self.__url_type(download_url)
+        if url_type == 'magnet':
+            torrent_id = yield client.core.add_torrent_magnet(download_url, {'download_location': download_location})
+        elif url_type == 'torrent':
+            torrent_id = yield client.core.add_torrent_url(download_url, {'download_location': download_location})
+        else:
+            raise SchedulerError('unsupport url format')
 
         returnValue(torrent_id)
 

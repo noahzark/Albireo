@@ -86,9 +86,9 @@ class DownloadManager:
         d.addErrback(fail_to_get_files)
 
     @inlineCallbacks
-    def download(self, magnet_uri, download_location):
+    def download(self, download_url, download_location):
         try:
-            torrent_id = yield self.downloader.download(magnet_uri, download_location)
+            torrent_id = yield self.downloader.download(download_url, download_location)
             returnValue(TorrentFile(torrent_id=torrent_id))
         except Exception as error:
             logger.warn(error)
