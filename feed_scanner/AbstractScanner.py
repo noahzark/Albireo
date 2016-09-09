@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 logger.propagate = True
 
 
-class Feed:
+class AbstractScanner:
     '''
     A base class for feed crawler.
     '''

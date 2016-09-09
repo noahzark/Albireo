@@ -26,7 +26,7 @@ else:
 from twisted.internet import reactor, threads
 
 
-from feed.DMHY import DMHY
+from feed_scanner.DMHY import DMHY
 from yaml import load
 from utils.SessionManager import SessionManager
 from utils.VideoManager import video_manager

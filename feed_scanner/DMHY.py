@@ -1,18 +1,18 @@
 import feedparser
-from feed.Feed import Feed
 from utils.exceptions import SchedulerError
 import socket
 import logging, urllib2
+from feed_scanner.AbstractScanner import AbstractScanner
 
 logger = logging.getLogger(__name__)
 
 logger.propagate = True
 
-class ACG_RIP(Feed):
+class DMHY(AbstractScanner):
 
     def __init__(self, bangumi, episode_list):
         super(self.__class__, self).__init__(bangumi, episode_list)
-        self.feed_url = 'https://acg.rip/.xml?term=%s'.format((bangumi.acg_rip,))
+        self.feed_url = 'https://share.dmhy.org/topics/rss/rss.xml?keyword=%s'.format((bangumi.dmhy,))
 
     def parse_feed(self):
         '''
@@ -57,4 +57,4 @@ class ACG_RIP(Feed):
 
     @classmethod
     def has_keyword(cls, bangumi):
-        return bangumi.acg_rip is not None
+        return bangumi.dmhy is not None
