@@ -113,10 +113,10 @@ class BangumiScanner:
         for index in random.shuffle(range(len(bangumi_list))):
             bangumi = bangumi_list[index]
             if self.has_keyword(bangumi) and (not self.check_bangumi_status(bangumi)):
-                episode_list = yield threads.deferToThread(self.query_episode_list, self, bangumi.id)
+                episode_list = yield threads.deferToThread(self.query_episode_list, bangumi.id)
                 # result is an array of tuple (item, eps_no)
-                scan_result = yield threads.deferToThread(self.scan_feed, self, bangumi, episode_list)
+                scan_result = yield threads.deferToThread(self.scan_feed, bangumi, episode_list)
                 url_eps_id_list = [(download_url, self.__find_episode_by_number(episode_list, eps_no)) for (download_url, eps_no) in scan_result]
                 # this method may raise exception
-                yield threads.deferToThread(self.download_episodes, self, url_eps_id_list, bangumi.id)
+                yield threads.deferToThread(self.download_episodes, url_eps_id_list, bangumi.id)
                 self.update_bangumi_status(bangumi)
