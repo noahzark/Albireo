@@ -8,8 +8,8 @@ logger.propagate = True
 
 class DmhyScanner(BangumiScanner):
 
-    def __init__(self, base_path, interval):
-        super(self.__class__, self).__init__(base_path, interval)
+    def __init__(self, base_path):
+        super(self.__class__, self).__init__(base_path)
 
     def has_keyword(self, bangumi):
         return bangumi.dmhy is not None

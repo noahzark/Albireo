@@ -1,30 +1,19 @@
 from utils.SessionManager import SessionManager
-from utils.DownloadManager import download_manager
-from utils.CountDownLatch import CountDownLatch
 from domain.Bangumi import Bangumi
 from domain.Episode import Episode
 from domain.Feed import Feed
-from feed_scanner.DMHY import DMHY
-from feed_scanner.ACG_RIP import ACG_RIP
 from datetime import datetime
 from sqlalchemy.sql import func
-from twisted.internet import reactor, threads
-from twisted.internet.defer import inlineCallbacks, returnValue
 import logging
-import errno
-import os
-import yaml
 import random
-import threading
-from twisted.internet import reactor, threads
+from twisted.internet import threads
 
 logger = logging.getLogger(__name__)
 
 
 class BangumiScanner:
-    def __init__(self, base_path, interval):
+    def __init__(self, base_path):
         self.base_path = base_path
-        self.interval = interval
 
     def __find_episode_by_number(self, episode_list, eps_no):
         for episode in episode_list:

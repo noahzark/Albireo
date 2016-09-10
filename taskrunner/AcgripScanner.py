@@ -6,10 +6,10 @@ import logging
 logger = logging.getLogger(__name__)
 logger.propagate = True
 
-class DmhyScanner(BangumiScanner):
+class AcgripScanner(BangumiScanner):
 
-    def __init__(self, base_path, interval):
-        super(self.__class__, self).__init__(base_path, interval)
+    def __init__(self, base_path):
+        super(self.__class__, self).__init__(base_path)
 
     def has_keyword(self, bangumi):
         return bangumi.acg_rip is not None
