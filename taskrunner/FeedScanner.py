@@ -32,7 +32,6 @@ class FeedScanner:
         finally:
             SessionManager.Session.remove()
 
-    @inlineCallbacks
     def __update_episode(self, episode_id, torrent_file):
         session = SessionManager.Session()
         try:
@@ -44,7 +43,6 @@ class FeedScanner:
 
             episode.status = Episode.STATUS_DOWNLOADING
             session.commit()
-            returnValue(None)
         finally:
             SessionManager.Session.remove()
 
@@ -56,7 +54,7 @@ class FeedScanner:
             if torrent_file is None:
                 logger.warn('episode %s download failed'.format(feed.episode_id))
             else:
-                yield self.__update_episode(feed.episode_id, torrent_file)
+                yield threads.deferToThread(self.__update_episode, feed.episode_id, torrent_file)
 
 
     def __on_query_error(self, err):

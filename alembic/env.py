@@ -9,6 +9,7 @@ from domain.Episode import Episode
 from domain.InviteCode import InviteCode
 from domain.TorrentFile import TorrentFile
 from domain.User import User
+from domain.Feed import Feed
 #----------------------
 
 from domain.base import Base
