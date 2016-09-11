@@ -131,11 +131,11 @@ class AdminService:
                               air_weekday=bangumi_data['air_weekday'],
                               status=self.__get_bangumi_status(bangumi_data['air_date']))
 
-            if 'rss' in bangumi_data:
-                bangumi.rss = bangumi_data['rss']
+            # if 'rss' in bangumi_data:
+            #     bangumi.rss = bangumi_data['rss']
 
-            if 'eps_regex' in bangumi_data:
-                bangumi.eps_regex = bangumi_data['eps_regex']
+            # if 'eps_regex' in bangumi_data:
+            #     bangumi.eps_regex = bangumi_data['eps_regex']
 
             session = SessionManager.Session()
 
@@ -173,11 +173,13 @@ class AdminService:
             bangumi.name_cn = bangumi_dict['name_cn']
             bangumi.summary = bangumi_dict['summary']
             bangumi.eps = bangumi_dict['eps']
-            bangumi.eps_regex = bangumi_dict['eps_regex']
+            # bangumi.eps_regex = bangumi_dict['eps_regex']
             bangumi.image = bangumi_dict['image']
             bangumi.air_date = datetime.strptime(bangumi_dict['air_date'], '%Y-%m-%d')
             bangumi.air_weekday = bangumi_dict['air_weekday']
-            bangumi.rss = bangumi_dict['rss']
+            # bangumi.rss = bangumi_dict['rss']
+            bangumi.dmhy = bangumi_dict['dmhy']
+            bangumi.acg_rip = bangumi_dict['acg_rip']
             bangumi.update_time = datetime.now()
 
             session.commit()
