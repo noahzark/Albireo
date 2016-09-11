@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 logger.propagate = True
 
 
-class AbstractScanner:
+class AbstractScanner(object):
     '''
     A base class for feed crawler.
     '''
@@ -21,8 +21,7 @@ class AbstractScanner:
         config = yaml.load(fr)
         self.base_path = config['download']['location']
         self.feedparser = config['feedparser']
-        self.proxy = self._get_proxy(bangumi.rss)
-        self.bangumi_path = self.base_path + '/' + str(self.bangumi.id)
+        self.bangumi_path = self.base_path + '/' + str(bangumi.id)
 
         self.bangumi = bangumi
         self.episode_list = episode_list
@@ -39,7 +38,7 @@ class AbstractScanner:
                 info_file = open(self.bangumi_path + '/info.txt', 'w')
                 info_file.write(self.bangumi.name.encode('utf-8'))
                 info_file.close()
-                logger.info('create dir for %s', self.bangumi.name)
+                logger.info('create dir for %s', bangumi.name)
         except OSError as exception:
             if exception.errno != errno.EEXIST:
                 raise exception
@@ -63,21 +62,20 @@ class AbstractScanner:
         else:
             return 'default'
 
-    def _get_proxy(self, rss_url):
+    def _get_proxy(self, site_name):
         '''
         get the proxy config from config and given url,
         if url specific config is not found using the default config.
         if config is an string, treat it as proxy url, use it for all three schemes
         if config is an dict, make sure it has all scheme set and use it directly
-        :param rss_url:
+        :param site_name:
         :return: an dict of config
         '''
         if 'proxy' in self.feedparser:
             proxy_config = self.feedparser['proxy']
-            url_name = self.get_url_name(rss_url)
             # find config by name, if not found, use default, if default is not set, return None
-            if url_name in proxy_config:
-                proxy_for_name = proxy_config[url_name]
+            if site_name in proxy_config:
+                proxy_for_name = proxy_config[site_name]
             elif 'default' in proxy_config:
                 proxy_for_name = proxy_config['default']
             else:

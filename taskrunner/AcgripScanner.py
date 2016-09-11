@@ -8,8 +8,8 @@ logger.propagate = True
 
 class AcgripScanner(BangumiScanner):
 
-    def __init__(self, base_path):
-        super(self.__class__, self).__init__(base_path)
+    def __init__(self, base_path, interval):
+        super(self.__class__, self).__init__(base_path, interval)
 
     def has_keyword(self, bangumi):
         return bangumi.acg_rip is not None
@@ -20,3 +20,4 @@ class AcgripScanner(BangumiScanner):
             return acg_rip.parse_feed()
         except Exception as error:
             logger.warn(error)
+            return None

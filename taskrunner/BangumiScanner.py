@@ -3,17 +3,19 @@ from domain.Bangumi import Bangumi
 from domain.Episode import Episode
 from domain.Feed import Feed
 from datetime import datetime
-from sqlalchemy.sql import func
+from sqlalchemy.sql import func, or_
 import logging
 import random
 from twisted.internet import threads
+from twisted.internet.task import LoopingCall
+from twisted.internet.defer import inlineCallbacks, returnValue
 
 logger = logging.getLogger(__name__)
 
-
-class BangumiScanner:
-    def __init__(self, base_path):
+class BangumiScanner(object):
+    def __init__(self, base_path, interval):
         self.base_path = base_path
+        self.interval = interval
 
     def __find_episode_by_number(self, episode_list, eps_no):
         for episode in episode_list:
@@ -21,13 +23,26 @@ class BangumiScanner:
                 return episode
         return None
 
-    def download_episodes(self, url_eps_id_list, bangumi_id):
+    def __drop_duplicate(self, url_eps_id_list):
+        eps_id_dict = {}
+        no_dupli_list = []
+        for (download_url, episode) in url_eps_id_list:
+            if str(episode.id) not in eps_id_dict:
+                no_dupli_list.append((download_url, episode))
+                eps_id_dict[str(episode.id)] = True
+
+        return no_dupli_list
+
+    def download_episodes(self, url_eps_list, bangumi_id):
+        no_dupli_list = self.__drop_duplicate(url_eps_list)
         session = SessionManager.Session()
         try:
-            for (download_url, episode_id) in url_eps_id_list:
+            for (download_url, episode) in no_dupli_list:
                 feed = Feed(download_url = download_url,
-                            episode_id = episode_id,
+                            episode_id = episode.id,
                             bangumi_id = bangumi_id)
+                episode.status = Episode.STATUS_DOWNLOADING
+                session.add(episode)
                 session.add(feed)
             session.commit()
         except Exception as error:
@@ -66,7 +81,7 @@ class BangumiScanner:
         try:
             return session.query(Bangumi).\
                 filter(Bangumi.status != Bangumi.STATUS_FINISHED).\
-                filter(Bangumi.rss != None).all()
+                filter(or_(Bangumi.dmhy != None, Bangumi.acg_rip != None)).all()
         except Exception as error:
             logger.warn(error)
             return []
@@ -92,7 +107,7 @@ class BangumiScanner:
         :param bangumi:
         :return: {boolean}
         '''
-        return False
+        returnValue(False)
 
     def scan_feed(self,bangumi, episode_list):
         '''
@@ -101,22 +116,31 @@ class BangumiScanner:
         :param episode_list
         :return: list of tuples (download_url, episode_no)
         '''
-        return []
+        returnValue([])
 
+    @inlineCallbacks
     def scan_bangumi(self):
         '''
         dispatch the feed crawling job, this is a synchronized method running on individual thread
         :return:
         '''
-        bangumi_list = yield threads.deferToThread(self.query_bangumi_list, self)
-
-        for index in random.shuffle(range(len(bangumi_list))):
+        logger.info('scan bangumi %s', self.__class__.__name__)
+        bangumi_list = yield threads.deferToThread(self.query_bangumi_list)
+        index_list = range(len(bangumi_list))
+        random.shuffle(index_list)
+        for index in index_list:
             bangumi = bangumi_list[index]
             if self.has_keyword(bangumi) and (not self.check_bangumi_status(bangumi)):
                 episode_list = yield threads.deferToThread(self.query_episode_list, bangumi.id)
                 # result is an array of tuple (item, eps_no)
                 scan_result = yield threads.deferToThread(self.scan_feed, bangumi, episode_list)
-                url_eps_id_list = [(download_url, self.__find_episode_by_number(episode_list, eps_no)) for (download_url, eps_no) in scan_result]
+                if scan_result is None:
+                    continue
+                url_eps_list = [(download_url, self.__find_episode_by_number(episode_list, eps_no)) for (download_url, eps_no) in scan_result]
                 # this method may raise exception
-                yield threads.deferToThread(self.download_episodes, url_eps_id_list, bangumi.id)
-                self.update_bangumi_status(bangumi)
+                yield threads.deferToThread(self.download_episodes, url_eps_list, bangumi.id)
+                yield threads.deferToThread(self.update_bangumi_status, bangumi)
+
+    def start(self):
+        lp = LoopingCall(self.scan_bangumi)
+        lp.start(self.interval)

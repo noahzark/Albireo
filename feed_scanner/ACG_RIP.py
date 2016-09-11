@@ -2,7 +2,7 @@ import feedparser
 from feed_scanner.AbstractScanner import AbstractScanner
 from utils.exceptions import SchedulerError
 import socket
-import logging, urllib2
+import logging, urllib2, urllib
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +12,10 @@ class ACG_RIP(AbstractScanner):
 
     def __init__(self, bangumi, episode_list):
         super(self.__class__, self).__init__(bangumi, episode_list)
-        self.feed_url = 'https://acg.rip/.xml?term=%s'.format((bangumi.acg_rip,))
+        self.proxy = self._get_proxy('acg_rip')
+        keywords = urllib.quote_plus(bangumi.acg_rip.replace(u'+', u' ').encode('utf-8'))
+        self.feed_url = 'https://acg.rip/.xml?term=%s' % (keywords,)
+        logger.debug(self.feed_url)
 
     def parse_feed(self):
         '''
@@ -22,7 +25,7 @@ class ACG_RIP(AbstractScanner):
         :return: if no error when get feed None is return otherwise return the error object
         '''
         # eps no list
-        logger.debug('start scan %s (%s), url is %s', self.bangumi.name, self.bangumi.id, self.bangumi.rss)
+        logger.debug('start scan %s (%s)', self.bangumi.name, self.bangumi.id)
         eps_no_list = [eps.episode_no for eps in self.episode_list]
 
         default_timeout = socket.getdefaulttimeout()

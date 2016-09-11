@@ -43,24 +43,37 @@ class FeedScanner:
 
             episode.status = Episode.STATUS_DOWNLOADING
             session.commit()
+            return torrent_file.id
         finally:
             SessionManager.Session.remove()
 
+    def __update_feed(self, feed, torrent_file_id):
+        session = SessionManager.Session()
+        try:
+            feed.torrent_file_id = torrent_file_id
+            session.add(feed)
+            session.commit()
+        finally:
+            SessionManager.Session.remove()
 
+    @inlineCallbacks
     def __add_download(self, feed_list):
         for feed in feed_list:
             bangumi_path = self.base_path + '/' + str(feed.bangumi_id)
             torrent_file = yield download_manager.download(feed.download_url, bangumi_path)
+
             if torrent_file is None:
                 logger.warn('episode %s download failed'.format(feed.episode_id))
             else:
-                yield threads.deferToThread(self.__update_episode, feed.episode_id, torrent_file)
+                torrent_file_id = yield threads.deferToThread(self.__update_episode, feed.episode_id, torrent_file)
+                yield threads.deferToThread(self.__update_feed, feed, torrent_file_id)
 
 
     def __on_query_error(self, err):
         logger.warn(err)
 
     def scan_feed(self):
+        logger.info('scan feed')
         d = threads.deferToThread(self.__query_feed)
         d.addCallback(self.__add_download)
         d.addErrback(self.__on_query_error)

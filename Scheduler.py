@@ -28,7 +28,7 @@ from twisted.internet import reactor, threads
 
 from yaml import load
 from utils.VideoManager import video_manager
-from twisted.internet.task import LoopingCall, deferLater, Clock
+from twisted.internet.task import LoopingCall, deferLater
 from utils.DownloadManager import download_manager
 
 from taskrunner.InfoScanner import info_scanner
@@ -57,17 +57,23 @@ class Scheduler:
 
     def start(self):
         self.start_scan_dmhy()
-        deferLater(Clock(), int(self.interval / 2), self.start_scan_acgrip)
+        deferLater(reactor, int(self.interval / 2), self.start_scan_acgrip)
+
+    def scheduleFail(self, failure):
+        logger.error(failure)
+
+    def scheduleDone(self, result):
+        logger.error(result)
 
     def start_scan_dmhy(self):
-        dmhy_scanner = DmhyScanner(self.base_path)
-        dmhy_lc = LoopingCall(dmhy_scanner.scan_bangumi)
-        dmhy_lc.start(self.interval)
+        logger.debug('start dmhy')
+        dmhy_scanner = DmhyScanner(self.base_path, self.interval)
+        dmhy_scanner.start()
 
     def start_scan_acgrip(self):
-        acgrip_scanner = AcgripScanner(self.base_path)
-        acgrip_lc = LoopingCall(acgrip_scanner.scan_bangumi)
-        acgrip_lc.start(self.interval)
+        logger.debug('start acgrip')
+        acgrip_scanner = AcgripScanner(self.base_path, self.interval)
+        acgrip_scanner.start()
 
     def start_scan_feed(self):
         feed_scanner = FeedScanner(self.base_path)
@@ -81,7 +87,7 @@ video_manager.set_base_path(scheduler.base_path)
 def on_connected(result):
     # logger.info(result)
     scheduler.start()
-    info_scanner.start()
+    # info_scanner.start()
     scheduler.start_scan_feed()
 
 
