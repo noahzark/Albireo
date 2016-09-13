@@ -33,6 +33,15 @@ class BangumiScanner(object):
 
         return no_dupli_list
 
+    def save_to_feed(self, feed, episode, session):
+        try:
+            session.add(feed)
+            session.add(episode)
+            session.commit()
+        except:
+            session.rollback()
+
+
     def download_episodes(self, url_eps_list, bangumi_id):
         no_dupli_list = self.__drop_duplicate(url_eps_list)
         session = SessionManager.Session()
@@ -42,9 +51,7 @@ class BangumiScanner(object):
                             episode_id = episode.id,
                             bangumi_id = bangumi_id)
                 episode.status = Episode.STATUS_DOWNLOADING
-                session.add(episode)
-                session.add(feed)
-            session.commit()
+                self.save_to_feed(feed, episode, session)
         except Exception as error:
             logger.warn(error)
 

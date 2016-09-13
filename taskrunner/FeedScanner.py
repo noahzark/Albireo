@@ -18,7 +18,7 @@ class FeedScanner:
     '''
 
     def __init__(self, base_path):
-        self.interval = 30000
+        self.interval = 30
         self.base_path = base_path
 
     def start(self):
@@ -61,9 +61,12 @@ class FeedScanner:
         for feed in feed_list:
             bangumi_path = self.base_path + '/' + str(feed.bangumi_id)
             torrent_file = yield download_manager.download(feed.download_url, bangumi_path)
+            logger.debug(torrent_file.torrent_id)
 
             if torrent_file is None:
                 logger.warn('episode %s download failed'.format(feed.episode_id))
+            elif torrent_file.torrent_id is None:
+                logger.warn('episode %s already in download queue'.format(feed.episode_id))
             else:
                 torrent_file_id = yield threads.deferToThread(self.__update_episode, feed.episode_id, torrent_file)
                 yield threads.deferToThread(self.__update_feed, feed, torrent_file_id)
