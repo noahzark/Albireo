@@ -18,3 +18,13 @@ def dmhy(keywords):
         raise ClientError('keywords is empty', 400)
     else:
         return feed_service.parse_dmhy(keywords)
+
+
+@feed_api.route('/acg-rip/<keywords>', methods=['GET'])
+@login_required
+@auth_user(User.LEVEL_ADMIN)
+def acg_rip(keywords):
+    if keywords is None:
+        raise ClientError('keywords is empty', 400)
+    else:
+        return feed_service.parse_acg_rip(keywords)
