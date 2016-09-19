@@ -1,9 +1,0 @@
-Generic single-database configuration.
-
-Migration guide:
-
-Before run alembic, add current working directory to environment
-
-```
-export PYTHONPATH=`pwd`
-```
