@@ -85,9 +85,9 @@ scheduler = Scheduler()
 video_manager.set_base_path(scheduler.base_path)
 
 def on_connected(result):
-    # logger.info(result)
+    logger.info(result)
     scheduler.start()
-    # info_scanner.start()
+    info_scanner.start()
     scheduler.start_scan_feed()
 
 

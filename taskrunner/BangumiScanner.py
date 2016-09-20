@@ -84,16 +84,11 @@ class BangumiScanner(object):
             SessionManager.Session.remove()
 
     def query_bangumi_list(self):
-        session = SessionManager.Session()
-        try:
-            return session.query(Bangumi).\
-                filter(Bangumi.status != Bangumi.STATUS_FINISHED).\
-                filter(or_(Bangumi.dmhy != None, Bangumi.acg_rip != None)).all()
-        except Exception as error:
-            logger.warn(error)
-            return []
-        finally:
-            SessionManager.Session.remove()
+        '''
+        Subclass should override this method
+        :return: a bangumi list
+        '''
+        return []
 
     def query_episode_list(self, bangumi_id):
         session = SessionManager.Session()
@@ -107,14 +102,6 @@ class BangumiScanner(object):
             return []
         finally:
             SessionManager.Session.remove()
-
-    def has_keyword(self, bangumi):
-        '''
-        subclass should override this method
-        :param bangumi:
-        :return: {boolean}
-        '''
-        returnValue(False)
 
     def scan_feed(self,bangumi, episode_list):
         '''
@@ -137,7 +124,7 @@ class BangumiScanner(object):
         random.shuffle(index_list)
         for index in index_list:
             bangumi = bangumi_list[index]
-            if self.has_keyword(bangumi) and (not self.check_bangumi_status(bangumi)):
+            if not self.check_bangumi_status(bangumi):
                 episode_list = yield threads.deferToThread(self.query_episode_list, bangumi.id)
                 # result is an array of tuple (item, eps_no)
                 scan_result = yield threads.deferToThread(self.scan_feed, bangumi, episode_list)
