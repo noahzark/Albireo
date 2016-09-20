@@ -3,6 +3,7 @@ from feed_scanner.DMHY import DMHY
 from utils.SessionManager import SessionManager
 from domain.Bangumi import Bangumi
 
+import traceback
 import logging
 
 logger = logging.getLogger(__name__)
@@ -25,9 +26,9 @@ class DmhyScanner(BangumiScanner):
             SessionManager.Session.remove()
 
     def scan_feed(self, bangumi, episode_list):
-        # try:
-        dmhy = DMHY(bangumi, episode_list)
-        return dmhy.parse_feed()
-        # except Exception as error:
-        #     logger.warn(error)
-        #     return None
+        try:
+            dmhy = DMHY(bangumi, episode_list)
+            return dmhy.parse_feed()
+        except Exception as error:
+            logger.warn(traceback.format_exc(error))
+            return None

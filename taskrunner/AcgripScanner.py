@@ -3,6 +3,7 @@ from feed_scanner.ACG_RIP import ACG_RIP
 from utils.SessionManager import SessionManager
 from domain.Bangumi import Bangumi
 
+import traceback
 import logging
 
 logger = logging.getLogger(__name__)
@@ -30,5 +31,5 @@ class AcgripScanner(BangumiScanner):
             acg_rip = ACG_RIP(bangumi, episode_list)
             return acg_rip.parse_feed()
         except Exception as error:
-            logger.warn(error)
+            logger.warn(traceback.format_exc(error))
             return None
