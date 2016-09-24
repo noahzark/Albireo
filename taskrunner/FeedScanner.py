@@ -61,7 +61,7 @@ class FeedScanner:
         for feed in feed_list:
             bangumi_path = self.base_path + '/' + str(feed.bangumi_id)
             torrent_file = yield download_manager.download(feed.download_url, bangumi_path)
-            logger.debug(torrent_file.torrent_id)
+            logger.info(torrent_file.torrent_id)
 
             if torrent_file is None:
                 logger.warn('episode %s download failed'.format(feed.episode_id))

@@ -10,6 +10,7 @@ import logging
 
 from utils.exceptions import ClientError
 from utils.http import json_resp
+from utils.constants import episode_regex_tuple
 
 logger = logging.getLogger(__name__)
 
@@ -61,8 +62,7 @@ class FeedService(object):
         :return: episode number if matched, otherwise, -1
         '''
         try:
-            regex_tuple = (u'第(\d+)話', u'第(\d+)话', '\[(\d+)(?:v\d)?\]', '\s(\d+)\s', u'【(\d+)(?:v\d)?】')
-            for regex in regex_tuple:
+            for regex in episode_regex_tuple:
                 search_result = re.search(regex, eps_title, re.U)
                 if search_result is not None:
                     return int(search_result.group(1))

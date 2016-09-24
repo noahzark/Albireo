@@ -52,6 +52,7 @@ class BangumiScanner(object):
                             bangumi_id = bangumi_id)
                 episode.status = Episode.STATUS_DOWNLOADING
                 self.save_to_feed(feed, episode, session)
+                logger.info('%s save to feed' % (str(episode.id),))
         except Exception as error:
             logger.warn(error)
 
