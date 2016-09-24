@@ -96,7 +96,7 @@ class AbstractScanner(object):
         :return: episode number if matched, otherwise, -1
         '''
         try:
-            regex_tuple = (u'第(\d+)話', u'第(\d+)话', '\[(\d+)(?:v\d)?\]', '\s(\d+)\s', u'【(\d+)(?:v\d)?】')
+            regex_tuple = (u'第(\d+)話', u'第(\d+)话', '\[(\d+)(?:v\d)?(?:\sEND|\send)?\]', '\s(\d+)\s', u'【(\d+)(?:v\d)?(?:\sEND|\send)?】')
             for regex in regex_tuple:
                 search_result = re.search(regex, eps_title, re.U)
                 if search_result is not None:
