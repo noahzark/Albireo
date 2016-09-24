@@ -28,6 +28,7 @@ from utils.VideoManager import video_manager
 from routes.admin import admin_api
 from routes.user import user_api
 from routes.home import home_api
+from routes.feed import feed_api
 import yaml
 import os
 
@@ -62,6 +63,7 @@ def handle_server_exception(error):
 app.register_blueprint(admin_api, url_prefix='/api/admin')
 app.register_blueprint(user_api, url_prefix='/api/user')
 app.register_blueprint(home_api, url_prefix='/api/home')
+app.register_blueprint(feed_api, url_prefix='/api/feed')
 
 login_manager.init_app(app)
 

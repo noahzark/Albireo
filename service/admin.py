@@ -133,11 +133,11 @@ class AdminService:
                               air_weekday=bangumi_data['air_weekday'],
                               status=self.__get_bangumi_status(bangumi_data['air_date']))
 
-            if 'rss' in bangumi_data:
-                bangumi.rss = bangumi_data['rss']
+            if 'dmhy' in bangumi_data:
+                bangumi.dmhy = bangumi_data['dmhy']
 
-            if 'eps_regex' in bangumi_data:
-                bangumi.eps_regex = bangumi_data['eps_regex']
+            if 'acg_rip' in bangumi_data:
+                bangumi.acg_rip = bangumi_data['acg_rip']
 
             session = SessionManager.Session()
 
@@ -175,11 +175,21 @@ class AdminService:
             bangumi.name_cn = bangumi_dict['name_cn']
             bangumi.summary = bangumi_dict['summary']
             bangumi.eps = bangumi_dict['eps']
-            bangumi.eps_regex = bangumi_dict['eps_regex']
+            # bangumi.eps_regex = bangumi_dict['eps_regex']
             bangumi.image = bangumi_dict['image']
             bangumi.air_date = datetime.strptime(bangumi_dict['air_date'], '%Y-%m-%d')
             bangumi.air_weekday = bangumi_dict['air_weekday']
-            bangumi.rss = bangumi_dict['rss']
+            # bangumi.rss = bangumi_dict['rss']
+            if 'dmhy' in bangumi_dict:
+                bangumi.dmhy = bangumi_dict['dmhy']
+            else:
+                bangumi.dmhy = None
+
+            if 'acg_rip' in bangumi_dict:
+                bangumi.acg_rip = bangumi_dict['acg_rip']
+            else:
+                bangumi.acg_rip = None
+
             bangumi.update_time = datetime.now()
 
             session.commit()
@@ -187,8 +197,6 @@ class AdminService:
             return json_resp({'msg': 'ok'})
         except NoResultFound:
             raise ClientError(ClientError.NOT_FOUND)
-        except Exception as exception:
-            raise exception
         finally:
             SessionManager.Session.remove()
 

@@ -2,6 +2,16 @@ from __future__ import with_statement
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 from logging.config import fileConfig
+
+# this import is not used but necessary for init Base declarative-----
+from domain.Bangumi import Bangumi
+from domain.Episode import Episode
+from domain.InviteCode import InviteCode
+from domain.TorrentFile import TorrentFile
+from domain.User import User
+from domain.Feed import Feed
+#----------------------
+
 from domain.base import Base
 
 # this is the Alembic Config object, which provides

@@ -1,3 +1,20 @@
+#0.7.0-alpha
+
+##Database changes:
+
+Add a new table `feed` is added for the new scheduler, besides, rss, regex in `bangumi` table is no longer used. Two columns `dmhy` and `acg_rip` are added to `bangumi` table.
+
+TO UPDATE TABLE, readme the [update document](https://github.com/lordfriend/Albireo/blob/master/alembic/README.md).
+
+#NEW API:
+
+Add two api for add dmhy and acg.rip keywords.
+
+#New Scheduler
+
+The new scheduler will individual task for each site, each task takes the feed periodically and save its find into feed table. A scanner will scan the feed table every 30 seconds.
+
+
 #0.6.0-alpha
 
 ##Features Add

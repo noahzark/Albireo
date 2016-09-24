@@ -7,6 +7,7 @@ from domain.InviteCode import InviteCode
 from domain.TorrentFile import TorrentFile
 from domain.User import User
 from domain.base import Base
+from domain.Feed import Feed
 
 from utils.http import FileDownloader
 import yaml
@@ -22,6 +23,7 @@ group.add_argument('--user-del', nargs=1, metavar=('USERNAME'), help='delete an 
 group.add_argument('--user-promote', nargs=2, metavar=('USERNAME', 'LEVEL'), help='promote an user')
 group.add_argument('--db-init', action='store_true', help='init database, if tables not exists, create it')
 group.add_argument('--cover', action='store_true', help='scan bangumi, download missing cover')
+group.add_argument('--bgm-reset', nargs=1, metavar=('BANGUMI_ID'), help='clear a bangumi\'s related table records')
 
 args = parser.parse_args()
 
@@ -102,6 +104,23 @@ elif args.cover:
                     raise exception
                 else:
                     print exception
+elif args.bgm_reset:
+    session = SessionManager.Session()
+    bangumi_id = args.bgm_reset[0]
+    feed_list = session.query(Feed).filter(Feed.bangumi_id == bangumi_id).all()
+    episode_list = session.query(Episode).filter(Episode.bangumi_id == bangumi_id).all()
+    for feed in feed_list:
+        if feed.torrent_file_id is not None:
+            session.query(TorrentFile).filter(TorrentFile.id == feed.torrent_file_id).delete()
+        session.delete(feed)
+
+    for episode in episode_list:
+        episode.status = Episode.STATUS_NOT_DOWNLOADED
+    session.commit()
+    print('cleared')
+    SessionManager.Session.remove()
+
+
 
 else:
     parser.print_help()

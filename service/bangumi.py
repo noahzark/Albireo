@@ -69,8 +69,6 @@ class BangumiService:
             return json_resp(episode_dict)
         except NoResultFound:
             raise ClientError(ClientError.NOT_FOUND, 404)
-        except Exception as error:
-            raise error
         finally:
             SessionManager.Session.remove()
 
