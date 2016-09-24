@@ -22,7 +22,7 @@ further more, the information can be used for more user friendly function.
 
 ## Installation
 
-requirements: python 2.7, deluge, postgresql 9.3 and above, ffmpeg
+requirements: python 2.7, deluge ( > 1.3.12 ), postgresql 9.3 and above, ffmpeg
 
 ### dependencies:
 
