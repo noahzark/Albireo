@@ -18,6 +18,7 @@ import json
 import os, errno
 import requests
 import pickle
+import traceback
 from urlparse import urlparse
 from utils.VideoManager import video_manager
 from service.common import utils
@@ -106,12 +107,18 @@ class AdminService:
         self.file_downloader.download_file(bangumi.image, cover_path)
 
     def __get_cookie_from_storage(self):
-        with open(self.api_bgm_tv_session_path, 'r') as f:
+        try:
+            with open(self.api_bgm_tv_session_path, 'r') as f:
                 self.session.cookies = requests.utils.cookiejar_from_dict(pickle.load(f))
+        except Exception as error:
+            logger.warn(traceback.format_exc(error))
 
     def __save_cookie_to_storage(self):
-        with open(self.api_bgm_tv_session_path, 'w') as f:
-            pickle.dump(requests.utils.dict_from_cookiejar(self.session.cookies), f)
+        try:
+            with open(self.api_bgm_tv_session_path, 'w') as f:
+                pickle.dump(requests.utils.dict_from_cookiejar(self.session.cookies), f)
+        except Exception as error:
+            logger.warn(traceback.format_exc(error))
 
     def search_bangumi(self, term):
         '''
