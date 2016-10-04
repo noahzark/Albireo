@@ -16,10 +16,16 @@ from urllib import urlretrieve
 import yaml
 import json
 import os, errno
+import requests
+import pickle
 from urlparse import urlparse
 from utils.VideoManager import video_manager
 from service.common import utils
 from werkzeug.utils import secure_filename
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class AdminService:
@@ -30,6 +36,27 @@ class AdminService:
         self.base_path = config['download']['location']
         self.image_domain = config['domain']['image']
         self.file_downloader = FileDownloader()
+
+        # persist request for accessing bangumi api
+        self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0',
+            'Accept': 'application/json;charset=utf-8'
+        })
+
+        session_storage_path = './.session'
+        self.api_bgm_tv_session_path = session_storage_path + '/api_bgm_tv'
+
+        try:
+            if not os.path.exists(session_storage_path):
+                os.makedirs(session_storage_path)
+                logger.info('create session storage dir %s successfully' % session_storage_path)
+        except OSError as exception:
+            if exception.errno == errno.EACCES:
+                raise exception
+            else:
+                logger.warn(exception)
+
         try:
             if not os.path.exists(self.base_path):
                 os.makedirs(self.base_path)
@@ -77,6 +104,79 @@ class AdminService:
         extname = os.path.splitext(path)[1]
         cover_path = bangumi_path + '/cover' + extname
         self.file_downloader.download_file(bangumi.image, cover_path)
+
+    def __get_cookie_from_storage(self):
+        with open(self.api_bgm_tv_session_path, 'r') as f:
+                self.session.cookies = requests.utils.cookiejar_from_dict(pickle.load(f))
+
+    def __save_cookie_to_storage(self):
+        with open(self.api_bgm_tv_session_path, 'w') as f:
+            pickle.dump(requests.utils.dict_from_cookiejar(self.session.cookies), f)
+
+    def search_bangumi(self, term):
+        '''
+        search bangumi from bangumi.tv, properly handling cookies is required for the bypass anti-bot mechanism
+        :param term: a urlencoded word of the search term.
+        :return: a json object
+        '''
+        self.__get_cookie_from_storage()
+
+        result = {"data": []}
+        api_url = 'http://api.bgm.tv/search/subject/' + term + '?responseGroup=simple&max_result=10&start=0'
+        r = self.session.get(api_url)
+
+        if r.status_code > 399:
+            r.raise_for_status()
+
+        self.__save_cookie_to_storage()
+
+        try:
+            bgm_content = r.json()
+        except Exception as error:
+            logger.warn(error)
+            result['message'] = 'fail to query bangumi'
+            return json_resp(result, 500)
+
+        bgm_list = [bgm for bgm in bgm_content['list'] if bgm['type'] == 2]
+        if len(bgm_list) == 0:
+            return json_resp(result)
+
+        bgm_id_list = [bgm['id'] for bgm in bgm_list]
+        bangumi_list = self.get_bangumi_from_bgm_id_list(bgm_id_list)
+
+        for bgm in bgm_list:
+            bgm['bgm_id'] = bgm['id']
+            bgm['id'] = None
+            # if bgm_id has found in database, give the database id to bgm.id
+            # that's we know that this bangumi exists in our database
+            for bangumi in bangumi_list:
+                if bgm['bgm_id'] == bangumi.bgm_id:
+                    bgm['id'] = bangumi.id
+                    break
+            bgm['image'] = bgm['images']['large']
+            # remove useless keys
+            bgm.pop('images', None)
+            bgm.pop('collection', None)
+            bgm.pop('url', None)
+            bgm.pop('type', None)
+
+        result['data'] = bgm_list
+        return json_resp(result)
+
+    def query_bangumi_detail(self, bgm_id):
+
+        self.__get_cookie_from_storage()
+
+        api_url = 'http://api.bgm.tv/subject/' + bgm_id + '?responseGroup=large'
+        r = self.session.get(api_url)
+
+        self.__save_cookie_to_storage()
+
+        if r.status_code > 399:
+            r.raise_for_status()
+
+        return r.text
+
 
     def list_bangumi(self, page, count, sort_field, sort_order, name):
         try:

@@ -10,3 +10,4 @@ alembic.ini
 .vagrant
 .cache
 twistd.pid
+.session
