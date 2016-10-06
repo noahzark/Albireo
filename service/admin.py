@@ -93,7 +93,7 @@ class AdminService:
         '''
 
         result = {"data": []}
-        api_url = 'http://api.bgm.tv/search/subject/' + term + '?responseGroup=simple&max_result=10&start=0'
+        api_url = 'http://api.bgm.tv/search/subject/' + term + '?responseGroup=simple&max_result=25&start=0&type=2'
         r = bangumi_request.get(api_url)
 
         if r.status_code > 399:
@@ -106,7 +106,8 @@ class AdminService:
             result['message'] = 'fail to query bangumi'
             return json_resp(result, 500)
 
-        bgm_list = [bgm for bgm in bgm_content['list'] if bgm['type'] == 2]
+        bgm_list = bgm_content['list']
+        total_count = bgm_content['results']
         if len(bgm_list) == 0:
             return json_resp(result)
 
@@ -130,6 +131,7 @@ class AdminService:
             bgm.pop('type', None)
 
         result['data'] = bgm_list
+        result['total_count'] = total_count
         return json_resp(result)
 
     def query_bangumi_detail(self, bgm_id):
