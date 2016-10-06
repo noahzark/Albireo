@@ -1,10 +1,22 @@
+#0.8.0-alpha
+
+##Database changes:
+
+Add a new table 'server_session' for persist session on database. may fix the occasionally 401 issues.
+TO UPDATE TABLE, read the [update document](https://github.com/lordfriend/Albireo/blob/master/alembic/README.md).
+
+##Bug fix
+
+- fix the always empty issues when add new bangumi caused by bgm.tv anti-bot mechanism
+- 
+
 #0.7.0-alpha
 
 ##Database changes:
 
 Add a new table `feed` is added for the new scheduler, besides, rss, regex in `bangumi` table is no longer used. Two columns `dmhy` and `acg_rip` are added to `bangumi` table.
 
-TO UPDATE TABLE, readme the [update document](https://github.com/lordfriend/Albireo/blob/master/alembic/README.md).
+TO UPDATE TABLE, read the [update document](https://github.com/lordfriend/Albireo/blob/master/alembic/README.md).
 
 #NEW API:
 

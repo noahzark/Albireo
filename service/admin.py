@@ -7,12 +7,11 @@ from domain.TorrentFile import TorrentFile
 from datetime import datetime
 from utils.SessionManager import SessionManager
 from utils.exceptions import ClientError
-from utils.http import json_resp, FileDownloader
+from utils.http import json_resp, FileDownloader, bangumi_request
 from utils.db import row2dict
 from sqlalchemy.sql.expression import or_, desc, asc
 from sqlalchemy.sql import select, func
 from sqlalchemy.orm import joinedload
-from urllib import urlretrieve
 import yaml
 import json
 import os, errno
@@ -37,26 +36,6 @@ class AdminService:
         self.base_path = config['download']['location']
         self.image_domain = config['domain']['image']
         self.file_downloader = FileDownloader()
-
-        # persist request for accessing bangumi api
-        self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0',
-            'Accept': 'application/json;charset=utf-8'
-        })
-
-        session_storage_path = './.session'
-        self.api_bgm_tv_session_path = session_storage_path + '/api_bgm_tv'
-
-        try:
-            if not os.path.exists(session_storage_path):
-                os.makedirs(session_storage_path)
-                logger.info('create session storage dir %s successfully' % session_storage_path)
-        except OSError as exception:
-            if exception.errno == errno.EACCES:
-                raise exception
-            else:
-                logger.warn(exception)
 
         try:
             if not os.path.exists(self.base_path):
@@ -106,36 +85,19 @@ class AdminService:
         cover_path = bangumi_path + '/cover' + extname
         self.file_downloader.download_file(bangumi.image, cover_path)
 
-    def __get_cookie_from_storage(self):
-        try:
-            with open(self.api_bgm_tv_session_path, 'r') as f:
-                self.session.cookies = requests.utils.cookiejar_from_dict(pickle.load(f))
-        except Exception as error:
-            logger.warn(traceback.format_exc(error))
-
-    def __save_cookie_to_storage(self):
-        try:
-            with open(self.api_bgm_tv_session_path, 'w') as f:
-                pickle.dump(requests.utils.dict_from_cookiejar(self.session.cookies), f)
-        except Exception as error:
-            logger.warn(traceback.format_exc(error))
-
     def search_bangumi(self, term):
         '''
         search bangumi from bangumi.tv, properly handling cookies is required for the bypass anti-bot mechanism
         :param term: a urlencoded word of the search term.
         :return: a json object
         '''
-        self.__get_cookie_from_storage()
 
         result = {"data": []}
         api_url = 'http://api.bgm.tv/search/subject/' + term + '?responseGroup=simple&max_result=10&start=0'
-        r = self.session.get(api_url)
+        r = bangumi_request.get(api_url)
 
         if r.status_code > 399:
             r.raise_for_status()
-
-        self.__save_cookie_to_storage()
 
         try:
             bgm_content = r.json()
@@ -172,12 +134,8 @@ class AdminService:
 
     def query_bangumi_detail(self, bgm_id):
 
-        self.__get_cookie_from_storage()
-
         api_url = 'http://api.bgm.tv/subject/' + bgm_id + '?responseGroup=large'
-        r = self.session.get(api_url)
-
-        self.__save_cookie_to_storage()
+        r = bangumi_request.get(api_url)
 
         if r.status_code > 399:
             r.raise_for_status()

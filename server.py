@@ -23,6 +23,7 @@ from utils.exceptions import ClientError, ServerError
 from utils.SessionManager import SessionManager
 from service.user import UserCredential
 from utils.VideoManager import video_manager
+from utils.flask_sessions import PgSessionInterface
 
 ## blueprints
 from routes.admin import admin_api
@@ -47,6 +48,7 @@ login_manager.session_protection = 'strong'
 app = Flask(__name__)
 
 app.secret_key = get_config('app_secret_key')
+app.session_interface = PgSessionInterface()
 
 base_path = get_config('download')['location']
 video_manager.set_base_path(base_path)

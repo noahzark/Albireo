@@ -1,4 +1,5 @@
 from utils.SessionManager import SessionManager
+from utils.http import bangumi_request
 from domain.Bangumi import Bangumi
 from domain.Episode import Episode
 from sqlalchemy.sql.expression import or_
@@ -8,7 +9,6 @@ from twisted.internet.task import LoopingCall
 from datetime import datetime
 import time
 import yaml
-import requests
 import logging
 import traceback
 
@@ -53,7 +53,7 @@ class InfoScanner:
         bangumi_tv_url_base = 'http://api.bgm.tv/subject/'
         bangumi_tv_url_param = '?responseGroup=large'
         bangumi_tv_url = bangumi_tv_url_base + str(bgm_id) + bangumi_tv_url_param
-        r = requests.get(bangumi_tv_url, timeout=60)
+        r = bangumi_request.get(bangumi_tv_url)
         if r.status_code < 400:
             return (r.status_code, r.json())
         else:
