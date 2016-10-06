@@ -3,6 +3,10 @@ import json
 import os, errno
 from urlparse import urlparse
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 class CommonUtils:
 
     def __init__(self):
@@ -37,7 +41,7 @@ class CommonUtils:
         return cover_url
 
     def generate_video_link(self, bangumi_id, path):
-        video_link = '/video/{0}/{1}'.format(bangumi_id, path)
+        video_link = '/video/{0}/{1}'.format(bangumi_id, path.encode('utf-8'))
         if self.video_domain is not None:
             video_link = self.video_domain + video_link
         return video_link
