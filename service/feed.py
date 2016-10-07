@@ -93,7 +93,7 @@ class FeedService(object):
             socket.setdefaulttimeout(default_timeout)
 
         if feed_dict.bozo != 0:
-            logger.warn(feed_dict.bozo_exception.getMessage())
+            logger.warn(feed_dict.bozo_exception)
             raise ClientError(feed_dict.bozo_exception.getMessage())
         return feed_dict
 
