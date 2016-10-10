@@ -11,5 +11,3 @@ alembic.ini
 .cache
 twistd.pid
 .session
-deploy
-deploy.sh
