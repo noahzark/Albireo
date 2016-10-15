@@ -1,9 +1,7 @@
 from domain.base import Base
-from sqlalchemy import Column, Integer, TIMESTAMP
+from sqlalchemy import Column, Integer
 from sqlalchemy.dialects import postgresql
-from sqlalchemy.orm import relationship
 from uuid import uuid4
-from datetime import datetime
 
 
 class Favorites(Base):
@@ -13,7 +11,7 @@ class Favorites(Base):
     user_id = Column(postgresql.UUID(as_uuid=True), nullable=False)
     bangumi_id = Column(postgresql.UUID(as_uuid=True), nullable=False)
 
-    status = Column(Integer, nullable=False, server_default=0)
+    status = Column(Integer, nullable=False, default=0)
 
     # status
     WISH = 0
