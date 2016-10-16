@@ -67,8 +67,8 @@ class WatchService:
                                                episode_id=episode_id,
                                                user_id=user_id,
                                                watch_status=watch_status,
-                                               last_play_position=last_watch_position,
-                                               last_play_time=last_watch_time)
+                                               last_watch_position=last_watch_position,
+                                               last_watch_time=last_watch_time)
                 session.add(watch_progress)
             else:
                 watch_progress.watch_status = watch_status

@@ -17,8 +17,8 @@ class Favorites(Base):
     bangumi = relationship('Bangumi', uselist=False, back_populates='favorite')
 
     # status
-    WISH = 0
-    WATCHED = 1
-    WATCHING = 2
-    PAUSE = 3
-    ABANDONED = 4
+    WISH = 1
+    WATCHED = 2
+    WATCHING = 3
+    PAUSE = 4
+    ABANDONED = 5

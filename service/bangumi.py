@@ -13,7 +13,7 @@ from utils.http import json_resp
 from utils.db import row2dict
 from sqlalchemy.sql.expression import or_, desc, asc
 from sqlalchemy.sql import select, func, distinct
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, subqueryload
 import json
 from service.common import utils
 
@@ -58,17 +58,22 @@ class BangumiService:
     def episode_detail(self, episode_id, user_id):
         session = SessionManager.Session()
         try:
-            (episode, bangumi, watch_progress) = session.query(Episode, Bangumi, WatchProgress).\
+            (episode, bangumi) = session.query(Episode, Bangumi).\
                 join(Bangumi).\
-                join(WatchProgress).\
                 filter(Episode.id == episode_id).\
-                filter(WatchProgress.user_id == user_id).\
                 one()
+            watch_progress = session.query(WatchProgress).\
+                filter(WatchProgress.episode_id == episode_id).\
+                filter(WatchProgress.user_id == user_id).\
+                first()
+
             episode_dict = row2dict(episode)
             episode_dict['bangumi'] = row2dict(bangumi)
             episode_dict['bangumi']['cover'] = utils.generate_cover_link(bangumi)
             episode_dict['thumbnail'] = utils.generate_thumbnail_link(episode, bangumi)
-            episode_dict['watch_progress'] = row2dict(watch_progress)
+
+            if watch_progress is not None:
+                episode_dict['watch_progress'] = row2dict(watch_progress)
 
             if episode.status == Episode.STATUS_DOWNLOADED:
                 episode_dict['videos'] = []
@@ -180,12 +185,15 @@ class BangumiService:
         try:
             session = SessionManager.Session()
 
-            (bangumi, favorite) = session.query(Bangumi, Favorites).\
-                join(Favorites).\
+            bangumi = session.query(Bangumi).\
                 options(joinedload(Bangumi.episodes)).\
                 filter(Bangumi.id == id).\
-                filter(Favorites.user_id == user_id).\
                 one()
+
+            favorite = session.query(Favorites).\
+                filter(Favorites.bangumi_id == id).\
+                filter(Favorites.user_id == user_id).\
+                first()
 
             watch_progress_list = session.query(WatchProgress).\
                 filter(WatchProgress.bangumi_id == bangumi.id).\
@@ -208,7 +216,8 @@ class BangumiService:
 
             bangumi_dict = row2dict(bangumi)
 
-            bangumi_dict['favorite_status'] = favorite.status
+            if favorite is not None:
+                bangumi_dict['favorite_status'] = favorite.status
 
             bangumi_dict['episodes'] = episodes
 
