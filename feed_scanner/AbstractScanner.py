@@ -100,7 +100,10 @@ class AbstractScanner(object):
             for regex in episode_regex_tuple:
                 search_result = re.search(regex, eps_title, re.U)
                 if search_result is not None:
-                    return int(search_result.group(1))
+                    matched_number = int(search_result.group(1))
+                    if self.bangumi.eps_no_offset is not None:
+                        matched_number = matched_number + self.bangumi.eps_no_offset
+                    return matched_number
 
             return -1
         except Exception as error:

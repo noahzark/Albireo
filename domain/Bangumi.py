@@ -21,7 +21,7 @@ class Bangumi(Base):
     air_weekday = Column(Integer, nullable=False)
     rss = Column(TEXT, nullable=True)
     dmhy = Column(TEXT, nullable=True)
-    # nyaa = Column(TEXT, nullable=True)
+    eps_no_offset = Column(Integer, nullable=True)
     acg_rip = Column(TEXT, nullable=True)
     eps_regex = Column(TEXT, nullable=True)
     status = Column(Integer, nullable=False)
