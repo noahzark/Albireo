@@ -6,6 +6,8 @@ from utils.SessionManager import SessionManager
 from utils.DownloadManager import download_manager
 from domain.Feed import Feed
 from domain.Episode import Episode
+from domain.WatchProgress import WatchProgress
+from domain.Favorites import Favorites
 
 import logging
 

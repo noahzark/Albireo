@@ -1,6 +1,8 @@
 from utils.SessionManager import SessionManager
 from domain.Bangumi import Bangumi
 from domain.Episode import Episode
+from domain.WatchProgress import WatchProgress
+from domain.Favorites import Favorites
 from domain.Feed import Feed
 from datetime import datetime
 from sqlalchemy.sql import func, or_

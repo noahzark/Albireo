@@ -208,6 +208,9 @@ class AdminService:
             if 'acg_rip' in bangumi_data:
                 bangumi.acg_rip = bangumi_data['acg_rip']
 
+            if 'eps_no_offset' in bangumi_data:
+                bangumi.eps_no_offset = bangumi_data['eps_no_offset']
+
             session = SessionManager.Session()
 
             session.add(bangumi)
@@ -258,6 +261,11 @@ class AdminService:
                 bangumi.acg_rip = bangumi_dict['acg_rip']
             else:
                 bangumi.acg_rip = None
+
+            if 'eps_no_offset' in bangumi_dict:
+                bangumi.eps_no_offset = bangumi_dict['eps_no_offset']
+            else:
+                bangumi.eps_no_offset = None
 
             bangumi.update_time = datetime.now()
 
