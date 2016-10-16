@@ -3,6 +3,8 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from domain.Episode import Episode
 from domain.Bangumi import Bangumi
+from domain.Favorites import Favorites
+from domain.WatchProgress import WatchProgress
 from domain.TorrentFile import TorrentFile
 from datetime import datetime, timedelta
 from utils.SessionManager import SessionManager
@@ -49,16 +51,20 @@ class BangumiService:
             SessionManager.Session.remove()
 
 
-    def episode_detail(self, episode_id):
+    def episode_detail(self, episode_id, user_id):
         session = SessionManager.Session()
         try:
-            (episode, bangumi) = session.query(Episode, Bangumi).\
+            (episode, bangumi, watch_progress) = session.query(Episode, Bangumi, WatchProgress).\
                 join(Bangumi).\
-                filter(Episode.id == episode_id).one()
+                join(WatchProgress).\
+                filter(Episode.id == episode_id).\
+                filter(WatchProgress.user_id == user_id).\
+                one()
             episode_dict = row2dict(episode)
             episode_dict['bangumi'] = row2dict(bangumi)
             episode_dict['bangumi']['cover'] = utils.generate_cover_link(bangumi)
             episode_dict['thumbnail'] = utils.generate_thumbnail_link(episode, bangumi)
+            episode_dict['watch_progress'] = row2dict(watch_progress)
 
             if episode.status == Episode.STATUS_DOWNLOADED:
                 episode_dict['videos'] = []
@@ -72,7 +78,7 @@ class BangumiService:
         finally:
             SessionManager.Session.remove()
 
-    def on_air_bangumi(self):
+    def on_air_bangumi(self, user_id):
         session = SessionManager.Session()
         current_day = datetime.today()
         start_time = datetime(current_day.year, current_day.month, 1)
@@ -85,15 +91,17 @@ class BangumiService:
         end_time = datetime(next_year, next_month, 1)
 
         try:
-            result = session.query(distinct(Episode.bangumi_id), Bangumi).\
-                join(Bangumi).\
+            result = session.query(distinct(Episode.bangumi_id), Bangumi, Favorites).\
+                join(Bangumi, Favorites).\
                 filter(Episode.airdate >= start_time).\
-                filter(Episode.airdate <= end_time)
+                filter(Episode.airdate <= end_time).\
+                filter(Favorites.user_id == user_id)
 
             bangumi_list = []
-            for bangumi_id, bangumi in result:
+            for bangumi_id, bangumi, favorite in result:
                 bangumi_dict = row2dict(bangumi)
                 bangumi_dict['cover'] = utils.generate_cover_link(bangumi)
+                bangumi_dict['favorite_status'] = favorite.status
                 bangumi_list.append(bangumi_dict)
 
             return json_resp({'data': bangumi_list})
@@ -102,5 +110,48 @@ class BangumiService:
         finally:
             SessionManager.Session.remove()
 
+    def get_bangumi(self, id, user_id):
+        try:
+            session = SessionManager.Session()
+
+            (bangumi, favorite) = session.query(Bangumi, Favorites).\
+                join(Favorites).\
+                options(joinedload(Bangumi.episodes)).\
+                filter(Bangumi.id == id).\
+                filter(Favorites.user_id == user_id).\
+                one()
+
+            watch_progress_list = session.query(WatchProgress).\
+                filter(WatchProgress.bangumi_id == bangumi.id).\
+                filter(WatchProgress.user_id == user_id).\
+                all()
+
+            episodes = []
+
+            watch_progress_hash_table = {}
+            for watch_progress in watch_progress_list:
+                watch_progress_dict = row2dict(watch_progress)
+                watch_progress_hash_table[watch_progress.episode_id] = watch_progress_dict
+
+            for episode in bangumi.episodes:
+                eps = row2dict(episode)
+                eps['thumbnail'] = utils.generate_thumbnail_link(episode, bangumi)
+                if episode.id in watch_progress_hash_table:
+                    eps['watch_progress'] = watch_progress_hash_table[episode.id]
+                episodes.append(eps)
+
+            bangumi_dict = row2dict(bangumi)
+
+            bangumi_dict['favorite_status'] = favorite.status
+
+            bangumi_dict['episodes'] = episodes
+
+            bangumi_dict['cover'] = utils.generate_cover_link(bangumi)
+
+            return json_resp({'data': bangumi_dict})
+        except NoResultFound:
+            raise ClientError(ClientError.NOT_FOUND, 404)
+        finally:
+            SessionManager.Session.remove()
 
 bangumi_service = BangumiService()

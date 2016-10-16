@@ -27,6 +27,8 @@ class Episode(Base):
     torrent_files = relationship('TorrentFile', order_by=TorrentFile.episode_id, back_populates='episode',
                                  cascade='all, delete, delete-orphan')
 
+    watch_progress = relationship('WatchProgress', uselist=False, back_populates='episode')
+
     STATUS_NOT_DOWNLOADED = 0
     STATUS_DOWNLOADING = 1
     STATUS_DOWNLOADED = 2

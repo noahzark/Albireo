@@ -23,7 +23,7 @@ def recent_update():
 @home_api.route('/on_air', methods=['GET'])
 @login_required
 def on_air_bangumi():
-    return bangumi_service.on_air_bangumi()
+    return bangumi_service.on_air_bangumi(current_user.id)
 
 @home_api.route('/my_bangumi', methods=['GET'])
 def my_bangumi():
@@ -32,7 +32,7 @@ def my_bangumi():
 @home_api.route('/episode/<episode_id>', methods=['GET'])
 @login_required
 def episode_detail(episode_id):
-    return bangumi_service.episode_detail(episode_id)
+    return bangumi_service.episode_detail(episode_id, current_user.id)
 
 @home_api.route('/bangumi', methods=['GET'])
 @login_required
@@ -47,4 +47,4 @@ def list_bangumi():
 @home_api.route('/bangumi/<bangumi_id>', methods=['GET'])
 @login_required
 def bangumi_detail(bangumi_id):
-    return admin_service.get_bangumi(bangumi_id)
+    return bangumi_service.get_bangumi(bangumi_id, current_user.id)

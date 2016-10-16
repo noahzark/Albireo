@@ -1,13 +1,13 @@
 """add two table watch_progress, favorites
 
-Revision ID: 970b490046ca
+Revision ID: 1c38ccd23bb2
 Revises: f4413be17efa
-Create Date: 2016-10-15 22:54:35.176874
+Create Date: 2016-10-16 11:29:13.724101
 
 """
 
 # revision identifiers, used by Alembic.
-revision = '970b490046ca'
+revision = '1c38ccd23bb2'
 down_revision = 'f4413be17efa'
 branch_labels = None
 depends_on = None
@@ -23,6 +23,7 @@ def upgrade():
     sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column('bangumi_id', postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column('status', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['bangumi_id'], ['bangumi.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('watch_progress',
@@ -33,6 +34,8 @@ def upgrade():
     sa.Column('watch_status', sa.Integer(), nullable=False),
     sa.Column('last_watch_position', sa.Integer(), nullable=True),
     sa.Column('last_watch_time', sa.TIMESTAMP(), nullable=True),
+    sa.ForeignKeyConstraint(['bangumi_id'], ['bangumi.id'], ),
+    sa.ForeignKeyConstraint(['episode_id'], ['episodes.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     ### end Alembic commands ###
