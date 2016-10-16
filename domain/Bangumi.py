@@ -31,6 +31,10 @@ class Bangumi(Base):
     episodes = relationship('Episode', order_by=Episode.episode_no, back_populates='bangumi',
                             cascade='all, delete, delete-orphan')
 
+    favorite = relationship('Favorites', back_populates='bangumi', uselist=False)
+
+    watch_progress_list = relationship('WatchProgress', back_populates='bangumi')
+
     # constant of bangumi status
     # A pending bangumi is not started to show on tv yet
     STATUS_PENDING = 0
