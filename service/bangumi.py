@@ -17,6 +17,10 @@ from sqlalchemy.orm import joinedload
 import json
 from service.common import utils
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 class BangumiService:
 
     def recent_update(self, days):
@@ -91,22 +95,84 @@ class BangumiService:
         end_time = datetime(next_year, next_month, 1)
 
         try:
-            result = session.query(distinct(Episode.bangumi_id), Bangumi, Favorites).\
-                join(Bangumi, Favorites).\
+            result = session.query(distinct(Episode.bangumi_id), Bangumi).\
+                join(Bangumi).\
                 filter(Episode.airdate >= start_time).\
-                filter(Episode.airdate <= end_time).\
-                filter(Favorites.user_id == user_id)
+                filter(Episode.airdate <= end_time)
 
             bangumi_list = []
-            for bangumi_id, bangumi, favorite in result:
+            bangumi_id_list = [bangumi_id for bangumi_id, bangumi in result]
+
+            favorites = session.query(Favorites).\
+                filter(Favorites.bangumi_id.in_(bangumi_id_list)).\
+                filter(Favorites.user_id == user_id).\
+                all()
+
+            for bangumi_id, bangumi in result:
                 bangumi_dict = row2dict(bangumi)
                 bangumi_dict['cover'] = utils.generate_cover_link(bangumi)
-                bangumi_dict['favorite_status'] = favorite.status
+                for fav in favorites:
+                    if fav.bangumi_id == bangumi_id:
+                        bangumi_dict['favorite_status'] = fav.status
+                        break
                 bangumi_list.append(bangumi_dict)
 
             return json_resp({'data': bangumi_list})
         except Exception as error:
             raise error
+        finally:
+            SessionManager.Session.remove()
+
+    def list_bangumi(self, page, count, sort_field, sort_order, name, user_id):
+        try:
+
+            session = SessionManager.Session()
+            query_object = session.query(Bangumi)
+
+            if name is not None:
+                name_pattern = '%{0}%'.format(name.encode('utf-8'),)
+                logger.debug(name_pattern)
+                query_object = query_object.\
+                    filter(or_(Bangumi.name.like(name_pattern), Bangumi.name_cn.like(name_pattern)))
+                # count total rows
+                total = session.query(func.count(Bangumi.id)).\
+                    filter(or_(Bangumi.name.like(name_pattern), Bangumi.name_cn.like(name_pattern))).\
+                    scalar()
+            else:
+                total = session.query(func.count(Bangumi.id)).scalar()
+
+            offset = (page - 1) * count
+
+            if sort_order == 'desc':
+                bangumi_list = query_object.\
+                    order_by(desc(getattr(Bangumi, sort_field))).\
+                    offset(offset).limit(count).\
+                    all()
+            else:
+                bangumi_list = query_object.\
+                    order_by(asc(getattr(Bangumi, sort_field))).\
+                    offset(offset).limit(count).\
+                    all()
+
+            bangumi_id_list = [bgm.id for bgm in bangumi_list]
+
+            favorites = session.query(Favorites).\
+                filter(Favorites.bangumi_id.in_(bangumi_id_list)).\
+                filter(Favorites.user_id == user_id).\
+                all()
+
+            bangumi_dict_list = []
+            for bgm in bangumi_list:
+                bangumi = row2dict(bgm)
+                bangumi['cover'] = utils.generate_cover_link(bgm)
+                for fav in favorites:
+                    if fav.bangumi_id == bgm.id:
+                        bangumi['favorite_status'] = fav.status
+                bangumi_dict_list.append(bangumi)
+
+            return json_resp({'data': bangumi_dict_list, 'total': total})
+        except Exception as exception:
+            raise exception
         finally:
             SessionManager.Session.remove()
 
