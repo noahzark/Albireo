@@ -11,6 +11,8 @@ from domain.TorrentFile import TorrentFile
 from domain.User import User
 from domain.Feed import Feed
 from domain.ServerSession import ServerSession
+from domain.WatchProgress import WatchProgress
+from domain.Favorites import Favorites
 #----------------------
 
 from domain.base import Base
