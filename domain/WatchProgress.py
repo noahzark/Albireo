@@ -17,7 +17,7 @@ class WatchProgress(Base):
     watch_status = Column(Integer, nullable=False)
 
     # last watched position in milliseconds, only usable when watch_status is WATCHING
-    last_watch_position = Column(Integer, nullable=True)
+    last_watch_position = Column(Float, nullable=True)
 
     last_watch_time = Column(TIMESTAMP, nullable=True)
 
