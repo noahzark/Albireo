@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from flask import request, Blueprint
 from utils.http import json_resp
-import httplib2
 import json
 from service.admin import admin_service
 from service.auth import auth_user

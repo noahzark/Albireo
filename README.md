@@ -18,6 +18,7 @@ further more, the information can be used for more user friendly function.
 [Scheduler](#scheduler)
 
 [HTTP API](https://github.com/lordfriend/Albireo/wiki/HTTP-API)
+
 [Upgrade From Old Version](https://github.com/lordfriend/Albireo/blob/master/alembic/README.md)
 
 ## Installation
@@ -33,10 +34,10 @@ requirements: python 2.7, deluge ( > 1.3.12 ), postgresql 9.3 and above, ffmpeg
 - PyYAML
 - Twisted
 - feedparser
-- httplib2
 - service_identity
 - requests
 - alembic
+- subprocess32
 
 NOTE: ffmpeg is presume accessible with `ffmpeg` command
 
