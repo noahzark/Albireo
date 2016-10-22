@@ -1,3 +1,21 @@
+#0.9.0-alpha
+
+##Database changes:
+
+Add two new table watch_progress and favorites, to save bangumi favorite status and watch progress of an episode.
+
+##Bug fix
+#26
+
+fix an issue when the episode number is not started from 1 by add an eps_no_offset column into bangumi table and using this offset to correct the episode number when parsing feed. 
+
+##NEW API
+
+Adds some favorites and watch progress APIs. For detail, see routes.watch.
+
+also modified some old APIs, add watch_progress to each episode returned by episdoe_detail and bangumi_detail API.
+
+
 #0.8.0-alpha
 
 ##Database changes:
