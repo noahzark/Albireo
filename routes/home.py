@@ -1,14 +1,10 @@
 # -*- coding: utf-8 -*-
 from flask import request, Blueprint
 
-from utils.exceptions import ClientError
-from utils.http import json_resp
-import json
 from service.bangumi import bangumi_service
-from flask_login import login_user, logout_user, login_required, fresh_login_required, current_user
-from service.auth import auth_user
-from service.admin import admin_service
-from domain.User import User
+from service.watch import watch_service
+from flask_login import login_required, current_user
+from domain.Favorites import Favorites
 
 
 home_api = Blueprint('home', __name__)
@@ -27,7 +23,7 @@ def on_air_bangumi():
 
 @home_api.route('/my_bangumi', methods=['GET'])
 def my_bangumi():
-    pass
+    return watch_service.my_favorites(current_user.id, Favorites.WATCHING)
 
 @home_api.route('/episode/<episode_id>', methods=['GET'])
 @login_required

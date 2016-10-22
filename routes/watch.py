@@ -30,5 +30,10 @@ def favorite_episode(episode_id):
 @login_required
 def episode_history(episode_id):
     data = json.loads(request.get_data(True, as_text=True))
-    return watch_service.episode_history(data['bangumi_id'], episode_id=episode_id, user_id=current_user.id, last_watch_position=data['last_watch_position'], is_finished=data['is_finished'])
+    return watch_service.episode_history(data['bangumi_id'],
+                                         episode_id=episode_id,
+                                         user_id=current_user.id,
+                                         last_watch_position=data['last_watch_position'],
+                                         percentage=data['percentage'],
+                                         is_finished=data['is_finished'])
 

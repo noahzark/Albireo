@@ -49,8 +49,6 @@ class BangumiService:
                 episode_list.append(episode)
 
             return json_resp({'data': episode_list})
-        except Exception as error:
-            raise error
         finally:
             SessionManager.Session.remove()
 
@@ -123,8 +121,6 @@ class BangumiService:
                 bangumi_list.append(bangumi_dict)
 
             return json_resp({'data': bangumi_list})
-        except Exception as error:
-            raise error
         finally:
             SessionManager.Session.remove()
 
@@ -176,8 +172,6 @@ class BangumiService:
                 bangumi_dict_list.append(bangumi)
 
             return json_resp({'data': bangumi_dict_list, 'total': total})
-        except Exception as exception:
-            raise exception
         finally:
             SessionManager.Session.remove()
 

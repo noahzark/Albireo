@@ -1,5 +1,5 @@
 from domain.base import Base
-from sqlalchemy import Column, Integer, TIMESTAMP, ForeignKey
+from sqlalchemy import Column, Integer, TIMESTAMP, ForeignKey, Float
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import relationship
 from uuid import uuid4
@@ -20,6 +20,8 @@ class WatchProgress(Base):
     last_watch_position = Column(Integer, nullable=True)
 
     last_watch_time = Column(TIMESTAMP, nullable=True)
+
+    percentage = Column(Float, nullable=True)
 
     bangumi = relationship('Bangumi', uselist=False, back_populates='watch_progress_list')
 
