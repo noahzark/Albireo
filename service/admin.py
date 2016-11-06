@@ -223,8 +223,10 @@ class AdminService:
                               name=eps_item['name'],
                               name_cn=eps_item['name_cn'],
                               duration=eps_item['duration'],
-                              airdate=eps_item['airdate'],
                               status=Episode.STATUS_NOT_DOWNLOADED)
+                if eps_item['airdate'] != '':
+                    eps.airdate=eps_item['airdate']
+
                 eps.bangumi = bangumi
                 bangumi.episodes.append(eps)
 
