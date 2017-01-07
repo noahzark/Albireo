@@ -122,7 +122,7 @@ server {
 	server_name localhost;
 	
 	location ~ ^(?:/pic|/video)/(.+) {
-		try_files /$1 $uri=404;
+		try_files /$1 $uri =404;
 	}
 }
 ```
