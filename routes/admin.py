@@ -58,18 +58,23 @@ def query_one_bangumi(bgm_id):
         return json_resp({})
 
 
-@admin_api.route('/episode')
+@admin_api.route('/episode', methods=['GET'])
 @login_required
 @auth_user(User.LEVEL_ADMIN)
 def episode_list():
-    if request.method == 'GET':
-        page = int(request.args.get('page', 1))
-        count = int(request.args.get('count', 10))
-        sort_field = request.args.get('order_by', 'bangumi_id')
-        sort_order = request.args.get('sort', 'desc')
-        status = request.args.get('status', None)
-        return admin_service.list_episode(page, count, sort_field, sort_order, status)
+    page = int(request.args.get('page', 1))
+    count = int(request.args.get('count', 10))
+    sort_field = request.args.get('order_by', 'bangumi_id')
+    sort_order = request.args.get('sort', 'desc')
+    status = request.args.get('status', None)
+    return admin_service.list_episode(page, count, sort_field, sort_order, status)
 
+@admin_api.route('/episode', methods=['POST'])
+@login_required
+@auth_user(User.LEVEL_ADMIN)
+def add_episode():
+    content = json.loads(request.get_data(True, as_text=True))
+    return admin_service.add_episode(content)
 
 @admin_api.route('/episode/<episode_id>/thumbnail', methods=['PUT'])
 @login_required
@@ -87,7 +92,6 @@ def episode(episode_id):
         return admin_service.get_episode(episode_id)
     elif request.method == 'PUT':
         return admin_service.update_episode(episode_id, json.loads(request.get_data(True, as_text=True)))
-
 
 @admin_api.route('/episode/<episode_id>/upload', methods=['POST'])
 @login_required
