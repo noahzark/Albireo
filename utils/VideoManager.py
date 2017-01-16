@@ -16,7 +16,15 @@ class VideoManager:
 
     def create_thumbnail(self, video_path, time, output_path):
         try:
-            subprocess.check_call('ffmpeg -y -ss %s -i "%s" -vframes 1 "%s"' % (time, video_path, output_path), shell=True)
+            subprocess.check_call(['ffmpeg',
+                                   '-y',
+                                   '-ss',
+                                   time,
+                                   '-i',
+                                   u'{0}'.format(video_path),
+                                   '-vframes',
+                                   '1',
+                                   '{0}'.format(output_path)])
             return True
         except subprocess.CalledProcessError as error:
             logger.warn(error)
@@ -25,7 +33,7 @@ class VideoManager:
 
     def create_episode_thumbnail(self, episode, relative_path, time):
         bangumi_id = str(episode.bangumi_id)
-        video_path = '{0}/{1}/{2}'.format(self.base_path, bangumi_id, relative_path.encode('utf-8'))
+        video_path = '{0}/{1}/{2}'.format(self.base_path, bangumi_id, relative_path)
         thumbnail_folder = '{0}/{1}/thumbnails'.format(self.base_path, bangumi_id)
         output_path = '{0}/{1}.png'.format(thumbnail_folder, str(episode.episode_no))
         try:
