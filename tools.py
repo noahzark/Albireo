@@ -8,6 +8,9 @@ from domain.TorrentFile import TorrentFile
 from domain.User import User
 from domain.base import Base
 from domain.Feed import Feed
+from domain.Favorites import Favorites
+from domain.ServerSession import ServerSession
+from domain.WatchProgress import WatchProgress
 
 from utils.http import FileDownloader
 import yaml

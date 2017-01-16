@@ -254,6 +254,7 @@ class AdminService:
             bangumi.air_date = datetime.strptime(bangumi_dict['air_date'], '%Y-%m-%d')
             bangumi.air_weekday = bangumi_dict['air_weekday']
             # bangumi.rss = bangumi_dict['rss']
+            bangumi.status = bangumi_dict['status']
             if 'dmhy' in bangumi_dict:
                 bangumi.dmhy = bangumi_dict['dmhy']
             else:
@@ -328,6 +329,25 @@ class AdminService:
         s = select([Bangumi.id, Bangumi.bgm_id]).where(Bangumi.bgm_id.in_(bgm_id_list)).select_from(Bangumi)
         return SessionManager.engine.execute(s).fetchall()
 
+    def add_episode(self, episode_dict):
+        try:
+            session = SessionManager.Session()
+            episode = Episode(bangumi_id=episode_dict['bangumi_id'],
+                              bgm_eps_id=episode_dict.get('bgm_eps_id', -1),
+                              episode_no=episode_dict['episode_no'],
+                              name=episode_dict.get('name'),
+                              name_cn=episode_dict.get('name_cn'),
+                              duration=episode_dict.get('duration'),
+                              airdate=episode_dict.get('airdate'),
+                              status=Episode.STATUS_NOT_DOWNLOADED)
+            session.add(episode)
+            session.commit()
+            episode_id = str(episode.id)
+            return json_resp({'data': {'id': episode_id}})
+        except:
+            pass
+        finally:
+            SessionManager.Session.remove()
 
     def update_episode(self, episode_id, episode_dict):
         try:
