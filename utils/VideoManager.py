@@ -21,7 +21,7 @@ class VideoManager:
                                    '-ss',
                                    time,
                                    '-i',
-                                   video_path,
+                                   b'{0}'.format(video_path.encode('utf-8')),
                                    '-vframes',
                                    '1',
                                    output_path])
