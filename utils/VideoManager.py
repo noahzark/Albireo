@@ -25,7 +25,7 @@ class VideoManager:
 
     def create_episode_thumbnail(self, episode, relative_path, time):
         bangumi_id = str(episode.bangumi_id)
-        video_path = self.base_path + '/' + bangumi_id + '/' + relative_path
+        video_path = self.base_path + '/' + bangumi_id + '/' + relative_path.encode('utf-8')
         thumbnail_folder = self.base_path + '/' + bangumi_id + '/thumbnails'
         output_path = thumbnail_folder + '/' + str(episode.episode_no) + '.png'
         try:

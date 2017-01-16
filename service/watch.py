@@ -99,6 +99,9 @@ class WatchService:
                 result = q.filter(Favorites.status == status).all()
 
             bangumi_id_list = [bangumi.id for favorite, bangumi in result]
+            # print 'bangumi_id_list length: %d' % len(bangumi_id_list)
+            if len(bangumi_id_list) == 0:
+                return json_resp({'data': [], 'status': 0})
 
             # subquery for watch_progress
             watch_progress = session.query(WatchProgress.episode_id).\

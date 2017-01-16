@@ -106,6 +106,9 @@ class BangumiService:
             bangumi_list = []
             bangumi_id_list = [bangumi_id for bangumi_id, bangumi in result]
 
+            if len(bangumi_id_list) == 0:
+                return json_resp({'data': []})
+
             favorites = session.query(Favorites).\
                 filter(Favorites.bangumi_id.in_(bangumi_id_list)).\
                 filter(Favorites.user_id == user_id).\
