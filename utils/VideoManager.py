@@ -21,10 +21,10 @@ class VideoManager:
                                    '-ss',
                                    time,
                                    '-i',
-                                   u'{0}'.format(video_path),
+                                   video_path,
                                    '-vframes',
                                    '1',
-                                   u'{0}'.format(output_path)])
+                                   output_path])
             return True
         except subprocess.CalledProcessError as error:
             logger.warn(error)
