@@ -93,7 +93,7 @@ class AdminService:
         '''
 
         result = {"data": []}
-        api_url = 'http://api.bgm.tv/search/subject/{0}?responseGroup=simple&max_result=25&start=0&type={1}'.format(term, type)
+        api_url = 'http://api.bgm.tv/search/subject/{0}?responseGroup=simple&max_result=25&start=0&type={1}'.format(term.encode('utf-8'), type)
         r = bangumi_request.get(api_url)
 
         if r.status_code > 399:

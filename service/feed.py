@@ -63,7 +63,7 @@ class FeedService(object):
         '''
         try:
             for regex in episode_regex_tuple:
-                search_result = re.search(regex, eps_title, re.U)
+                search_result = re.search(regex, eps_title, re.U | re.I)
                 if search_result is not None:
                     return int(search_result.group(1))
 
@@ -113,6 +113,19 @@ class FeedService(object):
         keywords_encoded = urllib.quote_plus(keywords.replace(u'+', u' ').encode('utf-8'))
         feed_url = 'https://acg.rip/.xml?term=%s' % (keywords_encoded,)
         feed_dict = self.parse_feed('acg.rip', feed_url)
+        title_list = []
+        for item in feed_dict.entries:
+            item_title = item['title']
+            eps_no = self.parse_episode_number(item_title)
+            title_list.append({'title': item_title, 'eps_no': eps_no})
+
+        return json_resp({'data': title_list, 'status': 0})
+
+    def parse_libyk_so(self, t, q):
+        t_encoded = urllib.quote_plus(t.replace(u'+', u' ').encode('utf-8'))
+        q_encoded = urllib.quote_plus(q.replace(u'+', u' ').encode('utf-8'))
+        feed_url = 'https://utils.libyk.so/torrent/rss?m=magnet&t={0}&q={1}'.format(t_encoded, q_encoded)
+        feed_dict = self.parse_feed('libyk_so', feed_url)
         title_list = []
         for item in feed_dict.entries:
             item_title = item['title']
