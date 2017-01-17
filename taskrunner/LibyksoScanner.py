@@ -18,7 +18,8 @@ class LibyksoScanner(BangumiScanner):
         try:
             return session.query(Bangumi).\
                 filter(Bangumi.status != Bangumi.STATUS_FINISHED).\
-                filter(Bangumi.libyk_so != None)
+                filter(Bangumi.libyk_so != None).\
+                all()
         except Exception as error:
             logger.warn(error)
             return []

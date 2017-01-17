@@ -203,14 +203,12 @@ class AdminService:
                               air_weekday=bangumi_data['air_weekday'],
                               status=self.__get_bangumi_status(bangumi_data['air_date']))
 
-            if 'dmhy' in bangumi_data:
-                bangumi.dmhy = bangumi_data['dmhy']
 
-            if 'acg_rip' in bangumi_data:
-                bangumi.acg_rip = bangumi_data['acg_rip']
+            bangumi.dmhy = bangumi_data.get('dmhy')
+            bangumi.acg_rip = bangumi_data.get('acg_rip')
+            bangumi.libyk_so = bangumi_data.get('libyk_so')
 
-            if 'eps_no_offset' in bangumi_data:
-                bangumi.eps_no_offset = bangumi_data['eps_no_offset']
+            bangumi.eps_no_offset = bangumi_data.get('eps_no_offset')
 
             session = SessionManager.Session()
 
@@ -256,20 +254,16 @@ class AdminService:
             bangumi.air_weekday = bangumi_dict['air_weekday']
             # bangumi.rss = bangumi_dict['rss']
             bangumi.status = bangumi_dict['status']
-            if 'dmhy' in bangumi_dict:
-                bangumi.dmhy = bangumi_dict['dmhy']
-            else:
-                bangumi.dmhy = None
 
-            if 'acg_rip' in bangumi_dict:
-                bangumi.acg_rip = bangumi_dict['acg_rip']
-            else:
-                bangumi.acg_rip = None
+            bangumi.dmhy = bangumi_dict.get('dmhy')
+            bangumi.acg_rip = bangumi_dict.get('acg_rip')
+            bangumi.libyk_so = bangumi_dict.get('libyk_so')
 
-            if 'eps_no_offset' in bangumi_dict:
-                bangumi.eps_no_offset = bangumi_dict['eps_no_offset']
-            else:
+            bangumi.eps_no_offset = bangumi_dict.get('eps_no_offset')
+            if not bangumi.eps_no_offset:
+                # in case the eps_no_offset is empty string
                 bangumi.eps_no_offset = None
+
 
             bangumi.update_time = datetime.now()
 
