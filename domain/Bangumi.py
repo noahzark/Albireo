@@ -14,15 +14,19 @@ class Bangumi(Base):
     bgm_id = Column(Integer, nullable=False)
     name = Column(TEXT , nullable=False)
     name_cn = Column(TEXT, nullable=False)
+    type = Column(Integer, nullable=False)
     eps = Column(Integer, nullable=False)
     summary = Column(TEXT, nullable=False)
     image = Column(TEXT, nullable=False)
     air_date = Column(DATE, nullable=False)
     air_weekday = Column(Integer, nullable=False)
+    # @deprecated
     rss = Column(TEXT, nullable=True)
-    dmhy = Column(TEXT, nullable=True)
+    dmhy = Column(TEXT, nullable=True) # dmhy search criteria
     eps_no_offset = Column(Integer, nullable=True)
-    acg_rip = Column(TEXT, nullable=True)
+    acg_rip = Column(TEXT, nullable=True) #acg.rip search criteria
+    libyk_so = Column(TEXT, nullable=True) # libyk.so search criteria, this field should be an JSON string contains two fields: {t: string, q: string}
+    # @deprecated
     eps_regex = Column(TEXT, nullable=True)
     status = Column(Integer, nullable=False)
     create_time = Column(TIMESTAMP, default=datetime.now(), nullable=False)
@@ -42,3 +46,9 @@ class Bangumi(Base):
     STATUS_ON_AIR = 1
     # A finished bangumi will no longer need to scanned
     STATUS_FINISHED = 2
+
+    # constant of bangumi type
+    # anime type
+    TYPE_ANIME = 2
+    # japanese tv drama series type
+    TYPE_JAPANESE_TV_DRAMA_SERIES = 6

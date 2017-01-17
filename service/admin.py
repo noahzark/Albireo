@@ -85,7 +85,7 @@ class AdminService:
         cover_path = bangumi_path + '/cover' + extname
         self.file_downloader.download_file(bangumi.image, cover_path)
 
-    def search_bangumi(self, term):
+    def search_bangumi(self, type, term):
         '''
         search bangumi from bangumi.tv, properly handling cookies is required for the bypass anti-bot mechanism
         :param term: a urlencoded word of the search term.
@@ -93,7 +93,7 @@ class AdminService:
         '''
 
         result = {"data": []}
-        api_url = 'http://api.bgm.tv/search/subject/' + term + '?responseGroup=simple&max_result=25&start=0&type=2'
+        api_url = 'http://api.bgm.tv/search/subject/{0}?responseGroup=simple&max_result=25&start=0&type={1}'.format(term, type)
         r = bangumi_request.get(api_url)
 
         if r.status_code > 399:
@@ -195,6 +195,7 @@ class AdminService:
             bangumi = Bangumi(bgm_id=bangumi_data['bgm_id'],
                               name=bangumi_data['name'],
                               name_cn=bangumi_data['name_cn'],
+                              type=bangumi_data['type'],
                               summary=bangumi_data['summary'],
                               eps=bangumi_data['eps'],
                               image=bangumi_data['image'],
