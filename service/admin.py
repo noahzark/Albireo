@@ -115,7 +115,7 @@ class AdminService:
         bangumi_list = self.get_bangumi_from_bgm_id_list(bgm_id_list)
 
         for bgm in bgm_list:
-            bgm['bgm_id'] = bgm['id']
+            bgm['bgm_id'] = bgm.get('id')
             bgm['id'] = None
             # if bgm_id has found in database, give the database id to bgm.id
             # that's we know that this bangumi exists in our database
@@ -123,7 +123,9 @@ class AdminService:
                 if bgm['bgm_id'] == bangumi.bgm_id:
                     bgm['id'] = bangumi.id
                     break
-            bgm['image'] = bgm['images']['large']
+            bgm_images = bgm.get('images')
+            if bgm_images:
+                bgm['image'] = bgm_images.get('large')
             # remove useless keys
             bgm.pop('images', None)
             bgm.pop('collection', None)
@@ -192,16 +194,16 @@ class AdminService:
         try:
             bangumi_data = json.loads(content)
 
-            bangumi = Bangumi(bgm_id=bangumi_data['bgm_id'],
-                              name=bangumi_data['name'],
-                              name_cn=bangumi_data['name_cn'],
-                              type=bangumi_data['type'],
-                              summary=bangumi_data['summary'],
-                              eps=bangumi_data['eps'],
-                              image=bangumi_data['image'],
-                              air_date=bangumi_data['air_date'],
-                              air_weekday=bangumi_data['air_weekday'],
-                              status=self.__get_bangumi_status(bangumi_data['air_date']))
+            bangumi = Bangumi(bgm_id=bangumi_data.get('bgm_id'),
+                              name=bangumi_data.get('name'),
+                              name_cn=bangumi_data.get('name_cn'),
+                              type=bangumi_data.get('type'),
+                              summary=bangumi_data.get('summary'),
+                              eps=bangumi_data.get('eps'),
+                              image=bangumi_data.get('image'),
+                              air_date=bangumi_data.get('air_date'),
+                              air_weekday=bangumi_data.get('air_weekday'),
+                              status=self.__get_bangumi_status(bangumi_data.get('air_date')))
 
 
             bangumi.dmhy = bangumi_data.get('dmhy')
@@ -217,14 +219,14 @@ class AdminService:
             bangumi.episodes = []
 
             for eps_item in bangumi_data['episodes']:
-                eps = Episode(bgm_eps_id=eps_item['bgm_eps_id'],
-                              episode_no=eps_item['episode_no'],
-                              name=eps_item['name'],
-                              name_cn=eps_item['name_cn'],
-                              duration=eps_item['duration'],
+                eps = Episode(bgm_eps_id=eps_item.get('bgm_eps_id'),
+                              episode_no=eps_item.get('episode_no'),
+                              name=eps_item.get('name'),
+                              name_cn=eps_item.get('name_cn'),
+                              duration=eps_item.get('duration'),
                               status=Episode.STATUS_NOT_DOWNLOADED)
-                if eps_item['airdate'] != '':
-                    eps.airdate=eps_item['airdate']
+                if eps_item.get('airdate') != '':
+                    eps.airdate=eps_item.get('airdate')
 
                 eps.bangumi = bangumi
                 bangumi.episodes.append(eps)
