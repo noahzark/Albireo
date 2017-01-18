@@ -85,7 +85,7 @@ class BangumiService:
         finally:
             SessionManager.Session.remove()
 
-    def on_air_bangumi(self, user_id):
+    def on_air_bangumi(self, user_id, type):
         session = SessionManager.Session()
         current_day = datetime.today()
         start_time = datetime(current_day.year, current_day.month, 1)
@@ -100,6 +100,7 @@ class BangumiService:
         try:
             result = session.query(distinct(Episode.bangumi_id), Bangumi).\
                 join(Bangumi).\
+                filter(Bangumi.type == type).\
                 filter(Episode.airdate >= start_time).\
                 filter(Episode.airdate <= end_time)
 
