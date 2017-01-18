@@ -13,10 +13,11 @@ from domain.ServerSession import ServerSession
 from domain.WatchProgress import WatchProgress
 
 from utils.http import FileDownloader
-import yaml
-import os
-import errno
+import yaml, os, errno, re
 from urlparse import urlparse
+from alembic import command
+from alembic.config import Config
+from StringIO import StringIO
 
 parser = argparse.ArgumentParser(description='Tools for management database')
 group = parser.add_mutually_exclusive_group()
@@ -75,7 +76,16 @@ elif args.user_promote is not None:
 
 elif args.db_init:
     Base.metadata.create_all(SessionManager.engine)
-    print('table initialized')
+    fp = StringIO()
+    alembic_config = Config('./alembic.ini', stdout=fp)
+    command.heads(alembic_config)
+    content = fp.getvalue()
+    fp.close()
+    revision_hash = re.search('^([0-9a-f]+)\s\(head\)', content, re.U).group(1)
+    print('set current revision {0}'.format(revision_hash))
+    new_alembic_config = Config('./alembic.ini')
+    command.stamp(new_alembic_config, revision=revision_hash)
+    print('Database initialized')
 
 elif args.cover:
     fr = open('./config/config.yml', 'r')
