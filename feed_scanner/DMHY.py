@@ -22,7 +22,6 @@ class DMHY(AbstractScanner):
         '''
         parse feed for current bangumi and find not downloaded episode in feed entries.
         this method using an async call to add torrent.
-        :param timeout:
         :return: if no error when get feed None is return otherwise return the error object
         '''
         # eps no list

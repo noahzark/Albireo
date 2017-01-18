@@ -28,3 +28,14 @@ def acg_rip(keywords):
         raise ClientError('keywords is empty', 400)
     else:
         return feed_service.parse_acg_rip(keywords)
+
+@feed_api.route('/libyk-so', methods=['GET'])
+@login_required
+@auth_user(User.LEVEL_ADMIN)
+def libyk_so():
+    t = request.args.get('t', None)
+    q = request.args.get('q', None)
+    if t is None or q is None:
+        raise ClientError('t an q must have value', 400)
+    else:
+        return feed_service.parse_libyk_so(t, q)

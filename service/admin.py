@@ -85,7 +85,7 @@ class AdminService:
         cover_path = bangumi_path + '/cover' + extname
         self.file_downloader.download_file(bangumi.image, cover_path)
 
-    def search_bangumi(self, term):
+    def search_bangumi(self, type, term):
         '''
         search bangumi from bangumi.tv, properly handling cookies is required for the bypass anti-bot mechanism
         :param term: a urlencoded word of the search term.
@@ -93,7 +93,7 @@ class AdminService:
         '''
 
         result = {"data": []}
-        api_url = 'http://api.bgm.tv/search/subject/' + term + '?responseGroup=simple&max_result=25&start=0&type=2'
+        api_url = 'http://api.bgm.tv/search/subject/{0}?responseGroup=simple&max_result=25&start=0&type={1}'.format(term.encode('utf-8'), type)
         r = bangumi_request.get(api_url)
 
         if r.status_code > 399:
@@ -195,6 +195,7 @@ class AdminService:
             bangumi = Bangumi(bgm_id=bangumi_data['bgm_id'],
                               name=bangumi_data['name'],
                               name_cn=bangumi_data['name_cn'],
+                              type=bangumi_data['type'],
                               summary=bangumi_data['summary'],
                               eps=bangumi_data['eps'],
                               image=bangumi_data['image'],
@@ -202,14 +203,12 @@ class AdminService:
                               air_weekday=bangumi_data['air_weekday'],
                               status=self.__get_bangumi_status(bangumi_data['air_date']))
 
-            if 'dmhy' in bangumi_data:
-                bangumi.dmhy = bangumi_data['dmhy']
 
-            if 'acg_rip' in bangumi_data:
-                bangumi.acg_rip = bangumi_data['acg_rip']
+            bangumi.dmhy = bangumi_data.get('dmhy')
+            bangumi.acg_rip = bangumi_data.get('acg_rip')
+            bangumi.libyk_so = bangumi_data.get('libyk_so')
 
-            if 'eps_no_offset' in bangumi_data:
-                bangumi.eps_no_offset = bangumi_data['eps_no_offset']
+            bangumi.eps_no_offset = bangumi_data.get('eps_no_offset')
 
             session = SessionManager.Session()
 
@@ -255,20 +254,16 @@ class AdminService:
             bangumi.air_weekday = bangumi_dict['air_weekday']
             # bangumi.rss = bangumi_dict['rss']
             bangumi.status = bangumi_dict['status']
-            if 'dmhy' in bangumi_dict:
-                bangumi.dmhy = bangumi_dict['dmhy']
-            else:
-                bangumi.dmhy = None
 
-            if 'acg_rip' in bangumi_dict:
-                bangumi.acg_rip = bangumi_dict['acg_rip']
-            else:
-                bangumi.acg_rip = None
+            bangumi.dmhy = bangumi_dict.get('dmhy')
+            bangumi.acg_rip = bangumi_dict.get('acg_rip')
+            bangumi.libyk_so = bangumi_dict.get('libyk_so')
 
-            if 'eps_no_offset' in bangumi_dict:
-                bangumi.eps_no_offset = bangumi_dict['eps_no_offset']
-            else:
+            bangumi.eps_no_offset = bangumi_dict.get('eps_no_offset')
+            if not bangumi.eps_no_offset:
+                # in case the eps_no_offset is empty string
                 bangumi.eps_no_offset = None
+
 
             bangumi.update_time = datetime.now()
 

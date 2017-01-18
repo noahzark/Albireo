@@ -43,8 +43,9 @@ def one(id):
 @auth_user(User.LEVEL_ADMIN)
 def search_bangumi():
     name = request.args.get('name', None)
+    type = request.args.get('type', 2) # search type = 2 for anime or type = 6 for japanese tv drama series
     if name is not None and len(name) > 0:
-        return admin_service.search_bangumi(name)
+        return admin_service.search_bangumi(type, name)
     else:
         raise ClientError('Name cannot be None', 400)
 
