@@ -67,6 +67,8 @@ class DownloadManager:
                     max_size = files[0]['size']
                     main_file = files[0]
                     for file in files:
+                        if not file['path'].endswith('.mp4'):
+                            continue
                         if file['size'] > max_size:
                             main_file = file
 
