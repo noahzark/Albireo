@@ -124,7 +124,7 @@ class FeedService(object):
     def parse_libyk_so(self, t, q):
         t_encoded = urllib.quote_plus(t.replace(u'+', u' ').encode('utf-8'))
         q_encoded = urllib.quote_plus(q.replace(u'+', u' ').encode('utf-8'))
-        feed_url = 'https://utils.libyk.so/torrent/rss?m=magnet&t={0}&q={1}'.format(t_encoded, q_encoded)
+        feed_url = 'https://utils.libyk.com/torrent/rss?m=magnet&t={0}&q={1}'.format(t_encoded, q_encoded)
         feed_dict = self.parse_feed('libyk_so', feed_url)
         title_list = []
         for item in feed_dict.entries:
