@@ -85,15 +85,15 @@ class AdminService:
         cover_path = bangumi_path + '/cover' + extname
         self.file_downloader.download_file(bangumi.image, cover_path)
 
-    def search_bangumi(self, type, term):
+    def search_bangumi(self, type, term, offset, count):
         '''
         search bangumi from bangumi.tv, properly handling cookies is required for the bypass anti-bot mechanism
         :param term: a urlencoded word of the search term.
         :return: a json object
         '''
 
-        result = {"data": []}
-        api_url = 'http://api.bgm.tv/search/subject/{0}?responseGroup=simple&max_result=25&start=0&type={1}'.format(term.encode('utf-8'), type)
+        result = {"data": [], "total": 0}
+        api_url = 'http://api.bgm.tv/search/subject/{0}?responseGroup=large&max_result={1}&start={2}&type={3}'.format(term.encode('utf-8'), count, offset, type)
         r = bangumi_request.get(api_url)
 
         if r.status_code > 399:
@@ -105,6 +105,9 @@ class AdminService:
             logger.warn(error)
             result['message'] = 'fail to query bangumi'
             return json_resp(result, 500)
+
+        if 'code' in bgm_content and bgm_content['code'] == 404:
+            return json_resp(result, 200)
 
         bgm_list = bgm_content['list']
         total_count = bgm_content['results']
@@ -133,7 +136,7 @@ class AdminService:
             bgm.pop('type', None)
 
         result['data'] = bgm_list
-        result['total_count'] = total_count
+        result['total'] = total_count
         return json_resp(result)
 
     def query_bangumi_detail(self, bgm_id):
@@ -149,7 +152,6 @@ class AdminService:
 
     def list_bangumi(self, page, count, sort_field, sort_order, name):
         try:
-
             session = SessionManager.Session()
             query_object = session.query(Bangumi)
 
@@ -165,18 +167,20 @@ class AdminService:
             else:
                 total = session.query(func.count(Bangumi.id)).scalar()
 
-            offset = (page - 1) * count
 
             if sort_order == 'desc':
-                bangumi_list = query_object.\
-                    order_by(desc(getattr(Bangumi, sort_field))).\
-                    offset(offset).limit(count).\
-                    all()
+                query_object = query_object.\
+                    order_by(desc(getattr(Bangumi, sort_field)))
             else:
-                bangumi_list = query_object.\
-                    order_by(asc(getattr(Bangumi, sort_field))).\
-                    offset(offset).limit(count).\
-                    all()
+                query_object = query_object.\
+                    order_by(asc(getattr(Bangumi, sort_field)))
+
+            # we now support query all method by passing count = -1
+            if count == -1:
+                bangumi_list = query_object.all()
+            else:
+                offset = (page - 1) * count
+                bangumi_list = query_object.offset(offset).limit(count).all()
 
             bangumi_dict_list = []
             for bgm in bangumi_list:
@@ -185,8 +189,7 @@ class AdminService:
                 bangumi_dict_list.append(bangumi)
 
             return json_resp({'data': bangumi_dict_list, 'total': total})
-        except Exception as exception:
-            raise exception
+            # raise ClientError('something happened')
         finally:
             SessionManager.Session.remove()
 

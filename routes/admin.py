@@ -11,21 +11,23 @@ from utils.exceptions import ClientError
 
 admin_api = Blueprint('bangumi', __name__)
 
-@admin_api.route('/bangumi', methods=['POST', 'GET'])
+@admin_api.route('/bangumi', methods=['GET'])
 @login_required
 @auth_user(User.LEVEL_ADMIN)
-def collection():
-    if request.method == 'POST':
-        content = request.get_data(True, as_text=True)
-        return admin_service.add_bangumi(content)
-    else:
-        page = int(request.args.get('page', 1))
-        count = int(request.args.get('count', 10))
-        sort_field = request.args.get('order_by', 'update_time')
-        sort_order = request.args.get('sort', 'desc')
-        name = request.args.get('name', None)
-        return admin_service.list_bangumi(page, count, sort_field, sort_order, name)
+def list_bangumi():
+    page = int(request.args.get('page', 1))
+    count = int(request.args.get('count', 10))
+    sort_field = request.args.get('order_by', 'update_time')
+    sort_order = request.args.get('sort', 'desc')
+    name = request.args.get('name', None)
+    return admin_service.list_bangumi(page, count, sort_field, sort_order, name)
 
+@admin_api.route('/bangumi', methods=['GET'])
+@login_required
+@auth_user(User.LEVEL_ADMIN)
+def add_bangumi():
+    content = request.get_data(True, as_text=True)
+    return admin_service.add_bangumi(content)
 
 @admin_api.route('/bangumi/<id>', methods=['PUT', 'GET', 'DELETE'])
 @login_required
@@ -44,8 +46,10 @@ def one(id):
 def search_bangumi():
     name = request.args.get('name', None)
     type = request.args.get('type', 2) # search type = 2 for anime or type = 6 for japanese tv drama series
+    offset = request.args.get('offset', 0)
+    count = request.args.get('count', 10)
     if name is not None and len(name) > 0:
-        return admin_service.search_bangumi(type, name)
+        return admin_service.search_bangumi(type, name, offset, count)
     else:
         raise ClientError('Name cannot be None', 400)
 
