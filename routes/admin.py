@@ -22,7 +22,7 @@ def list_bangumi():
     name = request.args.get('name', None)
     return admin_service.list_bangumi(page, count, sort_field, sort_order, name)
 
-@admin_api.route('/bangumi', methods=['GET'])
+@admin_api.route('/bangumi', methods=['POST'])
 @login_required
 @auth_user(User.LEVEL_ADMIN)
 def add_bangumi():
