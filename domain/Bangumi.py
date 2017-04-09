@@ -26,6 +26,7 @@ class Bangumi(Base):
     eps_no_offset = Column(Integer, nullable=True)
     acg_rip = Column(TEXT, nullable=True) #acg.rip search criteria
     libyk_so = Column(TEXT, nullable=True) # libyk.so search criteria, this field should be an JSON string contains two fields: {t: string, q: string}
+    bangumi_moe = Column(TEXT, nullable=True) #bangumi.moe tag id array, this field should be an serialized JSON array contains strings
     # @deprecated
     eps_regex = Column(TEXT, nullable=True)
     status = Column(Integer, nullable=False)
