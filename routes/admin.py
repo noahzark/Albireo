@@ -29,16 +29,29 @@ def add_bangumi():
     content = request.get_data(True, as_text=True)
     return admin_service.add_bangumi(content)
 
-@admin_api.route('/bangumi/<id>', methods=['PUT', 'GET', 'DELETE'])
+@admin_api.route('/bangumi/<id>', methods=['PUT'])
 @login_required
 @auth_user(User.LEVEL_ADMIN)
-def one(id):
-    if request.method == 'PUT':
-        return admin_service.update_bangumi(id, json.loads(request.get_data(True, as_text=True)))
-    elif request.method == 'GET':
-        return admin_service.get_bangumi(id)
-    else:
-        return admin_service.delete_bangumi(id)
+def update_bangumi(id):
+    return admin_service.update_bangumi(id, json.loads(request.get_data(True, as_text=True)))
+
+@admin_api.route('/bangumi/<id>', methods=['GET'])
+@login_required
+@auth_user(User.LEVEL_ADMIN)
+def get_bangumi(id):
+    return admin_service.get_bangumi(id)
+
+@admin_api.route('/bangumi/<id>', methods=['DELETE'])
+@login_required
+@auth_user(User.LEVEL_ADMIN)
+def delete_bangumi(id):
+    return admin_service.delete_bangumi(id)
+
+@admin_api.route('/bangumi/restore/<id>', methods=['POST'])
+@login_required
+@auth_user(User.LEVEL_ADMIN)
+def restore_bangumi(id):
+    return admin_service.restore_bangumi(id)
 
 @admin_api.route('/query', methods=['GET'])
 @login_required
@@ -89,14 +102,29 @@ def episode_thumbnail(episode_id):
     return admin_service.update_thumbnail(episode_id, content['time'])
 
 
-@admin_api.route('/episode/<episode_id>', methods=['GET', 'PUT'])
+@admin_api.route('/episode/<episode_id>', methods=['GET'])
 @login_required
 @auth_user(User.LEVEL_ADMIN)
-def episode(episode_id):
-    if request.method == 'GET':
-        return admin_service.get_episode(episode_id)
-    elif request.method == 'PUT':
-        return admin_service.update_episode(episode_id, json.loads(request.get_data(True, as_text=True)))
+def get_episode(episode_id):
+    return admin_service.get_episode(episode_id)
+
+@admin_api.route('/episode/<episode_id>', methods=['PUT'])
+@login_required
+@auth_user(User.LEVEL_ADMIN)
+def update_episode(episode_id):
+    return admin_service.update_episode(episode_id, json.loads(request.get_data(True, as_text=True)))
+
+@admin_api.route('/episode/<episode_id>', methods=['DELETE'])
+@login_required
+@auth_user(User.LEVEL_ADMIN)
+def delete_episode(episode_id):
+    return admin_service.delete_episode(episode_id)
+
+@admin_api.route('/episode/restore/<episode_id>', methods=['POST'])
+@login_required
+@auth_user(User.LEVEL_ADMIN)
+def restore_episode(episode_id):
+    return admin_service.restore_episode(episode_id)
 
 @admin_api.route('/episode/<episode_id>/upload', methods=['POST'])
 @login_required

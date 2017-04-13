@@ -34,6 +34,7 @@ class BangumiService:
         try:
             result = session.query(Episode, Bangumi).\
                 join(Bangumi).\
+                filter(Episode.delete_mark == None).\
                 filter(Episode.status == Episode.STATUS_DOWNLOADED).\
                 filter(Episode.update_time >= start_time).\
                 filter(Episode.update_time <= current).\
@@ -58,6 +59,7 @@ class BangumiService:
         try:
             (episode, bangumi) = session.query(Episode, Bangumi).\
                 join(Bangumi).\
+                filter(Episode.delete_mark == None).\
                 filter(Episode.id == episode_id).\
                 one()
             watch_progress = session.query(WatchProgress).\
@@ -99,7 +101,8 @@ class BangumiService:
 
         try:
             result = session.query(distinct(Episode.bangumi_id), Bangumi).\
-                join(Bangumi).\
+                join(Bangumi). \
+                filter(Bangumi.delete_mark == None). \
                 filter(Bangumi.type == type).\
                 filter(Episode.airdate >= start_time).\
                 filter(Episode.airdate <= end_time)
@@ -132,7 +135,8 @@ class BangumiService:
         try:
 
             session = SessionManager.Session()
-            query_object = session.query(Bangumi)
+            query_object = session.query(Bangumi).\
+                filter(Bangumi.delete_mark == None)
 
             if name is not None:
                 name_pattern = '%{0}%'.format(name.encode('utf-8'),)
@@ -185,6 +189,7 @@ class BangumiService:
 
             bangumi = session.query(Bangumi).\
                 options(joinedload(Bangumi.episodes)).\
+                filter(Bangumi.delete_mark == None).\
                 filter(Bangumi.id == id).\
                 one()
 

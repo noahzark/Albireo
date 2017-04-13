@@ -96,5 +96,12 @@ class DownloadManager:
             logger.warn(error)
             returnValue(None)
 
+    @inlineCallbacks
+    def remove_torrents(self, torrent_id_list, remove_data):
+        result_list = []
+        for torrent_id in torrent_id_list:
+            result = yield self.downloader.remove_torrent(torrent_id, remove_data)
+            result_list.append(result)
+        returnValue(result_list)
 
 download_manager = DownloadManager(DelugeDownloader)

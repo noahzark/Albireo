@@ -8,5 +8,8 @@ class Downloader:
     def connect_to_daemon(self):
         pass
 
+    def remove_torrent(self, torrent_id, remove_data):
+        pass
+
     def get_files(self, torrent_id):
         pass

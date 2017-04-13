@@ -11,7 +11,7 @@ class Bangumi(Base):
     __tablename__ = 'bangumi'
 
     id = Column(postgresql.UUID(as_uuid=True), primary_key=True, default=uuid4)
-    bgm_id = Column(Integer, nullable=False)
+    bgm_id = Column(Integer, nullable=False, unique=True)
     name = Column(TEXT , nullable=False)
     name_cn = Column(TEXT, nullable=False)
     type = Column(Integer, nullable=False)
@@ -39,6 +39,10 @@ class Bangumi(Base):
     favorite = relationship('Favorites', back_populates='bangumi', uselist=False)
 
     watch_progress_list = relationship('WatchProgress', back_populates='bangumi')
+
+    # this mark is used by DeleteScanner to start a task for deleting certain bangumi and all data associated.
+    # it is a date time when bangumi is schedule to delete
+    delete_mark = Column(TIMESTAMP, nullable=True)
 
     # constant of bangumi status
     # A pending bangumi is not started to show on tv yet

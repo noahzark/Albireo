@@ -91,6 +91,7 @@ class WatchService:
         try:
             q = session.query(Favorites, Bangumi).\
                 join(Bangumi).\
+                filter(Bangumi.delete_mark == None).\
                 filter(Favorites.user_id == user_id)
 
             if status is None:

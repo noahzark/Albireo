@@ -11,6 +11,7 @@ from domain.Feed import Feed
 from domain.Favorites import Favorites
 from domain.ServerSession import ServerSession
 from domain.WatchProgress import WatchProgress
+from domain.Task import Task
 
 from utils.http import FileDownloader
 import yaml, os, errno, re

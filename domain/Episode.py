@@ -22,6 +22,8 @@ class Episode(Base):
     create_time = Column(TIMESTAMP, default=datetime.now(), nullable=False)
     update_time = Column(TIMESTAMP, default=datetime.now(), nullable=False)
 
+    delete_mark = Column(TIMESTAMP, nullable=True)
+
     bangumi = relationship('Bangumi', back_populates='episodes')
 
     torrent_files = relationship('TorrentFile', order_by=TorrentFile.episode_id, back_populates='episode',

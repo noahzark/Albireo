@@ -36,6 +36,7 @@ from taskrunner.FeedScanner import FeedScanner
 from taskrunner.DmhyScanner import DmhyScanner
 from taskrunner.AcgripScanner import AcgripScanner
 from taskrunner.LibyksoScanner import LibyksoScanner
+from taskrunner.DeleteScanner import DeleteScanner
 
 class Scheduler:
 
@@ -45,6 +46,7 @@ class Scheduler:
         self.interval = int(config['task']['interval']) * 60
         self.base_path = config['download']['location']
         self.feedparser = config['feedparser']
+        self.delete_delay = config['task']['delete_delay']
         try:
             if not os.path.exists(self.base_path):
                 os.makedirs(self.base_path)
@@ -86,6 +88,10 @@ class Scheduler:
         feed_scanner = FeedScanner(self.base_path)
         feed_scanner.start()
 
+    def start_scan_delete(self):
+        delete_scanner = DeleteScanner(self.base_path, self.delete_delay)
+        delete_scanner.start()
+
 
 scheduler = Scheduler()
 
@@ -96,6 +102,7 @@ def on_connected(result):
     scheduler.start()
     info_scanner.start()
     scheduler.start_scan_feed()
+    scheduler.start_scan_delete()
 
 
 def on_connect_fail(result):
