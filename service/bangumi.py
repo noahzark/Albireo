@@ -211,6 +211,8 @@ class BangumiService:
                 watch_progress_hash_table[watch_progress.episode_id] = watch_progress_dict
 
             for episode in bangumi.episodes:
+                if episode.delete_mark is not None:
+                    continue
                 eps = row2dict(episode)
                 eps['thumbnail'] = utils.generate_thumbnail_link(episode, bangumi)
                 if episode.id in watch_progress_hash_table:
