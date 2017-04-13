@@ -1,3 +1,19 @@
+#1.0.0-beta
+Add delete bangumi and episode ability to admin API. these delete operation is managed by task. A task is a database record contains progress, status and type information. It can be resume
+ from a interruption.
+ 
+Add unique constraints to bangumi table `bgm_id` column. Make sure you don't have any duplicate record of bgm_id in bangumi table before you execute a database upgrade. 
+
+##Database changes:
+
+Add delete_mark column on both bangumi and episode table.
+Add task table to manage delete operation.
+
+##API Changes:
+
+get bangumi of admin api add a special parameter value to count that is -1. when count = -1, this api will return all data
+
+
 #0.9.0-alpha
 
 ##Database changes:
