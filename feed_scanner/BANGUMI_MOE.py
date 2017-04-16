@@ -39,7 +39,7 @@ class BANGUMI_MOE(AbstractScanner):
                 file_name = os.path.basename(file_path)
                 eps_no = self.parse_episode_number(file_name)
                 if eps_no in eps_no_list:
-                    result_list.append((torrent['magnet'], eps_no, file_path))
+                    result_list.append((torrent['magnet'], eps_no, file_path, file_name))
 
         return result_list
 

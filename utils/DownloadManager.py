@@ -34,29 +34,6 @@ class DownloadManager:
             time = '00:00:01.000'
             video_manager.create_episode_thumbnail(episode, file_path, time)
 
-        def update_torrent_file(file_path):
-            session = SessionManager.Session
-            try:
-                torrent_file = session.query(TorrentFile).filter(TorrentFile.torrent_id == torrent_id).one()
-                torrent_file.file_path = file_path
-
-                # update status of episode
-                episode = session.query(Episode).filter(Episode.torrent_files.contains(torrent_file)).one()
-                episode.update_time = datetime.now()
-                episode.status = Episode.STATUS_DOWNLOADED
-
-                #update bangumi update_time
-
-                bangumi = session.query(Bangumi).filter(Bangumi.episodes.contains(episode)).one()
-                bangumi.update_time = datetime.now()
-
-                session.commit()
-
-                create_thumbnail(episode, file_path)
-            except exc.DBAPIError as db_error:
-                if db_error.connection_invalidated:
-                    session.rollback()
-
         def update_video_files(file_path_list):
             session = SessionManager.Session()
             try:
@@ -66,8 +43,15 @@ class DownloadManager:
                     all()
                 for (video_file, episode) in result:
                     for file_path in file_path_list:
-                        if file_path.endswith(video_file.file_name):
+                        if video_file.file_name is not None and video_file.file_path is None and file_path.endswith(video_file.file_name):
                             video_file.file_path = file_path
+                            video_file.status = VideoFile.STATUS_DOWNLOADED
+                            episode.update_time = datetime.now()
+                            episode.status = Episode.STATUS_DOWNLOADED
+                            create_thumbnail(episode, file_path)
+                            break
+                        elif video_file.file_path is not None and file_path == video_file.file_path:
+                            video_file.status = VideoFile.STATUS_DOWNLOADED
                             episode.update_time = datetime.now()
                             episode.status = Episode.STATUS_DOWNLOADED
                             create_thumbnail(episode, file_path)
@@ -83,7 +67,7 @@ class DownloadManager:
         def get_files(files):
             print files
             file_path_list = [file['path'] for file in files]
-            threads.deferToThread(update_torrent_file, file_path_list)
+            threads.deferToThread(update_video_files, file_path_list)
 
         def fail_to_get_files(result):
             logger.warn('fail to get files of %s', torrent_id)

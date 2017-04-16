@@ -29,9 +29,9 @@ class BangumiScanner(object):
     def __drop_duplicate(self, url_eps_id_list):
         eps_id_dict = {}
         no_dupli_list = []
-        for (download_url, episode, file_path) in url_eps_id_list:
+        for (download_url, episode, file_path, file_name) in url_eps_id_list:
             if str(episode.id) not in eps_id_dict:
-                no_dupli_list.append((download_url, episode, file_path))
+                no_dupli_list.append((download_url, episode, file_path, file_name))
                 eps_id_dict[str(episode.id)] = True
 
         return no_dupli_list
@@ -49,10 +49,11 @@ class BangumiScanner(object):
         no_dupli_list = self.__drop_duplicate(url_eps_list)
         session = SessionManager.Session()
         try:
-            for (download_url, episode, file_path) in no_dupli_list:
+            for (download_url, episode, file_path, file_name) in no_dupli_list:
                 video_file = VideoFile(episode_id=episode.id,
                                        bangumi_id=bangumi_id,
                                        download_url=download_url,
+                                       file_name=file_name,
                                        file_path=file_path)
                 episode.status = Episode.STATUS_DOWNLOADING
                 self.save_video_file(video_file, episode, session)
@@ -135,7 +136,7 @@ class BangumiScanner(object):
                 scan_result = yield threads.deferToThread(self.scan_feed, bangumi, episode_list)
                 if scan_result is None:
                     continue
-                url_eps_list = [(download_url, self.__find_episode_by_number(episode_list, eps_no), file_path) for (download_url, eps_no, file_path) in scan_result]
+                url_eps_list = [(download_url, self.__find_episode_by_number(episode_list, eps_no), file_path, file_name) for (download_url, eps_no, file_path, file_name) in scan_result]
                 # this method may raise exception
                 yield threads.deferToThread(self.download_episodes, url_eps_list, bangumi.id)
                 yield threads.deferToThread(self.update_bangumi_status, bangumi)
