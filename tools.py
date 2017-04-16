@@ -12,6 +12,7 @@ from domain.Favorites import Favorites
 from domain.ServerSession import ServerSession
 from domain.WatchProgress import WatchProgress
 from domain.Task import Task
+from domain.VideoFile import VideoFile
 
 from utils.http import FileDownloader
 import yaml, os, errno, re
@@ -121,12 +122,10 @@ elif args.cover:
 elif args.bgm_reset:
     session = SessionManager.Session()
     bangumi_id = args.bgm_reset[0]
-    feed_list = session.query(Feed).filter(Feed.bangumi_id == bangumi_id).all()
     episode_list = session.query(Episode).filter(Episode.bangumi_id == bangumi_id).all()
-    for feed in feed_list:
-        if feed.torrent_file_id is not None:
-            session.query(TorrentFile).filter(TorrentFile.id == feed.torrent_file_id).delete()
-        session.delete(feed)
+    video_file_list = session.query(VideoFile).filter(VideoFile.bangumi_id == bangumi_id).all()
+    for video_file in video_file_list:
+        session.delete(video_file)
 
     for episode in episode_list:
         episode.status = Episode.STATUS_NOT_DOWNLOADED
