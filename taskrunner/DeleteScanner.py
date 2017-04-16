@@ -13,10 +13,9 @@ from utils.DownloadManager import download_manager
 from domain.Bangumi import Bangumi
 from domain.Task import Task
 from domain.Episode import Episode
-from domain.TorrentFile import TorrentFile
-from domain.Feed import Feed
 from domain.WatchProgress import WatchProgress
 from domain.Favorites import Favorites
+from domain.VideoFile import VideoFile
 
 logger = logging.getLogger(__name__)
 
@@ -45,25 +44,21 @@ class DeleteScanner:
             task_content = {'bangumi_id': str(bangumi.id)}
             episode_list = session.query(Episode).filter(Episode.bangumi_id == bangumi.id).all()
             episode_id_list = [episode.id for episode in episode_list]
-            torrent_file_list = session.query(TorrentFile).filter(TorrentFile.episode_id.in_(episode_id_list)).all()
-            feed_list = session.query(Feed).filter(Feed.episode_id.in_(episode_id_list)).all()
+            video_file_list = session.query(VideoFile).filter(VideoFile.bangumi_id == bangumi.id).all()
             watch_progress_list = session.query(WatchProgress).filter(WatchProgress.episode_id.in_(episode_id_list)).all()
             favorite_list = session.query(Favorites).filter(Favorites.bangumi_id == bangumi.id).all()
 
-            task_content['torrent_id_list'] = [torrent_file.torrent_id for torrent_file in torrent_file_list]
+            task_content['torrent_id_list'] = [video_file.torrent_id for video_file in video_file_list]
             task_content['task_step'] = ['db', 'torrent', 'file_system']
 
             task = Task(type = Task.TYPE_BANGUMI_DELETE, content = json.dumps(task_content), status = Task.STATUS_IN_PROGRESS)
             session.add(task)
             session.commit()
 
-            # remove feed
-            for feed in feed_list:
-                session.delete(feed)
 
-            # torrent file
-            for torrent_file in torrent_file_list:
-                session.delete(torrent_file)
+            # video file
+            for video_file in video_file_list:
+                session.delete(video_file)
 
             # remove watch-progress
             for watch_progress in watch_progress_list:
@@ -103,18 +98,14 @@ class DeleteScanner:
         session = SessionManager.Session()
         try:
             task_content= {'episode_id': str(episode.id)}
-            torrent_file_list = session.query(TorrentFile).\
-                filter(TorrentFile.episode_id == episode.id).\
-                all()
-
-            feed_list = session.query(Feed).\
-                filter(Feed.episode_id == episode.id).\
+            video_file_list = session.query(VideoFile).\
+                filter(VideoFile.episode_id == episode.id).\
                 all()
 
             watch_progress_list = session.query(WatchProgress).filter(
                 WatchProgress.episode_id == episode.id).all()
 
-            task_content['torrent_file_list'] = [row2dict(torrent_file) for torrent_file in torrent_file_list]
+            task_content['video_file_list'] = [row2dict(video_file) for video_file in video_file_list]
 
             task_content['task_step'] = ['db', 'torrent',  'file_system']
 
@@ -122,12 +113,8 @@ class DeleteScanner:
             session.add(task)
             session.commit()
 
-            # remove feed
-            for feed in feed_list:
-                session.delete(feed)
-
-            for torrent_file in torrent_file_list:
-                session.delete(torrent_file)
+            for video_file in video_file_list:
+                session.delete(video_file)
 
             # remove watch-progress
             for watch_progress in watch_progress_list:
@@ -139,15 +126,15 @@ class DeleteScanner:
             self.__unshift_task_step(task_content, task, session)
 
             # remove torrent
-            if len(task_content['torrent_file_list']) > 0:
-                threads.blockingCallFromThread(reactor, download_manager.remove_torrents, task_content['torrent_file_list']['torrent_id'], True)
+            if len(task_content['video_file_list']) > 0:
+                threads.blockingCallFromThread(reactor, download_manager.remove_torrents, task_content['video_file_list']['torrent_id'], True)
 
             self.__unshift_task_step(task_content, task, session)
 
 
             # remove files of episode
             bangumi_folder_path = '{0}/{1}'.format(self.base_path, str(episode.bangumi_id))
-            for torrent_file in task_content['torrent_file_list']:
+            for torrent_file in task_content['video_file_list']:
                 file_path = '{0}/{1}'.format(bangumi_folder_path, torrent_file['file_path'])
                 os.remove(file_path)
 

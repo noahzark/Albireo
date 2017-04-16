@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import yaml
 from urlparse import urlparse
-import os, errno, socket
-import logging, urllib2
+import os, errno
+import logging
 import re
 
 from utils.constants import episode_regex_tuple

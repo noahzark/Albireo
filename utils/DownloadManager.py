@@ -4,6 +4,7 @@ from download_adapter.DelugeDownloader import DelugeDownloader
 from domain.TorrentFile import TorrentFile
 from domain.Episode import Episode
 from domain.Bangumi import Bangumi
+from domain.VideoFile import VideoFile
 from utils.SessionManager import SessionManager
 from utils.VideoManager import video_manager
 from datetime import datetime
@@ -56,28 +57,33 @@ class DownloadManager:
                 if db_error.connection_invalidated:
                     session.rollback()
 
+        def update_video_files(file_path_list):
+            session = SessionManager.Session()
+            try:
+                result = session.query(VideoFile, Episode).\
+                    join(Episode).\
+                    filter(VideoFile.torrent_id == torrent_id).\
+                    all()
+                for (video_file, episode) in result:
+                    for file_path in file_path_list:
+                        if file_path.endswith(video_file.file_name):
+                            video_file.file_path = file_path
+                            episode.update_time = datetime.now()
+                            episode.status = Episode.STATUS_DOWNLOADED
+                            create_thumbnail(episode, file_path)
+                            break
+
+                session.commit()
+            except exc.DBAPIError as db_error:
+                if db_error.connection_invalidated:
+                    session.rollback()
+            finally:
+                SessionManager.Session.remove()
 
         def get_files(files):
-                print files
-                file_path = None
-                if len(files) == 1:
-                    # only one file
-                    file_path = files[0]['path']
-                elif len(files) > 1:
-                    max_size = files[0]['size']
-                    main_file = files[0]
-                    for file in files:
-                        if not file['path'].endswith('.mp4'):
-                            continue
-                        if file['size'] > max_size:
-                            main_file = file
-
-                    file_path = main_file['path']
-                else:
-                    logger.warn('no file found in %s', torrent_id)
-
-                if file_path is not None:
-                    threads.deferToThread(update_torrent_file, file_path)
+            print files
+            file_path_list = [file['path'] for file in files]
+            threads.deferToThread(update_torrent_file, file_path_list)
 
         def fail_to_get_files(result):
             logger.warn('fail to get files of %s', torrent_id)
@@ -89,12 +95,7 @@ class DownloadManager:
 
     @inlineCallbacks
     def download(self, download_url, download_location):
-        try:
-            torrent_id = yield self.downloader.download(download_url, download_location)
-            returnValue(TorrentFile(torrent_id=torrent_id))
-        except Exception as error:
-            logger.warn(error)
-            returnValue(None)
+        self.downloader.download(download_url, download_location)
 
     @inlineCallbacks
     def remove_torrents(self, torrent_id_list, remove_data):

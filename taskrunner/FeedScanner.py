@@ -6,6 +6,7 @@ from utils.SessionManager import SessionManager
 from utils.DownloadManager import download_manager
 from domain.Feed import Feed
 from domain.Episode import Episode
+from domain.VideoFile import VideoFile
 from domain.WatchProgress import WatchProgress
 from domain.Favorites import Favorites
 
@@ -27,10 +28,10 @@ class FeedScanner:
         lc = LoopingCall(self.scan_feed)
         lc.start(self.interval)
 
-    def __query_feed(self):
+    def __query_video_file(self):
         session = SessionManager.Session()
         try:
-            return session.query(Feed).filter(Feed.torrent_file_id == None).all()
+            return session.query(VideoFile).filter(VideoFile.torrent_id == None).all()
         finally:
             SessionManager.Session.remove()
 
@@ -49,29 +50,26 @@ class FeedScanner:
         finally:
             SessionManager.Session.remove()
 
-    def __update_feed(self, feed, torrent_file_id):
-        session = SessionManager.Session()
+    def __update_video_file(self, video_file, torrent_id):
+        session = SessionManager.Session
         try:
-            feed.torrent_file_id = torrent_file_id
-            session.add(feed)
+            video_file.torrent_id = torrent_id
+            video_file.status = VideoFile.STATUS_DOWNLOADING
+            session.add(video_file)
             session.commit()
         finally:
             SessionManager.Session.remove()
 
     @inlineCallbacks
-    def __add_download(self, feed_list):
-        for feed in feed_list:
-            bangumi_path = self.base_path + '/' + str(feed.bangumi_id)
-            torrent_file = yield download_manager.download(feed.download_url, bangumi_path)
-            logger.info(torrent_file.torrent_id)
-
-            if torrent_file is None:
-                logger.warn('episode %s download failed'.format(feed.episode_id))
-            elif torrent_file.torrent_id is None:
-                logger.warn('episode %s already in download queue'.format(feed.episode_id))
-            else:
-                torrent_file_id = yield threads.deferToThread(self.__update_episode, feed.episode_id, torrent_file)
-                yield threads.deferToThread(self.__update_feed, feed, torrent_file_id)
+    def __add_download(self, video_file_list):
+        for video_file in video_file_list:
+            bangumi_path = self.base_path + '/' + str(video_file.bangumi_id)
+            try:
+                torrent_id = yield download_manager.download(video_file.download_url, bangumi_path)
+                logger.info(torrent_id)
+                yield threads.deferToThread(self.__update_video_file, video_file, torrent_id)
+            except:
+                logger.warn('episode %s download failed'.format(video_file.episode_id))
 
 
     def __on_query_error(self, err):
@@ -79,6 +77,6 @@ class FeedScanner:
 
     def scan_feed(self):
         logger.info('scan feed')
-        d = threads.deferToThread(self.__query_feed)
+        d = threads.deferToThread(self.__query_video_file)
         d.addCallback(self.__add_download)
         d.addErrback(self.__on_query_error)

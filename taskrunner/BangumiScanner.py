@@ -4,6 +4,7 @@ from domain.Episode import Episode
 from domain.WatchProgress import WatchProgress
 from domain.Favorites import Favorites
 from domain.Feed import Feed
+from domain.VideoFile import VideoFile
 from datetime import datetime
 from sqlalchemy.sql import func, or_
 import logging
@@ -28,16 +29,16 @@ class BangumiScanner(object):
     def __drop_duplicate(self, url_eps_id_list):
         eps_id_dict = {}
         no_dupli_list = []
-        for (download_url, episode) in url_eps_id_list:
+        for (download_url, episode, file_path) in url_eps_id_list:
             if str(episode.id) not in eps_id_dict:
-                no_dupli_list.append((download_url, episode))
+                no_dupli_list.append((download_url, episode, file_path))
                 eps_id_dict[str(episode.id)] = True
 
         return no_dupli_list
 
-    def save_to_feed(self, feed, episode, session):
+    def save_video_file(self, video_file, episode, session):
         try:
-            session.add(feed)
+            session.add(video_file)
             session.add(episode)
             session.commit()
         except:
@@ -48,13 +49,14 @@ class BangumiScanner(object):
         no_dupli_list = self.__drop_duplicate(url_eps_list)
         session = SessionManager.Session()
         try:
-            for (download_url, episode) in no_dupli_list:
-                feed = Feed(download_url = download_url,
-                            episode_id = episode.id,
-                            bangumi_id = bangumi_id)
+            for (download_url, episode, file_path) in no_dupli_list:
+                video_file = VideoFile(episode_id=episode.id,
+                                       bangumi_id=bangumi_id,
+                                       download_url=download_url,
+                                       file_path=file_path)
                 episode.status = Episode.STATUS_DOWNLOADING
-                self.save_to_feed(feed, episode, session)
-                logger.info('%s save to feed' % (str(episode.id),))
+                self.save_video_file(video_file, episode, session)
+                logger.info('%s save to video_file'.format(str(episode.id),))
         except Exception as error:
             logger.warn(error)
 
@@ -133,7 +135,7 @@ class BangumiScanner(object):
                 scan_result = yield threads.deferToThread(self.scan_feed, bangumi, episode_list)
                 if scan_result is None:
                     continue
-                url_eps_list = [(download_url, self.__find_episode_by_number(episode_list, eps_no)) for (download_url, eps_no) in scan_result]
+                url_eps_list = [(download_url, self.__find_episode_by_number(episode_list, eps_no), file_path) for (download_url, eps_no, file_path) in scan_result]
                 # this method may raise exception
                 yield threads.deferToThread(self.download_episodes, url_eps_list, bangumi.id)
                 yield threads.deferToThread(self.update_bangumi_status, bangumi)
