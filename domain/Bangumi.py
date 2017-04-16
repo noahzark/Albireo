@@ -1,5 +1,6 @@
 from domain.base import Base
 from domain.Episode import Episode
+from domain.VideoFile import VideoFile
 from sqlalchemy import Column, Integer, TEXT, DATE, TIMESTAMP
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import relationship
@@ -39,6 +40,9 @@ class Bangumi(Base):
     favorite = relationship('Favorites', back_populates='bangumi', uselist=False)
 
     watch_progress_list = relationship('WatchProgress', back_populates='bangumi')
+
+    video_files = relationship('VideoFile', order_by=VideoFile.bangumi_id, back_populates='bangumi',
+                               cascade='all, delete, delete-orphan')
 
     # this mark is used by DeleteScanner to start a task for deleting certain bangumi and all data associated.
     # it is a date time when bangumi is schedule to delete

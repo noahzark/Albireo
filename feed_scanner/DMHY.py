@@ -3,6 +3,7 @@ import logging, urllib, socket, feedparser, cfscrape, os
 from feed_scanner.AbstractScanner import AbstractScanner
 from utils.exceptions import SchedulerError
 from utils.scraper import DMHYFileListScraper
+from urlparse import urlparse, urlunparse
 logger = logging.getLogger(__name__)
 
 logger.propagate = True
@@ -15,6 +16,16 @@ class DMHY(AbstractScanner):
         keywords = urllib.quote_plus(bangumi.dmhy.replace(u'+', u' ').encode('utf-8'))
         self.feed_url = 'https://share.dmhy.org/topics/rss/rss.xml?keyword=%s' % (keywords,)
         logger.debug(self.feed_url)
+        logger.debug(self.proxy)
+
+    def _ensure_https(self, url):
+        o = urlparse(url)
+        if o.scheme == 'http':
+            l = list(o)
+            l[0] = 'https'
+            return urlunparse(tuple(l))
+        else:
+            return url
 
     def parse_feed(self):
         '''
@@ -33,7 +44,7 @@ class DMHY(AbstractScanner):
 
         scraper = cfscrape.create_scraper()
 
-        r = scraper.get(self.feed_url, proxy=self.proxy, timout=timeout)
+        r = scraper.get(self.feed_url, proxies=self.proxy, timeout=timeout)
 
         if r.status_code > 399:
             raise SchedulerError('Network Error %d'.format(r.status_code))
@@ -46,7 +57,9 @@ class DMHY(AbstractScanner):
         result_list = []
 
         for item in feed_dict.entries:
-            link_r = scraper.get(item['link'], self.proxy)
+            item_link = self._ensure_https(item['link'])
+            logger.debug('link %s', item_link)
+            link_r = scraper.get(item_link, proxies=self.proxy)
             if link_r.status_code > 399:
                 logger.warn('Network Error %d'.format(link_r.status_code))
 

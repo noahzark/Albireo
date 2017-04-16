@@ -34,6 +34,7 @@ from utils.DownloadManager import download_manager
 from taskrunner.InfoScanner import info_scanner
 from taskrunner.FeedScanner import FeedScanner
 from taskrunner.DmhyScanner import DmhyScanner
+from taskrunner.BangumiMoeScanner import BangumiMoeScanner
 from taskrunner.AcgripScanner import AcgripScanner
 from taskrunner.LibyksoScanner import LibyksoScanner
 from taskrunner.DeleteScanner import DeleteScanner
@@ -59,7 +60,8 @@ class Scheduler:
                 logger.error(exception)
 
     def start(self):
-        self.start_scan_dmhy()
+        self.start_scan_bangumi_moe()
+        deferLater(reactor, int(self.interval / 2), self.start_scan_dmhy)
         # temporarily remove support for the site which have difficult to list files in torrent. acg.rip has a file list but it won't provide the entire path
         # self.start_scan_libykso() # libyk scanner don't have chance conflict with other scanner, so we can start simultaneously
         # deferLater(reactor, int(self.interval / 2), self.start_scan_acgrip)
@@ -84,6 +86,11 @@ class Scheduler:
         logger.debug('start libykso')
         libyk_scanner = LibyksoScanner(self.base_path, self.interval)
         libyk_scanner.start()
+
+    def start_scan_bangumi_moe(self):
+        logger.debug('start bangumi_moe')
+        bangumi_moe_scanner = BangumiMoeScanner(self.base_path, self.interval)
+        bangumi_moe_scanner.start()
 
     def start_scan_feed(self):
         feed_scanner = FeedScanner(self.base_path)

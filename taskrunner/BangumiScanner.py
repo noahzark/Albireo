@@ -55,9 +55,9 @@ class BangumiScanner(object):
                                        download_url=download_url,
                                        file_name=file_name,
                                        file_path=file_path)
-                episode.status = Episode.STATUS_DOWNLOADING
+                # episode.status = Episode.STATUS_DOWNLOADING
                 self.save_video_file(video_file, episode, session)
-                logger.info('%s save to video_file'.format(str(episode.id),))
+                logger.info('%s save to video_file', str(episode.id))
         except Exception as error:
             logger.warn(error)
 

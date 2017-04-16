@@ -12,8 +12,8 @@ class BANGUMI_MOE(AbstractScanner):
         super(self.__class__, self).__init__(bangumi, episode_list)
         self.proxy = self._get_proxy('bangumi_moe')
         self.feed_url = 'https://bangumi.moe/api/torrent/search'
-        tag_list = json.loads(bangumi.moe)
-        self.tag_list = [tag._id for tag in tag_list]
+        tag_list = json.loads(bangumi.bangumi_moe)
+        self.tag_list = [tag['_id'] for tag in tag_list]
 
     def parse_feed(self):
         logger.debug('start scan %s (%s)', self.bangumi.name, self.bangumi.id)

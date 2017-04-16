@@ -126,16 +126,16 @@ def delete_episode(episode_id):
 def restore_episode(episode_id):
     return admin_service.restore_episode(episode_id)
 
-@admin_api.route('/episode/<episode_id>/upload', methods=['POST'])
-@login_required
-@auth_user(User.LEVEL_ADMIN)
-def upload_episode(episode_id):
-    if 'file' not in request.files:
-        raise ClientError(ClientError.NOT_VALID_BODY)
-
-    file = request.files['file']
-    if file.filename == '':
-        raise ClientError(ClientError.NOT_VALID_BODY)
-
-    if file:
-        return admin_service.upload_episode(episode_id, file)
+# @admin_api.route('/episode/<episode_id>/upload', methods=['POST'])
+# @login_required
+# @auth_user(User.LEVEL_ADMIN)
+# def upload_episode(episode_id):
+#     if 'file' not in request.files:
+#         raise ClientError(ClientError.NOT_VALID_BODY)
+#
+#     file = request.files['file']
+#     if file.filename == '':
+#         raise ClientError(ClientError.NOT_VALID_BODY)
+#
+#     if file:
+#         return admin_service.upload_episode(episode_id, file)

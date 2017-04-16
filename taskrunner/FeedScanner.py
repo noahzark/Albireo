@@ -31,45 +31,43 @@ class FeedScanner:
     def __query_video_file(self):
         session = SessionManager.Session()
         try:
-            return session.query(VideoFile).filter(VideoFile.torrent_id == None).all()
-        finally:
-            SessionManager.Session.remove()
-
-    def __update_episode(self, episode_id, torrent_file):
-        session = SessionManager.Session()
-        try:
-            episode = session.query(Episode).filter(Episode.id == episode_id).one()
-            if episode.torrent_files is not list:
-                episode.torrent_files = []
-
-            episode.torrent_files.append(torrent_file)
-
-            episode.status = Episode.STATUS_DOWNLOADING
-            session.commit()
-            return torrent_file.id
+            return session.query(VideoFile).\
+                filter(VideoFile.torrent_id == None).\
+                filter(VideoFile.download_url != None).\
+                filter(VideoFile.status == VideoFile.STATUS_DOWNLOAD_PENDING).\
+                all()
         finally:
             SessionManager.Session.remove()
 
     def __update_video_file(self, video_file, torrent_id):
-        session = SessionManager.Session
+        session = SessionManager.Session()
         try:
+            session.add(video_file)
             video_file.torrent_id = torrent_id
             video_file.status = VideoFile.STATUS_DOWNLOADING
-            session.add(video_file)
+            # update episode as well
+            episode = session.query(Episode).filter(Episode.id == video_file.episode_id).one()
+            episode.status = Episode.STATUS_DOWNLOADING
+
             session.commit()
         finally:
             SessionManager.Session.remove()
 
     @inlineCallbacks
     def __add_download(self, video_file_list):
+        logger.debug(video_file_list)
         for video_file in video_file_list:
             bangumi_path = self.base_path + '/' + str(video_file.bangumi_id)
             try:
                 torrent_id = yield download_manager.download(video_file.download_url, bangumi_path)
                 logger.info(torrent_id)
-                yield threads.deferToThread(self.__update_video_file, video_file, torrent_id)
-            except:
-                logger.warn('episode %s download failed'.format(video_file.episode_id))
+                if torrent_id is None:
+                    logger.warn('episode %s already in download queue', str(video_file.episode_id))
+                else:
+                    yield threads.deferToThread(self.__update_video_file, video_file, torrent_id)
+            except Exception as error:
+                logger.warn(error)
+                logger.warn('episode %s download failed', str(video_file.episode_id))
 
 
     def __on_query_error(self, err):

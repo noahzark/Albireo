@@ -481,39 +481,39 @@ class AdminService:
         finally:
             SessionManager.Session.remove()
 
-    def upload_episode(self, episode_id, file):
-        try:
-            filename = secure_filename(file.filename)
-            session = SessionManager.Session()
-            (episode, bangumi) = session.query(Episode, Bangumi).\
-                join(Bangumi).\
-                filter(Episode.delete_mark == None).\
-                filter(Episode.id == episode_id).\
-                one()
-            file.save(os.path.join(self.base_path, str(episode.bangumi_id), filename))
-            torrent_file = None
-            try:
-                torrent_file = session.query(TorrentFile).filter(TorrentFile.episode_id == episode_id).one()
-            except NoResultFound:
-                torrent_file = TorrentFile()
-                session.add(torrent_file)
-
-            torrent_file.torrent_id = str(-1)
-            torrent_file.episode_id = episode_id
-            torrent_file.file_path = filename
-
-            episode.update_time = datetime.now()
-            episode.status = Episode.STATUS_DOWNLOADED
-
-            session.commit()
-
-            return json_resp({'msg': 'ok'})
-        except NoResultFound:
-            raise ClientError(ClientError.INVALID_REQUEST)
-        except Exception as error:
-            raise error
-        finally:
-            SessionManager.Session.remove()
+    # def upload_episode(self, episode_id, file):
+    #     try:
+    #         filename = secure_filename(file.filename)
+    #         session = SessionManager.Session()
+    #         (episode, bangumi) = session.query(Episode, Bangumi).\
+    #             join(Bangumi).\
+    #             filter(Episode.delete_mark == None).\
+    #             filter(Episode.id == episode_id).\
+    #             one()
+    #         file.save(os.path.join(self.base_path, str(episode.bangumi_id), filename))
+    #         torrent_file = None
+    #         try:
+    #             torrent_file = session.query(TorrentFile).filter(TorrentFile.episode_id == episode_id).one()
+    #         except NoResultFound:
+    #             torrent_file = TorrentFile()
+    #             session.add(torrent_file)
+    #
+    #         torrent_file.torrent_id = str(-1)
+    #         torrent_file.episode_id = episode_id
+    #         torrent_file.file_path = filename
+    #
+    #         episode.update_time = datetime.now()
+    #         episode.status = Episode.STATUS_DOWNLOADED
+    #
+    #         session.commit()
+    #
+    #         return json_resp({'msg': 'ok'})
+    #     except NoResultFound:
+    #         raise ClientError(ClientError.INVALID_REQUEST)
+    #     except Exception as error:
+    #         raise error
+    #     finally:
+    #         SessionManager.Session.remove()
 
 
 admin_service = AdminService()

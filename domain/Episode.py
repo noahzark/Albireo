@@ -1,5 +1,6 @@
 from domain.base import Base
 from domain.TorrentFile import TorrentFile
+from domain.VideoFile import VideoFile
 from sqlalchemy import Column, Integer, TEXT, DATE, ForeignKey, String, TIMESTAMP
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import relationship
@@ -28,6 +29,9 @@ class Episode(Base):
 
     torrent_files = relationship('TorrentFile', order_by=TorrentFile.episode_id, back_populates='episode',
                                  cascade='all, delete, delete-orphan')
+
+    video_files = relationship('VideoFile', order_by=VideoFile.episode_id, back_populates='episode',
+                               cascade='all, delete, delete-orphan')
 
     watch_progress = relationship('WatchProgress', uselist=False, back_populates='episode')
 

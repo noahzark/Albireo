@@ -10,6 +10,7 @@ from utils.VideoManager import video_manager
 from datetime import datetime
 from sqlalchemy import exc
 import logging
+import yaml
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +19,9 @@ class DownloadManager:
 
     def __init__(self, downloader_cls):
         self.downloader = downloader_cls(self.on_download_completed)
+        fr = open('./config/config.yml', 'r')
+        config = yaml.load(fr)
+        self.base_path = config['download']['location']
 
     def connect(self):
         '''
@@ -34,6 +38,12 @@ class DownloadManager:
             time = '00:00:01.000'
             video_manager.create_episode_thumbnail(episode, file_path, time)
 
+        def update_video_meta(video_file):
+            meta = video_manager.get_video_meta(u'{0}/{1}/{2}'.format(self.base_path, str(video_file.bangumi_id), video_file.file_path))
+            video_file.duration = meta.get('duration')
+            video_file.resolution_w = meta.get('width')
+            video_file.resolution_h = meta.get('height')
+
         def update_video_files(file_path_list):
             session = SessionManager.Session()
             try:
@@ -49,12 +59,14 @@ class DownloadManager:
                             episode.update_time = datetime.now()
                             episode.status = Episode.STATUS_DOWNLOADED
                             create_thumbnail(episode, file_path)
+                            update_video_meta(video_file)
                             break
                         elif video_file.file_path is not None and file_path == video_file.file_path:
                             video_file.status = VideoFile.STATUS_DOWNLOADED
                             episode.update_time = datetime.now()
                             episode.status = Episode.STATUS_DOWNLOADED
                             create_thumbnail(episode, file_path)
+                            update_video_meta(video_file)
                             break
 
                 session.commit()
@@ -79,7 +91,9 @@ class DownloadManager:
 
     @inlineCallbacks
     def download(self, download_url, download_location):
-        self.downloader.download(download_url, download_location)
+        torrent_id = yield self.downloader.download(download_url, download_location)
+        returnValue(torrent_id)
+
 
     @inlineCallbacks
     def remove_torrents(self, torrent_id_list, remove_data):
