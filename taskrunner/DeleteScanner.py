@@ -23,7 +23,7 @@ class DeleteScanner:
 
 
     def __init__(self, base_path, delete_delay):
-        self.interval = 120
+        self.interval = 60
         self.base_path = base_path
         self.bangumi_delete_delay = delete_delay['bangumi']
         self.episode_delete_delay = delete_delay['episode']

@@ -6,6 +6,7 @@ from domain.Bangumi import Bangumi
 from domain.Favorites import Favorites
 from domain.WatchProgress import WatchProgress
 from domain.TorrentFile import TorrentFile
+from domain.VideoFile import VideoFile
 from datetime import datetime, timedelta
 from utils.SessionManager import SessionManager
 from utils.exceptions import ClientError
@@ -76,10 +77,12 @@ class BangumiService:
                 episode_dict['watch_progress'] = row2dict(watch_progress)
 
             if episode.status == Episode.STATUS_DOWNLOADED:
-                episode_dict['videos'] = []
-                torrent_file_cur = session.query(TorrentFile).filter(TorrentFile.episode_id == episode_id)
-                for torrent_file in torrent_file_cur:
-                    episode_dict['videos'].append(utils.generate_video_link(str(bangumi.id), torrent_file.file_path))
+                episode_dict['video_files'] = []
+                video_file_list = session.query(VideoFile).filter(VideoFile.episode_id == episode_id).all()
+                for video_file in video_file_list:
+                    video_file_dict = row2dict(video_file)
+                    video_file_dict['url'] = utils.generate_video_link(str(bangumi.id), video_file.file_path)
+                    episode_dict['video_files'].append(video_file_dict)
 
             return json_resp(episode_dict)
         except NoResultFound:
@@ -150,18 +153,20 @@ class BangumiService:
             else:
                 total = session.query(func.count(Bangumi.id)).scalar()
 
-            offset = (page - 1) * count
 
             if sort_order == 'desc':
-                bangumi_list = query_object.\
-                    order_by(desc(getattr(Bangumi, sort_field))).\
-                    offset(offset).limit(count).\
-                    all()
+                query_object = query_object.\
+                    order_by(desc(getattr(Bangumi, sort_field)))
+
             else:
-                bangumi_list = query_object.\
-                    order_by(asc(getattr(Bangumi, sort_field))).\
-                    offset(offset).limit(count).\
-                    all()
+                query_object = query_object.\
+                    order_by(asc(getattr(Bangumi, sort_field)))
+
+            if count == -1:
+                bangumi_list = query_object.all()
+            else:
+                offset = (page - 1) * count
+                bangumi_list = query_object.offset(offset).limit(count).all()
 
             bangumi_id_list = [bgm.id for bgm in bangumi_list]
 

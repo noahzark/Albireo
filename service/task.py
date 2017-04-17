@@ -2,9 +2,12 @@ import yaml
 from utils.SessionManager import SessionManager
 from utils.http import json_resp
 from utils.db import row2dict
+from utils.exceptions import ClientError
 from domain.Bangumi import Bangumi
 from domain.Episode import Episode
 from domain.Task import Task
+from sqlalchemy.orm.exc import NoResultFound
+from datetime import datetime, timedelta
 
 import logging
 
@@ -19,18 +22,27 @@ class TaskService:
 
     def list_pending_delete_banguimi(self):
         try:
+            current = datetime.now()
             session = SessionManager.Session()
             bangumi_list = session.query(Bangumi).\
                 filter(Bangumi.delete_mark != None).\
                 all()
 
-            bgm_list = [row2dict(bangumi) for bangumi in bangumi_list]
+            bgm_list = []
+            for bangumi in bangumi_list:
+                bgm = row2dict(bangumi)
+                # noinspection PyTypeChecker
+                delete_eta = int((bangumi.delete_mark + timedelta(minutes=self.delete_delay['bangumi']) - current).total_seconds() / 60)
+                bgm['delete_eta'] = delete_eta
+                bgm_list.append(bgm)
+
             return json_resp({'data': bgm_list, 'delete_delay': self.delete_delay['bangumi']})
         finally:
             SessionManager.Session.remove()
 
     def list_pending_delete_episode(self):
         try:
+            current = datetime.now()
             session = SessionManager.Session()
             result = session.query(Episode, Bangumi).\
                 join(Bangumi).\
@@ -41,6 +53,9 @@ class TaskService:
             for episode, bangumi in result:
                 bgm = row2dict(bangumi)
                 eps = row2dict(episode)
+                # noinspection PyTypeChecker
+                delete_eta = int((episode.delete_mark + timedelta(minutes=self.delete_delay['episode']) - current).total_seconds() / 60)
+                eps['delete_eta'] = delete_eta
                 eps['bangumi'] = bgm
                 eps_list.append(eps)
             return json_resp({'data': eps_list, 'delete_delay': self.delete_delay['episode']})
@@ -53,6 +68,32 @@ class TaskService:
             result = session.query(Task).all()
             task_list = [row2dict(task) for task in result]
             return json_resp({'data': task_list})
+        finally:
+            SessionManager.Session.remove()
+
+    def restore_bangumi(self, bangumi_id):
+        try:
+            session = SessionManager.Session()
+
+            bangumi = session.query(Bangumi).filter(Bangumi.id == bangumi_id).one()
+
+            bangumi.delete_mark = None
+
+            session.commit()
+
+            return json_resp({'msg': 'ok'})
+        except NoResultFound:
+            raise ClientError(ClientError.NOT_FOUND, 404)
+        finally:
+            SessionManager.Session.remove()
+
+    def restore_episode(self, episode_id):
+        try:
+            session = SessionManager.Session()
+            episode = session.query(Episode).filter(Episode.id == episode_id).one()
+            episode.delete_mark = None
+            session.commit()
+            return json_resp({'msg': 'ok'})
         finally:
             SessionManager.Session.remove()
 

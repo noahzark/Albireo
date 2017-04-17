@@ -47,12 +47,6 @@ def get_bangumi(id):
 def delete_bangumi(id):
     return admin_service.delete_bangumi(id)
 
-@admin_api.route('/bangumi/restore/<id>', methods=['POST'])
-@login_required
-@auth_user(User.LEVEL_ADMIN)
-def restore_bangumi(id):
-    return admin_service.restore_bangumi(id)
-
 @admin_api.route('/query', methods=['GET'])
 @login_required
 @auth_user(User.LEVEL_ADMIN)
@@ -120,11 +114,11 @@ def update_episode(episode_id):
 def delete_episode(episode_id):
     return admin_service.delete_episode(episode_id)
 
-@admin_api.route('/episode/restore/<episode_id>', methods=['POST'])
+@admin_api.route('/episode/<episode_id>/video_file', methods=['GET'])
 @login_required
 @auth_user(User.LEVEL_ADMIN)
-def restore_episode(episode_id):
-    return admin_service.restore_episode(episode_id)
+def get_episode_video_file_list(episode_id):
+    return admin_service.get_episode_video_file_list(episode_id)
 
 # @admin_api.route('/episode/<episode_id>/upload', methods=['POST'])
 # @login_required

@@ -24,3 +24,16 @@ def list_pending_delete_episode():
 @auth_user(User.LEVEL_ADMIN)
 def list_task():
     return task_service.list_task()
+
+@task_api.route('/restore/bangumi/<id>', methods=['POST'])
+@login_required
+@auth_user(User.LEVEL_ADMIN)
+def restore_bangumi(id):
+    return task_service.restore_bangumi(id)
+
+@task_api.route('/restore/episode/<episode_id>', methods=['POST'])
+@login_required
+@auth_user(User.LEVEL_ADMIN)
+def restore_episode(episode_id):
+    return task_service.restore_episode(episode_id)
+

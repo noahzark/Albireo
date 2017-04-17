@@ -4,6 +4,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from domain.Episode import Episode
 from domain.Bangumi import Bangumi
 from domain.TorrentFile import TorrentFile
+from domain.VideoFile import VideoFile
 from datetime import datetime
 from utils.SessionManager import SessionManager
 from utils.exceptions import ClientError
@@ -15,9 +16,6 @@ from sqlalchemy.orm import joinedload
 import yaml
 import json
 import os, errno
-import requests
-import pickle
-import traceback
 from urlparse import urlparse
 from utils.VideoManager import video_manager
 from service.common import utils
@@ -334,22 +332,6 @@ class AdminService:
         finally:
             SessionManager.Session.remove()
 
-    def restore_bangumi(self, bangumi_id):
-        try:
-            session = SessionManager.Session()
-
-            bangumi = session.query(Bangumi).filter(Bangumi.id == bangumi_id).one()
-
-            bangumi.delete_mark = None
-
-            session.commit()
-
-            return json_resp({'msg': 'ok'})
-        except NoResultFound:
-            raise ClientError(ClientError.NOT_FOUND, 404)
-        finally:
-            SessionManager.Session.remove()
-
     def get_bangumi_from_bgm_id_list(self, bgm_id_list):
         s = select([Bangumi.id, Bangumi.bgm_id]).where(Bangumi.bgm_id.in_(bgm_id_list) & (Bangumi.delete_mark == None)).select_from(Bangumi)
         return SessionManager.engine.execute(s).fetchall()
@@ -382,6 +364,9 @@ class AdminService:
             episode.duration = episode_dict['duration']
             episode.update_time = datetime.now()
 
+            if 'status' in episode_dict:
+                episode.status = episode_dict['status']
+
             session.commit()
 
             return json_resp({'msg': 'ok'})
@@ -397,7 +382,8 @@ class AdminService:
             episode = session.query(Episode).\
                 filter(Episode.id == episode_id).\
                 filter(Episode.delete_mark == None).\
-                one()
+                all()
+
             episode_dict = row2dict(episode)
 
             return json_resp({'data': episode_dict})
@@ -413,16 +399,6 @@ class AdminService:
             episode.delete_mark = datetime.now()
             session.commit()
             return json_resp({'data': {'delete_delay': self.delete_delay['episode']}})
-        finally:
-            SessionManager.Session.remove()
-
-    def restore_episode(self, episode_id):
-        try:
-            session = SessionManager.Session()
-            episode = session.query(Episode).filter(Episode.id == episode_id).one()
-            episode.delete_mark = None
-            session.commit()
-            return json_resp({'msg': 'ok'})
         finally:
             SessionManager.Session.remove()
 
@@ -478,6 +454,18 @@ class AdminService:
             return json_resp({'msg': 'ok'})
         except NoResultFound:
             raise ClientError(ClientError.NOT_FOUND, 404)
+        finally:
+            SessionManager.Session.remove()
+
+    def get_episode_video_file_list(self, episode_id):
+        try:
+            session = SessionManager.Session()
+            video_file_list = session.query(VideoFile).\
+                filter(VideoFile.episode_id == episode_id).\
+                all()
+
+            result = [row2dict(video_file) for video_file in video_file_list]
+            return json_resp({'data': result})
         finally:
             SessionManager.Session.remove()
 
