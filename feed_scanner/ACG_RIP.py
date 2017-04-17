@@ -51,7 +51,7 @@ class ACG_RIP(AbstractScanner):
         for item in feed_dict.entries:
             eps_no = self.parse_episode_number(item['title'])
             if eps_no in eps_no_list:
-                result_list.append((item.enclosures[0].href, eps_no))
+                result_list.append((item.enclosures[0].href, eps_no, None, None))
                 # d = self.add_to_download(item, eps_no)
                 # d.addCallback(self.download_callback)
 

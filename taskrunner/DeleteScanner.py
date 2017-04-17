@@ -48,7 +48,7 @@ class DeleteScanner:
             watch_progress_list = session.query(WatchProgress).filter(WatchProgress.episode_id.in_(episode_id_list)).all()
             favorite_list = session.query(Favorites).filter(Favorites.bangumi_id == bangumi.id).all()
 
-            task_content['torrent_id_list'] = [video_file.torrent_id for video_file in video_file_list]
+            task_content['torrent_id_list'] = list(set([video_file.torrent_id for video_file in video_file_list]))
             task_content['task_step'] = ['db', 'torrent', 'file_system']
 
             task = Task(type = Task.TYPE_BANGUMI_DELETE, content = json.dumps(task_content), status = Task.STATUS_IN_PROGRESS)
@@ -79,7 +79,10 @@ class DeleteScanner:
 
             if len(task_content['torrent_id_list']) > 0:
                 # remove torrent from deluge
-                threads.blockingCallFromThread(reactor, download_manager.remove_torrents, task_content['torrent_id_list'], False)
+                try:
+                    threads.blockingCallFromThread(reactor, download_manager.remove_torrents, task_content['torrent_id_list'], False)
+                except Exception as error:
+                    logger.warn(error)
             self.__unshift_task_step(task_content, task, session)
 
             # remove files of bangumi

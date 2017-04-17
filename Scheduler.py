@@ -61,10 +61,9 @@ class Scheduler:
 
     def start(self):
         self.start_scan_bangumi_moe()
-        deferLater(reactor, int(self.interval / 2), self.start_scan_dmhy)
-        # temporarily remove support for the site which have difficult to list files in torrent. acg.rip has a file list but it won't provide the entire path
+        deferLater(reactor, int(self.interval / 4), self.start_scan_dmhy)
+        deferLater(reactor, int(self.interval / 2), self.start_scan_acgrip)
         self.start_scan_libykso() # libyk scanner don't have chance conflict with other scanner, so we can start simultaneously
-        # deferLater(reactor, int(self.interval / 2), self.start_scan_acgrip)
 
     def scheduleFail(self, failure):
         logger.error(failure)
@@ -77,10 +76,10 @@ class Scheduler:
         dmhy_scanner = DmhyScanner(self.base_path, self.interval)
         dmhy_scanner.start()
 
-    # def start_scan_acgrip(self):
-    #     logger.debug('start acgrip')
-    #     acgrip_scanner = AcgripScanner(self.base_path, self.interval)
-    #     acgrip_scanner.start()
+    def start_scan_acgrip(self):
+        logger.debug('start acgrip')
+        acgrip_scanner = AcgripScanner(self.base_path, self.interval)
+        acgrip_scanner.start()
 
     def start_scan_libykso(self):
         logger.debug('start libykso')

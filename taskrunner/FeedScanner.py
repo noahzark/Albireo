@@ -39,16 +39,13 @@ class FeedScanner:
         finally:
             SessionManager.Session.remove()
 
-    def __update_video_file(self, video_file, torrent_id):
+    def __update_video_file(self, video_file_list, torrent_id):
         session = SessionManager.Session()
         try:
-            session.add(video_file)
-            video_file.torrent_id = torrent_id
-            video_file.status = VideoFile.STATUS_DOWNLOADING
-            # update episode as well
-            episode = session.query(Episode).filter(Episode.id == video_file.episode_id).one()
-            episode.status = Episode.STATUS_DOWNLOADING
-
+            for video_file in video_file_list:
+                session.add(video_file)
+                video_file.torrent_id = torrent_id
+                video_file.status = VideoFile.STATUS_DOWNLOADING
             session.commit()
         finally:
             SessionManager.Session.remove()
@@ -56,18 +53,25 @@ class FeedScanner:
     @inlineCallbacks
     def __add_download(self, video_file_list):
         logger.debug(video_file_list)
+        download_url_dict = {}
         for video_file in video_file_list:
-            bangumi_path = self.base_path + '/' + str(video_file.bangumi_id)
+            if video_file.download_url not in download_url_dict:
+                download_url_dict[video_file.download_url] = []
+            download_url_dict[video_file.download_url].append(video_file)
+
+        for download_url, same_torrent_video_file_list in download_url_dict.iteritems():
+            first_video_file = same_torrent_video_file_list[0]
+            bangumi_path = self.base_path + '/' + str(first_video_file.bangumi_id)
             try:
-                torrent_id = yield download_manager.download(video_file.download_url, bangumi_path)
+                torrent_id = yield download_manager.download(first_video_file.download_url, bangumi_path)
                 logger.info(torrent_id)
                 if torrent_id is None:
-                    logger.warn('episode %s already in download queue', str(video_file.episode_id))
+                    logger.warn('episode %s already in download queue', str(first_video_file.episode_id))
                 else:
-                    yield threads.deferToThread(self.__update_video_file, video_file, torrent_id)
+                    yield threads.deferToThread(self.__update_video_file, same_torrent_video_file_list, torrent_id)
             except Exception as error:
                 logger.warn(error)
-                logger.warn('episode %s download failed', str(video_file.episode_id))
+                logger.warn('episode %s download failed', str(first_video_file.episode_id))
 
 
     def __on_query_error(self, err):
