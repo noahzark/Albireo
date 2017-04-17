@@ -351,7 +351,7 @@ class AdminService:
             SessionManager.Session.remove()
 
     def get_bangumi_from_bgm_id_list(self, bgm_id_list):
-        s = select([Bangumi.id, Bangumi.bgm_id]).where(Bangumi.bgm_id.in_(bgm_id_list) & Bangumi.delete_mark == None).select_from(Bangumi)
+        s = select([Bangumi.id, Bangumi.bgm_id]).where(Bangumi.bgm_id.in_(bgm_id_list) & (Bangumi.delete_mark == None)).select_from(Bangumi)
         return SessionManager.engine.execute(s).fetchall()
 
     def add_episode(self, episode_dict):

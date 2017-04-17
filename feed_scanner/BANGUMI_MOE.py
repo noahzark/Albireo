@@ -37,6 +37,8 @@ class BANGUMI_MOE(AbstractScanner):
             for file in torrent['content']:
                 file_path = file[0]
                 file_name = os.path.basename(file_path)
+                if not file_name.endswith('.mp4'):
+                    continue
                 eps_no = self.parse_episode_number(file_name)
                 if eps_no in eps_no_list:
                     result_list.append((torrent['magnet'], eps_no, file_path, file_name))

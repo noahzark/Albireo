@@ -44,30 +44,56 @@ class DownloadManager:
             video_file.resolution_w = meta.get('width')
             video_file.resolution_h = meta.get('height')
 
-        def update_video_files(file_path_list):
+        def update_video_files(file_list):
             session = SessionManager.Session()
             try:
                 result = session.query(VideoFile, Episode).\
                     join(Episode).\
                     filter(VideoFile.torrent_id == torrent_id).\
+                    filter(Episode.id == VideoFile.episode_id).\
                     all()
                 for (video_file, episode) in result:
-                    for file_path in file_path_list:
-                        if video_file.file_name is not None and video_file.file_path is None and file_path.endswith(video_file.file_name):
-                            video_file.file_path = file_path
-                            video_file.status = VideoFile.STATUS_DOWNLOADED
-                            episode.update_time = datetime.now()
-                            episode.status = Episode.STATUS_DOWNLOADED
-                            create_thumbnail(episode, file_path)
-                            update_video_meta(video_file)
-                            break
-                        elif video_file.file_path is not None and file_path == video_file.file_path:
-                            video_file.status = VideoFile.STATUS_DOWNLOADED
-                            episode.update_time = datetime.now()
-                            episode.status = Episode.STATUS_DOWNLOADED
-                            create_thumbnail(episode, file_path)
-                            update_video_meta(video_file)
-                            break
+                    if video_file.file_path is None and video_file.file_name is None:
+                        if len(file_list) == 1:
+                            # only one file
+                            file_path = file_list[0]['path']
+                        elif len(file_list) > 1:
+                            max_size = file_list[0]['size']
+                            main_file = file_list[0]
+                            for file in file_list:
+                                if not file['path'].endswith('.mp4'):
+                                    continue
+                                if file['size'] > max_size:
+                                    main_file = file
+
+                            file_path = main_file['path']
+                        else:
+                            logger.warn('no file found in %s', torrent_id)
+                            continue
+                        video_file.file_path = file_path
+                        video_file.status = VideoFile.STATUS_DOWNLOADED
+                        episode.update_time = datetime.now()
+                        episode.status = Episode.STATUS_DOWNLOADED
+                        create_thumbnail(episode, file_path)
+                        update_video_meta(video_file)
+                    else:
+                        file_path_list = [file['path'] for file in file_list]
+                        for file_path in file_path_list:
+                            if video_file.file_name is not None and video_file.file_path is None and file_path.endswith(video_file.file_name):
+                                video_file.file_path = file_path
+                                video_file.status = VideoFile.STATUS_DOWNLOADED
+                                episode.update_time = datetime.now()
+                                episode.status = Episode.STATUS_DOWNLOADED
+                                create_thumbnail(episode, file_path)
+                                update_video_meta(video_file)
+                                break
+                            elif video_file.file_path is not None and file_path == video_file.file_path:
+                                video_file.status = VideoFile.STATUS_DOWNLOADED
+                                episode.update_time = datetime.now()
+                                episode.status = Episode.STATUS_DOWNLOADED
+                                create_thumbnail(episode, file_path)
+                                update_video_meta(video_file)
+                                break
 
                 session.commit()
             except exc.DBAPIError as db_error:
@@ -78,8 +104,7 @@ class DownloadManager:
 
         def get_files(files):
             print files
-            file_path_list = [file['path'] for file in files]
-            threads.deferToThread(update_video_files, file_path_list)
+            threads.deferToThread(update_video_files, files)
 
         def fail_to_get_files(result):
             logger.warn('fail to get files of %s', torrent_id)

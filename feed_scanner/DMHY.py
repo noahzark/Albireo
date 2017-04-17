@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
-import logging, urllib, socket, feedparser, cfscrape, os
+import feedparser
+import logging
+import socket
+import urllib
+from urlparse import urlparse, urlunparse
+
 from feed_scanner.AbstractScanner import AbstractScanner
 from utils.exceptions import SchedulerError
-from utils.scraper import DMHYFileListScraper
-from urlparse import urlparse, urlunparse
+from utils.scraper import dmhy_request
+
 logger = logging.getLogger(__name__)
 
 logger.propagate = True
@@ -15,8 +20,6 @@ class DMHY(AbstractScanner):
         self.proxy = self._get_proxy('dmhy')
         keywords = urllib.quote_plus(bangumi.dmhy.replace(u'+', u' ').encode('utf-8'))
         self.feed_url = 'https://share.dmhy.org/topics/rss/rss.xml?keyword=%s' % (keywords,)
-        logger.debug(self.feed_url)
-        logger.debug(self.proxy)
 
     def _ensure_https(self, url):
         o = urlparse(url)
@@ -42,12 +45,10 @@ class DMHY(AbstractScanner):
         if self.timeout is not None:
             timeout = self.timeout
 
-        scraper = cfscrape.create_scraper()
-
-        r = scraper.get(self.feed_url, proxies=self.proxy, timeout=timeout)
+        r = dmhy_request.get(self.feed_url, proxies=self.proxy, timeout=timeout)
 
         if r.status_code > 399:
-            raise SchedulerError('Network Error %d'.format(r.status_code))
+            raise SchedulerError('Network Error {0}'.format(r.status_code))
 
         feed_dict = feedparser.parse(r.text)
 
@@ -57,20 +58,10 @@ class DMHY(AbstractScanner):
         result_list = []
 
         for item in feed_dict.entries:
-            item_link = self._ensure_https(item['link'])
-            logger.debug('link %s', item_link)
-            link_r = scraper.get(item_link, proxies=self.proxy)
-            if link_r.status_code > 399:
-                logger.warn('Network Error %d'.format(link_r.status_code))
-
-            dmhy_scraper = DMHYFileListScraper()
-            dmhy_scraper.feed(r.text)
-            file_path_list = dmhy_scraper.file_path_list
-            for file_path in file_path_list:
-                file_name = os.path.basename(file_path)
-                eps_no = self.parse_episode_number(file_name)
-                if eps_no in eps_no_list:
-                    result_list.append((item.enclosures[0].href, eps_no, file_path, file_name))
+            title = item['title']
+            eps_no = self.parse_episode_number(title)
+            if eps_no in eps_no_list:
+                result_list.append((item.enclosures[0].href, eps_no, None, None))
 
         return result_list
 

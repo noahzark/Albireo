@@ -63,7 +63,7 @@ class Scheduler:
         self.start_scan_bangumi_moe()
         deferLater(reactor, int(self.interval / 2), self.start_scan_dmhy)
         # temporarily remove support for the site which have difficult to list files in torrent. acg.rip has a file list but it won't provide the entire path
-        # self.start_scan_libykso() # libyk scanner don't have chance conflict with other scanner, so we can start simultaneously
+        self.start_scan_libykso() # libyk scanner don't have chance conflict with other scanner, so we can start simultaneously
         # deferLater(reactor, int(self.interval / 2), self.start_scan_acgrip)
 
     def scheduleFail(self, failure):
