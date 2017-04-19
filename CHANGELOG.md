@@ -4,10 +4,18 @@ Add delete bangumi and episode ability to admin API. these delete operation is m
  
 Add unique constraints to bangumi table `bgm_id` column. Make sure you don't have any duplicate record of bgm_id in bangumi table before you execute a database upgrade. 
 
+Add user management api
+
+Add bangumi.moe support, this crawler support multi files download from one torrent.
+
+From this version, torrentfile and feed tables are no longer used. run alembic upgrad will automatically migrate data into video_file table. make sure you don't have on downloading files
+before upgrade, those files will not be migrated.
+
 ##Database changes:
 
-Add delete_mark column on both bangumi and episode table.
-Add task table to manage delete operation.
+- Add delete_mark column on both bangumi and episode table.
+- Add task table to manage delete operation.
+- Deprecated torrentfile, feed table. Add new table video_file to represent download file. this table can represent the download file as three different status.
 
 ##API Changes:
 
