@@ -22,7 +22,7 @@ class TaskService:
         if config['task'].get('delete_delay') is None:
             logger.warn('delete delay section is not set, please update your config file!')
         else:
-            self.delete_delay = ['delete_delay']
+            self.delete_delay = config['task']['delete_delay']
 
     def list_pending_delete_banguimi(self):
         try:

@@ -1,10 +1,11 @@
-SQLAlchemy
+SQLAlchemy>=1.0
 Flask
 flask-login
 pyyaml
 twisted
 feedparser
 service_identity
-requests
+requests>=2.4.2
 alembic
 subprocess32
+cfscrape
