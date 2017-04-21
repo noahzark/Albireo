@@ -69,3 +69,6 @@ class DelugeDownloader(Downloader):
     def get_files(self, torrent_id):
         files = yield client.core.get_torrent_status(torrent_id, ['files'])
         returnValue(files['files'])
+
+    def remove_torrent(self, torrent_id, remove_data):
+        client.core.remove_torrent(torrent_id, remove_data)

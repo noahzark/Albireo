@@ -13,6 +13,8 @@ from domain.Feed import Feed
 from domain.ServerSession import ServerSession
 from domain.WatchProgress import WatchProgress
 from domain.Favorites import Favorites
+from domain.Task import Task
+from domain.VideoFile import VideoFile
 #----------------------
 
 from domain.base import Base

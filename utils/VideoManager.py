@@ -2,6 +2,7 @@
 import subprocess32 as subprocess
 import logging
 import os, errno
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,44 @@ class VideoManager:
                 logger.error(exception)
 
         return self.create_thumbnail(video_path, time, output_path)
+
+    def get_video_meta(self, video_path):
+        '''
+        get video meta information
+        :param video_path: the absolute path of video file
+        :return: a dictionary
+            {
+                'width': integer,
+                'height':  integer,
+                'duration': integer (millisecond)
+            }
+
+        if an error occurred, this method will return None
+        '''
+        try:
+            output = subprocess.check_output([
+                'ffprobe',
+                '-v',
+                'error',
+                '-show_entries',
+                'format=duration:stream=width:stream=height',
+                '-select_streams',
+                'v:0',
+                '-of',
+                'json',
+                video_path
+            ])
+            meta = json.loads(output)
+            result = {}
+            if 'format' in meta and 'duration' in meta['format']:
+                result['duration'] = int(float(meta['format']['duration']) * 1000)
+            if 'streams' in meta and len(meta['streams']) and 'width' in meta['streams'][0] and 'height' in meta['streams'][0]:
+                result['width'] = meta['streams'][0]['width']
+                result['height'] = meta['streams'][0]['height']
+            return result
+        except subprocess.CalledProcessError as error:
+            logger.warn(error)
+            return None
 
 
 video_manager = VideoManager()

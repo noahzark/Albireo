@@ -4,6 +4,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from domain.Episode import Episode
 from domain.Bangumi import Bangumi
 from domain.TorrentFile import TorrentFile
+from domain.VideoFile import VideoFile
 from datetime import datetime
 from utils.SessionManager import SessionManager
 from utils.exceptions import ClientError
@@ -15,9 +16,6 @@ from sqlalchemy.orm import joinedload
 import yaml
 import json
 import os, errno
-import requests
-import pickle
-import traceback
 from urlparse import urlparse
 from utils.VideoManager import video_manager
 from service.common import utils
@@ -36,6 +34,13 @@ class AdminService:
         self.base_path = config['download']['location']
         self.image_domain = config['domain']['image']
         self.file_downloader = FileDownloader()
+
+        self.delete_delay = {'bangumi': 10, 'episode': 1}
+
+        if config['task'].get('delete_delay') is None:
+            logger.warn('delete_delay section is not set, please update your config file')
+        else:
+            self.delete_delay = config['task'].get('delete_delay')
 
         try:
             if not os.path.exists(self.base_path):
@@ -85,15 +90,15 @@ class AdminService:
         cover_path = bangumi_path + '/cover' + extname
         self.file_downloader.download_file(bangumi.image, cover_path)
 
-    def search_bangumi(self, type, term):
+    def search_bangumi(self, type, term, offset, count):
         '''
         search bangumi from bangumi.tv, properly handling cookies is required for the bypass anti-bot mechanism
         :param term: a urlencoded word of the search term.
         :return: a json object
         '''
 
-        result = {"data": []}
-        api_url = 'http://api.bgm.tv/search/subject/{0}?responseGroup=simple&max_result=25&start=0&type={1}'.format(term.encode('utf-8'), type)
+        result = {"data": [], "total": 0}
+        api_url = 'http://api.bgm.tv/search/subject/{0}?responseGroup=large&max_result={1}&start={2}&type={3}'.format(term.encode('utf-8'), count, offset, type)
         r = bangumi_request.get(api_url)
 
         if r.status_code > 399:
@@ -105,6 +110,9 @@ class AdminService:
             logger.warn(error)
             result['message'] = 'fail to query bangumi'
             return json_resp(result, 500)
+
+        if 'code' in bgm_content and bgm_content['code'] == 404:
+            return json_resp(result, 200)
 
         bgm_list = bgm_content['list']
         total_count = bgm_content['results']
@@ -133,7 +141,7 @@ class AdminService:
             bgm.pop('type', None)
 
         result['data'] = bgm_list
-        result['total_count'] = total_count
+        result['total'] = total_count
         return json_resp(result)
 
     def query_bangumi_detail(self, bgm_id):
@@ -149,9 +157,9 @@ class AdminService:
 
     def list_bangumi(self, page, count, sort_field, sort_order, name):
         try:
-
             session = SessionManager.Session()
-            query_object = session.query(Bangumi)
+            query_object = session.query(Bangumi).\
+                filter(Bangumi.delete_mark == None)
 
             if name is not None:
                 name_pattern = '%{0}%'.format(name.encode('utf-8'),)
@@ -165,18 +173,20 @@ class AdminService:
             else:
                 total = session.query(func.count(Bangumi.id)).scalar()
 
-            offset = (page - 1) * count
 
             if sort_order == 'desc':
-                bangumi_list = query_object.\
-                    order_by(desc(getattr(Bangumi, sort_field))).\
-                    offset(offset).limit(count).\
-                    all()
+                query_object = query_object.\
+                    order_by(desc(getattr(Bangumi, sort_field)))
             else:
-                bangumi_list = query_object.\
-                    order_by(asc(getattr(Bangumi, sort_field))).\
-                    offset(offset).limit(count).\
-                    all()
+                query_object = query_object.\
+                    order_by(asc(getattr(Bangumi, sort_field)))
+
+            # we now support query all method by passing count = -1
+            if count == -1:
+                bangumi_list = query_object.all()
+            else:
+                offset = (page - 1) * count
+                bangumi_list = query_object.offset(offset).limit(count).all()
 
             bangumi_dict_list = []
             for bgm in bangumi_list:
@@ -185,8 +195,7 @@ class AdminService:
                 bangumi_dict_list.append(bangumi)
 
             return json_resp({'data': bangumi_dict_list, 'total': total})
-        except Exception as exception:
-            raise exception
+            # raise ClientError('something happened')
         finally:
             SessionManager.Session.remove()
 
@@ -206,9 +215,9 @@ class AdminService:
                               status=self.__get_bangumi_status(bangumi_data.get('air_date')))
 
 
-            bangumi.dmhy = bangumi_data.get('dmhy')
-            bangumi.acg_rip = bangumi_data.get('acg_rip')
-            bangumi.libyk_so = bangumi_data.get('libyk_so')
+            # bangumi.dmhy = bangumi_data.get('dmhy')
+            # bangumi.acg_rip = bangumi_data.get('acg_rip')
+            # bangumi.libyk_so = bangumi_data.get('libyk_so')
 
             bangumi.eps_no_offset = bangumi_data.get('eps_no_offset')
 
@@ -244,7 +253,10 @@ class AdminService:
     def update_bangumi(self, bangumi_id, bangumi_dict):
         try:
             session = SessionManager.Session()
-            bangumi = session.query(Bangumi).filter(Bangumi.id == bangumi_id).one()
+            bangumi = session.query(Bangumi).\
+                filter(Bangumi.id == bangumi_id).\
+                filter(Bangumi.delete_mark == None).\
+                one()
 
             bangumi.name = bangumi_dict['name']
             bangumi.name_cn = bangumi_dict['name_cn']
@@ -260,6 +272,7 @@ class AdminService:
             bangumi.dmhy = bangumi_dict.get('dmhy')
             bangumi.acg_rip = bangumi_dict.get('acg_rip')
             bangumi.libyk_so = bangumi_dict.get('libyk_so')
+            bangumi.bangumi_moe = bangumi_dict.get('bangumi_moe')
 
             bangumi.eps_no_offset = bangumi_dict.get('eps_no_offset')
             if not bangumi.eps_no_offset:
@@ -281,11 +294,16 @@ class AdminService:
         try:
             session = SessionManager.Session()
 
-            bangumi = session.query(Bangumi).options(joinedload(Bangumi.episodes)).filter(Bangumi.id == id).one()
+            bangumi = session.query(Bangumi).options(joinedload(Bangumi.episodes)).\
+                filter(Bangumi.id == id).\
+                filter(Bangumi.delete_mark == None).\
+                one()
 
             episodes = []
 
             for episode in bangumi.episodes:
+                if episode.delete_mark is not None:
+                    continue
                 eps = row2dict(episode)
                 eps['thumbnail'] = utils.generate_thumbnail_link(episode, bangumi)
                 episodes.append(eps)
@@ -310,20 +328,18 @@ class AdminService:
 
             bangumi = session.query(Bangumi).filter(Bangumi.id == bangumi_id).one()
 
-            session.delete(bangumi)
+            bangumi.delete_mark = datetime.now()
 
             session.commit()
 
-            return json_resp({'msg': 'ok'})
+            return json_resp({'data': {'delete_delay': self.delete_delay['bangumi']}})
         except NoResultFound:
             raise ClientError(ClientError.NOT_FOUND, 404)
-        except Exception as exception:
-            raise exception
         finally:
             SessionManager.Session.remove()
 
     def get_bangumi_from_bgm_id_list(self, bgm_id_list):
-        s = select([Bangumi.id, Bangumi.bgm_id]).where(Bangumi.bgm_id.in_(bgm_id_list)).select_from(Bangumi)
+        s = select([Bangumi.id, Bangumi.bgm_id]).where(Bangumi.bgm_id.in_(bgm_id_list) & (Bangumi.delete_mark == None)).select_from(Bangumi)
         return SessionManager.engine.execute(s).fetchall()
 
     def add_episode(self, episode_dict):
@@ -341,8 +357,6 @@ class AdminService:
             session.commit()
             episode_id = str(episode.id)
             return json_resp({'data': {'id': episode_id}})
-        except:
-            pass
         finally:
             SessionManager.Session.remove()
 
@@ -356,28 +370,41 @@ class AdminService:
             episode.duration = episode_dict['duration']
             episode.update_time = datetime.now()
 
+            if 'status' in episode_dict:
+                episode.status = episode_dict['status']
+
             session.commit()
 
             return json_resp({'msg': 'ok'})
 
         except NoResultFound:
             raise ClientError(ClientError.NOT_FOUND, 404)
-        except Exception as error:
-            raise error
         finally:
             SessionManager.Session.remove()
 
     def get_episode(self, episode_id):
         try:
             session = SessionManager.Session()
-            episode = session.query(Episode).filter(Episode.id == episode_id).one()
+            episode = session.query(Episode).\
+                filter(Episode.id == episode_id).\
+                filter(Episode.delete_mark == None).\
+                all()
+
             episode_dict = row2dict(episode)
 
             return json_resp({'data': episode_dict})
         except NoResultFound:
             raise ClientError(ClientError.NOT_FOUND, 404)
-        except Exception as error:
-            raise error
+        finally:
+            SessionManager.Session.remove()
+
+    def delete_episode(self, episode_id):
+        try:
+            session = SessionManager.Session()
+            episode = session.query(Episode).filter(Episode.id == episode_id).one()
+            episode.delete_mark = datetime.now()
+            session.commit()
+            return json_resp({'data': {'delete_delay': self.delete_delay['episode']}})
         finally:
             SessionManager.Session.remove()
 
@@ -385,7 +412,8 @@ class AdminService:
         try:
 
             session = SessionManager.Session()
-            query_object = session.query(Episode)
+            query_object = session.query(Episode).\
+                filter(Episode.delete_mark == None)
 
             if status is not None:
                 query_object = query_object.filter(Episode.status==status)
@@ -419,7 +447,9 @@ class AdminService:
     def update_thumbnail(self, episode_id, time):
         try:
             session = SessionManager.Session()
-            episode = session.query(Episode).filter(Episode.id == episode_id).one()
+            episode = session.query(Episode).\
+                filter(Episode.delete_mark == None).\
+                filter(Episode.id == episode_id).one()
             if episode.status != Episode.STATUS_DOWNLOADED:
                 raise ClientError('Episode not downloaded', 412)
 
@@ -433,38 +463,51 @@ class AdminService:
         finally:
             SessionManager.Session.remove()
 
-    def upload_episode(self, episode_id, file):
+    def get_episode_video_file_list(self, episode_id):
         try:
-            filename = secure_filename(file.filename)
             session = SessionManager.Session()
-            (episode, bangumi) = session.query(Episode, Bangumi).\
-                join(Bangumi).\
-                filter(Episode.id == episode_id).\
-                one()
-            file.save(os.path.join(self.base_path, str(episode.bangumi_id), filename))
-            torrent_file = None
-            try:
-                torrent_file = session.query(TorrentFile).filter(TorrentFile.episode_id == episode_id).one()
-            except NoResultFound:
-                torrent_file = TorrentFile()
-                session.add(torrent_file)
+            video_file_list = session.query(VideoFile).\
+                filter(VideoFile.episode_id == episode_id).\
+                all()
 
-            torrent_file.torrent_id = str(-1)
-            torrent_file.episode_id = episode_id
-            torrent_file.file_path = filename
-
-            episode.update_time = datetime.now()
-            episode.status = Episode.STATUS_DOWNLOADED
-
-            session.commit()
-
-            return json_resp({'msg': 'ok'})
-        except NoResultFound:
-            raise ClientError(ClientError.INVALID_REQUEST)
-        except Exception as error:
-            raise error
+            result = [row2dict(video_file) for video_file in video_file_list]
+            return json_resp({'data': result})
         finally:
             SessionManager.Session.remove()
+
+    # def upload_episode(self, episode_id, file):
+    #     try:
+    #         filename = secure_filename(file.filename)
+    #         session = SessionManager.Session()
+    #         (episode, bangumi) = session.query(Episode, Bangumi).\
+    #             join(Bangumi).\
+    #             filter(Episode.delete_mark == None).\
+    #             filter(Episode.id == episode_id).\
+    #             one()
+    #         file.save(os.path.join(self.base_path, str(episode.bangumi_id), filename))
+    #         torrent_file = None
+    #         try:
+    #             torrent_file = session.query(TorrentFile).filter(TorrentFile.episode_id == episode_id).one()
+    #         except NoResultFound:
+    #             torrent_file = TorrentFile()
+    #             session.add(torrent_file)
+    #
+    #         torrent_file.torrent_id = str(-1)
+    #         torrent_file.episode_id = episode_id
+    #         torrent_file.file_path = filename
+    #
+    #         episode.update_time = datetime.now()
+    #         episode.status = Episode.STATUS_DOWNLOADED
+    #
+    #         session.commit()
+    #
+    #         return json_resp({'msg': 'ok'})
+    #     except NoResultFound:
+    #         raise ClientError(ClientError.INVALID_REQUEST)
+    #     except Exception as error:
+    #         raise error
+    #     finally:
+    #         SessionManager.Session.remove()
 
 
 admin_service = AdminService()

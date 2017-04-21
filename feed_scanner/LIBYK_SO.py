@@ -52,7 +52,7 @@ class LIBYK_SO(AbstractScanner):
         for item in feed_dict.entries:
             eps_no = self.parse_episode_number(item['title'])
             if eps_no in eps_no_list:
-                result_list.append((item.link, eps_no))
+                result_list.append((item.link, eps_no, None, None))
 
         return result_list
 

@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 import feedparser
-from utils.exceptions import SchedulerError
+import logging
 import socket
-import logging, urllib2, urllib
+import urllib
+from urlparse import urlparse, urlunparse
+
 from feed_scanner.AbstractScanner import AbstractScanner
+from utils.exceptions import SchedulerError
+from utils.scraper import dmhy_request
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +20,15 @@ class DMHY(AbstractScanner):
         self.proxy = self._get_proxy('dmhy')
         keywords = urllib.quote_plus(bangumi.dmhy.replace(u'+', u' ').encode('utf-8'))
         self.feed_url = 'https://share.dmhy.org/topics/rss/rss.xml?keyword=%s' % (keywords,)
-        logger.debug(self.feed_url)
+
+    def _ensure_https(self, url):
+        o = urlparse(url)
+        if o.scheme == 'http':
+            l = list(o)
+            l[0] = 'https'
+            return urlunparse(tuple(l))
+        else:
+            return url
 
     def parse_feed(self):
         '''
@@ -28,21 +40,17 @@ class DMHY(AbstractScanner):
         logger.debug('start scan %s (%s)', self.bangumi.name, self.bangumi.id)
         eps_no_list = [eps.episode_no for eps in self.episode_list]
 
-        default_timeout = socket.getdefaulttimeout()
+        timeout = socket.getdefaulttimeout()
         # set timeout is provided
         if self.timeout is not None:
-            socket.setdefaulttimeout(self.timeout)
+            timeout = self.timeout
 
-        # use handlers
-        if self.proxy is not None:
-            proxy_handler = urllib2.ProxyHandler(self.proxy)
-            feed_dict = feedparser.parse(self.feed_url, handlers=[proxy_handler])
-        else:
-            feed_dict = feedparser.parse(self.feed_url)
+        r = dmhy_request.get(self.feed_url, proxies=self.proxy, timeout=timeout)
 
-        # restore the default timeout
-        if self.timeout is not None:
-            socket.setdefaulttimeout(default_timeout)
+        if r.status_code > 399:
+            raise SchedulerError('Network Error {0}'.format(r.status_code))
+
+        feed_dict = feedparser.parse(r.text)
 
         if feed_dict.bozo != 0:
             raise SchedulerError(feed_dict.bozo_exception)
@@ -50,11 +58,10 @@ class DMHY(AbstractScanner):
         result_list = []
 
         for item in feed_dict.entries:
-            eps_no = self.parse_episode_number(item['title'])
+            title = item['title']
+            eps_no = self.parse_episode_number(title)
             if eps_no in eps_no_list:
-                result_list.append((item.enclosures[0].href, eps_no))
-                # d = self.add_to_download(item, eps_no)
-                # d.addCallback(self.download_callback)
+                result_list.append((item.enclosures[0].href, eps_no, None, None))
 
         return result_list
 

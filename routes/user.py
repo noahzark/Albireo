@@ -101,17 +101,6 @@ def reset_pass():
     else:
         raise ClientError('invalid parameters')
 
-@user_api.route('/promote_user', methods=['POST'])
-@fresh_login_required
-@auth_user(User.LEVEL_SUPER_USER)
-def promote_user():
-    '''
-    promote user as administrator
-    :return: response
-    '''
-    pass
-
-
 @user_api.route('/info', methods=['GET'])
 @login_required
 def get_user_info():

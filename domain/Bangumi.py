@@ -1,5 +1,6 @@
 from domain.base import Base
 from domain.Episode import Episode
+from domain.VideoFile import VideoFile
 from sqlalchemy import Column, Integer, TEXT, DATE, TIMESTAMP
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import relationship
@@ -11,7 +12,7 @@ class Bangumi(Base):
     __tablename__ = 'bangumi'
 
     id = Column(postgresql.UUID(as_uuid=True), primary_key=True, default=uuid4)
-    bgm_id = Column(Integer, nullable=False)
+    bgm_id = Column(Integer, nullable=False, unique=True)
     name = Column(TEXT , nullable=False)
     name_cn = Column(TEXT, nullable=False)
     type = Column(Integer, nullable=False)
@@ -26,6 +27,7 @@ class Bangumi(Base):
     eps_no_offset = Column(Integer, nullable=True)
     acg_rip = Column(TEXT, nullable=True) #acg.rip search criteria
     libyk_so = Column(TEXT, nullable=True) # libyk.so search criteria, this field should be an JSON string contains two fields: {t: string, q: string}
+    bangumi_moe = Column(TEXT, nullable=True) #bangumi.moe tag id array, this field should be an serialized JSON array contains strings
     # @deprecated
     eps_regex = Column(TEXT, nullable=True)
     status = Column(Integer, nullable=False)
@@ -38,6 +40,13 @@ class Bangumi(Base):
     favorite = relationship('Favorites', back_populates='bangumi', uselist=False)
 
     watch_progress_list = relationship('WatchProgress', back_populates='bangumi')
+
+    video_files = relationship('VideoFile', order_by=VideoFile.bangumi_id, back_populates='bangumi',
+                               cascade='all, delete, delete-orphan')
+
+    # this mark is used by DeleteScanner to start a task for deleting certain bangumi and all data associated.
+    # it is a date time when bangumi is schedule to delete
+    delete_mark = Column(TIMESTAMP, nullable=True)
 
     # constant of bangumi status
     # A pending bangumi is not started to show on tv yet

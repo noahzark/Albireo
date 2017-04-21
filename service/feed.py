@@ -9,7 +9,7 @@ import re
 import logging
 
 from utils.exceptions import ClientError
-from utils.http import json_resp
+from utils.http import json_resp, bangumi_moe_request
 from utils.constants import episode_regex_tuple
 
 logger = logging.getLogger(__name__)
@@ -133,6 +133,45 @@ class FeedService(object):
             title_list.append({'title': item_title, 'eps_no': eps_no})
 
         return json_resp({'data': title_list, 'status': 0})
+
+    def bangumi_moe_proxy(self, url, payload):
+        result = {}
+
+        r = bangumi_moe_request.post(url, payload)
+        if r.status_code > 399:
+            r.raise_for_status()
+
+        try:
+            return r.text
+        except Exception as error:
+            logger.warn(error)
+            result['message'] = 'fail to query bangumi'
+            return json_resp(result, 500)
+
+    def parse_bangumi_moe(self, tag_ids):
+        result = {}
+
+        r = bangumi_moe_request.post('https://bangumi.moe/api/torrent/search', tag_ids)
+        if r.status_code > 399:
+            r.raise_for_status()
+
+        try:
+            search_result = r.json()
+        except Exception as error:
+            logger.warn(error)
+            result['message'] = 'fail to query bangumi'
+            return json_resp(result, 500)
+
+        for torrent in search_result['torrents']:
+            torrent['eps_no_list'] = []
+            for content in torrent['content']:
+                file_name = content[0]
+                if not file_name.endswith(('.mp4',)):
+                    continue
+                eps_no = self.parse_episode_number(file_name)
+                torrent['eps_no_list'].append(eps_no)
+
+        return json_resp(search_result)
 
 
 feed_service = FeedService()

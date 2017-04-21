@@ -6,6 +6,7 @@ from domain.Bangumi import Bangumi
 from domain.Favorites import Favorites
 from domain.WatchProgress import WatchProgress
 from domain.TorrentFile import TorrentFile
+from domain.VideoFile import VideoFile
 from datetime import datetime, timedelta
 from utils.SessionManager import SessionManager
 from utils.exceptions import ClientError
@@ -34,6 +35,7 @@ class BangumiService:
         try:
             result = session.query(Episode, Bangumi).\
                 join(Bangumi).\
+                filter(Episode.delete_mark == None).\
                 filter(Episode.status == Episode.STATUS_DOWNLOADED).\
                 filter(Episode.update_time >= start_time).\
                 filter(Episode.update_time <= current).\
@@ -58,6 +60,7 @@ class BangumiService:
         try:
             (episode, bangumi) = session.query(Episode, Bangumi).\
                 join(Bangumi).\
+                filter(Episode.delete_mark == None).\
                 filter(Episode.id == episode_id).\
                 one()
             watch_progress = session.query(WatchProgress).\
@@ -74,10 +77,12 @@ class BangumiService:
                 episode_dict['watch_progress'] = row2dict(watch_progress)
 
             if episode.status == Episode.STATUS_DOWNLOADED:
-                episode_dict['videos'] = []
-                torrent_file_cur = session.query(TorrentFile).filter(TorrentFile.episode_id == episode_id)
-                for torrent_file in torrent_file_cur:
-                    episode_dict['videos'].append(utils.generate_video_link(str(bangumi.id), torrent_file.file_path))
+                episode_dict['video_files'] = []
+                video_file_list = session.query(VideoFile).filter(VideoFile.episode_id == episode_id).all()
+                for video_file in video_file_list:
+                    video_file_dict = row2dict(video_file)
+                    video_file_dict['url'] = utils.generate_video_link(str(bangumi.id), video_file.file_path)
+                    episode_dict['video_files'].append(video_file_dict)
 
             return json_resp(episode_dict)
         except NoResultFound:
@@ -99,7 +104,8 @@ class BangumiService:
 
         try:
             result = session.query(distinct(Episode.bangumi_id), Bangumi).\
-                join(Bangumi).\
+                join(Bangumi). \
+                filter(Bangumi.delete_mark == None). \
                 filter(Bangumi.type == type).\
                 filter(Episode.airdate >= start_time).\
                 filter(Episode.airdate <= end_time)
@@ -132,7 +138,8 @@ class BangumiService:
         try:
 
             session = SessionManager.Session()
-            query_object = session.query(Bangumi)
+            query_object = session.query(Bangumi).\
+                filter(Bangumi.delete_mark == None)
 
             if name is not None:
                 name_pattern = '%{0}%'.format(name.encode('utf-8'),)
@@ -146,18 +153,20 @@ class BangumiService:
             else:
                 total = session.query(func.count(Bangumi.id)).scalar()
 
-            offset = (page - 1) * count
 
             if sort_order == 'desc':
-                bangumi_list = query_object.\
-                    order_by(desc(getattr(Bangumi, sort_field))).\
-                    offset(offset).limit(count).\
-                    all()
+                query_object = query_object.\
+                    order_by(desc(getattr(Bangumi, sort_field)))
+
             else:
-                bangumi_list = query_object.\
-                    order_by(asc(getattr(Bangumi, sort_field))).\
-                    offset(offset).limit(count).\
-                    all()
+                query_object = query_object.\
+                    order_by(asc(getattr(Bangumi, sort_field)))
+
+            if count == -1:
+                bangumi_list = query_object.all()
+            else:
+                offset = (page - 1) * count
+                bangumi_list = query_object.offset(offset).limit(count).all()
 
             bangumi_id_list = [bgm.id for bgm in bangumi_list]
 
@@ -185,6 +194,7 @@ class BangumiService:
 
             bangumi = session.query(Bangumi).\
                 options(joinedload(Bangumi.episodes)).\
+                filter(Bangumi.delete_mark == None).\
                 filter(Bangumi.id == id).\
                 one()
 
@@ -206,6 +216,8 @@ class BangumiService:
                 watch_progress_hash_table[watch_progress.episode_id] = watch_progress_dict
 
             for episode in bangumi.episodes:
+                if episode.delete_mark is not None:
+                    continue
                 eps = row2dict(episode)
                 eps['thumbnail'] = utils.generate_thumbnail_link(episode, bangumi)
                 if episode.id in watch_progress_hash_table:

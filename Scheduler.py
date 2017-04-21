@@ -34,8 +34,10 @@ from utils.DownloadManager import download_manager
 from taskrunner.InfoScanner import info_scanner
 from taskrunner.FeedScanner import FeedScanner
 from taskrunner.DmhyScanner import DmhyScanner
+from taskrunner.BangumiMoeScanner import BangumiMoeScanner
 from taskrunner.AcgripScanner import AcgripScanner
 from taskrunner.LibyksoScanner import LibyksoScanner
+from taskrunner.DeleteScanner import DeleteScanner
 
 class Scheduler:
 
@@ -45,6 +47,12 @@ class Scheduler:
         self.interval = int(config['task']['interval']) * 60
         self.base_path = config['download']['location']
         self.feedparser = config['feedparser']
+        self.delete_delay = {'bangumi': 10, 'episode': 1}
+        if config['task'].get('delete_delay') is None:
+            logger.warn('delete delay section is not set, please update your config file!')
+        else:
+            self.delete_delay = config['task']['delete_delay']
+
         try:
             if not os.path.exists(self.base_path):
                 os.makedirs(self.base_path)
@@ -57,9 +65,10 @@ class Scheduler:
                 logger.error(exception)
 
     def start(self):
-        self.start_scan_dmhy()
-        self.start_scan_libykso() # libyk scanner don't have chance conflict with other scanner, so we can start simultaneously
+        self.start_scan_bangumi_moe()
+        deferLater(reactor, int(self.interval / 4), self.start_scan_dmhy)
         deferLater(reactor, int(self.interval / 2), self.start_scan_acgrip)
+        self.start_scan_libykso() # libyk scanner don't have chance conflict with other scanner, so we can start simultaneously
 
     def scheduleFail(self, failure):
         logger.error(failure)
@@ -82,9 +91,18 @@ class Scheduler:
         libyk_scanner = LibyksoScanner(self.base_path, self.interval)
         libyk_scanner.start()
 
+    def start_scan_bangumi_moe(self):
+        logger.debug('start bangumi_moe')
+        bangumi_moe_scanner = BangumiMoeScanner(self.base_path, self.interval)
+        bangumi_moe_scanner.start()
+
     def start_scan_feed(self):
         feed_scanner = FeedScanner(self.base_path)
         feed_scanner.start()
+
+    def start_scan_delete(self):
+        delete_scanner = DeleteScanner(self.base_path, self.delete_delay)
+        delete_scanner.start()
 
 
 scheduler = Scheduler()
@@ -96,6 +114,7 @@ def on_connected(result):
     scheduler.start()
     info_scanner.start()
     scheduler.start_scan_feed()
+    scheduler.start_scan_delete()
 
 
 def on_connect_fail(result):
