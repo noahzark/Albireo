@@ -47,7 +47,12 @@ class Scheduler:
         self.interval = int(config['task']['interval']) * 60
         self.base_path = config['download']['location']
         self.feedparser = config['feedparser']
-        self.delete_delay = config['task']['delete_delay']
+        self.delete_delay = {'bangumi': 10, 'episode': 1}
+        if config['task'].get('delete_delay') is None:
+            logger.warn('delete delay section is not set, please update your config file!')
+        else:
+            self.delete_delay = config['task']['delete_delay']
+
         try:
             if not os.path.exists(self.base_path):
                 os.makedirs(self.base_path)

@@ -40,9 +40,10 @@ class DownloadManager:
 
         def update_video_meta(video_file):
             meta = video_manager.get_video_meta(u'{0}/{1}/{2}'.format(self.base_path, str(video_file.bangumi_id), video_file.file_path))
-            video_file.duration = meta.get('duration')
-            video_file.resolution_w = meta.get('width')
-            video_file.resolution_h = meta.get('height')
+            if meta is not None:
+                video_file.duration = meta.get('duration')
+                video_file.resolution_w = meta.get('width')
+                video_file.resolution_h = meta.get('height')
 
         def update_video_files(file_list):
             session = SessionManager.Session()

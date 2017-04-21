@@ -34,7 +34,13 @@ class AdminService:
         self.base_path = config['download']['location']
         self.image_domain = config['domain']['image']
         self.file_downloader = FileDownloader()
-        self.delete_delay = config['task']['delete_delay']
+
+        self.delete_delay = {'bangumi': 10, 'episode': 1}
+
+        if config['task'].get('delete_delay') is None:
+            logger.warn('delete_delay section is not set, please update your config file')
+        else:
+            self.delete_delay = config['task'].get('delete_delay')
 
         try:
             if not os.path.exists(self.base_path):

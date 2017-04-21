@@ -1,116 +1,46 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import httplib2
-import json
-from service.admin import admin_service
 from utils.SessionManager import SessionManager
-from server import app
 from domain.Bangumi import Bangumi
+from domain.Favorites import Favorites
+from domain.WatchProgress import WatchProgress
 from domain.Episode import Episode
-from domain.TorrentFile import TorrentFile
+from domain.VideoFile import VideoFile
 import yaml
 import os
 import re
-import uuid
 from utils.VideoManager import VideoManager
+from utils.constants import episode_regex_tuple
 
 
 class ImportTools:
     def __init__(self):
         pass
 
-    # def search_bangumi(self, name=""):
-    #     bangumi_tv_url_base = 'http://api.bgm.tv/search/subject/'
-    #     bangumi_tv_url_param = '?responseGroup=simple&max_result=10&start=0'
-    #     bangumi_tv_url = bangumi_tv_url_base + name + bangumi_tv_url_param
-    #     h = httplib2.Http('.cache')
-    #     bangumi_tv_url = unicode(bangumi_tv_url, 'utf-8')
-    #     (resp, content) = h.request(bangumi_tv_url, 'GET')
-    #     if resp.status == 200:
-    #         bgm_content = json.loads(content)
-    #         list = [bgm for bgm in bgm_content['list'] if bgm['type'] == 2]
-    #         if len(list) == 0:
-    #             print("No Content Found.")
-    #             exit()
-    #         bgm_id_list = [bgm['id'] for bgm in list]
-    #         bangumi_list = admin_service.get_bangumi_from_bgm_id_list(bgm_id_list)
-    #         for bgm in list:
-    #             bgm['bgm_id'] = bgm['id']
-    #             bgm['id'] = None
-    #             # if bgm_id has found in database, give the database id to bgm.id
-    #             # that's we know that this bangumi exists in our database
-    #             for bangumi in bangumi_list:
-    #                 if bgm['bgm_id'] == bangumi.bgm_id:
-    #                     bgm['id'] = bangumi.id
-    #                     break
-    #             bgm['image'] = bgm['images']['large']
-    #             # remove useless keys
-    #             bgm.pop('images', None)
-    #             bgm.pop('collection', None)
-    #             bgm.pop('url', None)
-    #             bgm.pop('type', None)
-    #         for bgm in list:
-    #             print(str(bgm['bgm_id']) + '\t' + str(bgm['id']) + '\t' + bgm['name_cn'])
-    #     else:
-    #         print("Network Error.")
-    #         exit()
-    #
-    # def create_bangumi(self, bgm_id=None):
-    #     with app.app_context():
-    #         bangumi_list = admin_service.get_bangumi_from_bgm_id_list([bgm_id])
-    #         if len(bangumi_list) > 0:
-    #             print("Already Created Bangumi. Exit.")
-    #             print("Dir is at :")
-    #             fr = open('./config/config.yml', 'r')
-    #             config = yaml.load(fr)
-    #             print(config['download']['location'] + '/' + str(bangumi_list[0][0]))
-    #             exit()
-    #         bangumi_tv_url_base = 'http://api.bgm.tv/subject/'
-    #         bangumi_tv_url_param = '?responseGroup=large'
-    #         if bgm_id is not None:
-    #             bgm_id = str(bgm_id)
-    #             bangumi_tv_url = bangumi_tv_url_base + bgm_id + bangumi_tv_url_param
-    #             h = httplib2.Http('.cache')
-    #             (resp, content) = h.request(bangumi_tv_url, 'GET')
-    #             content = json.loads(content)
-    #             bangumi = Bangumi(bgm_id=content['id'],
-    #                               name=content['name'],
-    #                               name_cn=content['name_cn'],
-    #                               summary=content['summary'],
-    #                               eps=len(content['eps']),
-    #                               image=content['images']['large'],
-    #                               air_date=content['air_date'],
-    #                               air_weekday=content['air_weekday'],
-    #                               status=Bangumi.STATUS_FINISHED)
-    #             session = SessionManager.Session()
-    #             session.add(bangumi)
-    #             for eps_item in content['eps']:
-    #                 eps = Episode(bgm_eps_id=eps_item['id'],
-    #                               episode_no=eps_item['sort'],
-    #                               name=eps_item['name'],
-    #                               name_cn=eps_item['name_cn'],
-    #                               duration=eps_item['duration'],
-    #                               airdate=eps_item['airdate'],
-    #                               status=Episode.STATUS_NOT_DOWNLOADED)
-    #                 bangumi.episodes.append(eps)
-    #             # session = SessionManager.Session()
-    #             session.commit()
-    #             bangumi_id = str(bangumi.id)
-    #             print("Dir is at :")
-    #             fr = open('./config/config.yml', 'r')
-    #             config = yaml.load(fr)
-    #             print(config['download']['location'] + '/' + str(bangumi_id))
-    #         else:
-    #             print("Network Error.")
-    #             exit()
-
-    def __add_to_torrent_file(self, session, torrent_files, eps_id, path):
+    def __parse_episode_number(self, eps_title):
+        '''
+        parse the episode number from episode title, it use a list of regular expressions. the position in the list
+        is the priority of the regular expression.
+        :param eps_title: the title of episode.
+        :return: episode number if matched, otherwise, -1
+        '''
         try:
-            torrent_files_of_eps = session.query(TorrentFile).filter(TorrentFile.episode_id == eps_id).all()
-            torrent_files_of_eps[0].file_path = path
+            for regex in episode_regex_tuple:
+                search_result = re.search(regex, eps_title, re.U | re.I)
+                if search_result is not None:
+                    return int(search_result.group(1))
+
+            return -1
         except Exception:
-            torrent_files.append(TorrentFile(episode_id=eps_id, file_path=path, torrent_id=uuid.uuid4()))
+            return -1
+
+    def __episode_has_video_file(self, existed_video_files, eps):
+        for video_file in existed_video_files:
+            if video_file.episode_id == eps.id:
+                return True
+
+        return False
 
     def update_bangumi(self, bangumi_id=None):
         fr = open('./config/config.yml', 'r')
@@ -119,19 +49,24 @@ class ImportTools:
         files = os.listdir(download_dir)
 
         session = SessionManager.Session()
-        eps_list = session.query(Episode).filter(Episode.bangumi_id == bangumi_id).all()
+        eps_list = session.query(Episode).\
+            filter(Episode.bangumi_id == bangumi_id).all()
+
+        existed_video_files = session.query(VideoFile).filter(VideoFile.bangumi_id == bangumi_id).all()
 
         episodes = {}
-        torrent_files = []
+        video_files = []
         for eps in eps_list:
+            if self.__episode_has_video_file(existed_video_files, eps):
+                continue
             episodes[eps.episode_no] = eps
-            episode_num = str(eps.episode_no)
-            if len(episode_num) == 1:
-                episode_num = '0' + episode_num
             for f in files:
-                if re.search('\[' + episode_num + '\]', f):
+                if self.__parse_episode_number(f) == eps.episode_no:
                     eps.status = Episode.STATUS_DOWNLOADED
-                    self.__add_to_torrent_file(session, torrent_files, eps.id, f)
+                    video_files.append(VideoFile(bangumi_id=bangumi_id,
+                                                 episode_id=eps.id,
+                                                 file_path=f.decode('utf-8'),
+                                                 status=VideoFile.STATUS_DOWNLOADED))
                     break
         while True:
             for eps in episodes.values():
@@ -139,9 +74,9 @@ class ImportTools:
                     continue
                 episode_num = str(eps.episode_no)
                 file_name = "None"
-                for torrent_file in torrent_files:
-                    if torrent_file.episode_id == eps.id:
-                        file_name = torrent_file.file_path
+                for video_file in video_files:
+                    if video_file.episode_id == eps.id:
+                        file_name = video_file.file_path
                         break
                 print (episode_num + ": \t" + file_name)
 
@@ -150,16 +85,21 @@ class ImportTools:
             if x == "Y":
                 video_manager = VideoManager()
                 video_manager.set_base_path(config['download']['location'])
-                for f in torrent_files:
+                for video_file in video_files:
                     for eps in episodes.values():
-                        if eps.id == f.episode_id:
-                            video_manager.create_episode_thumbnail(eps, f.file_path, '00:00:01.000')
+                        if eps.id == video_file.episode_id:
+                            video_manager.create_episode_thumbnail(eps, video_file.file_path, '00:00:01.000')
+                            meta_dict = video_manager.get_video_meta(u'{0}/{1}/{2}'.format(video_manager.base_path, bangumi_id.encode('utf-8'), video_file.file_path))
+                            if meta_dict is not None:
+                                video_file.resolution_w = meta_dict['width']
+                                video_file.resolution_h = meta_dict['height']
+                                video_file.duration = meta_dict['duration']
+                                session.add(video_file)
                             break
-                    session.add(f)
                 session.commit()
                 return
             else:
-                torrent_files = []
+                video_files = []
                 for f in files:
                     print f
                     x = raw_input(">>> Episode Num")
@@ -170,7 +110,10 @@ class ImportTools:
                     if not eps:
                         continue
                     eps.status = Episode.STATUS_DOWNLOADED
-                    self.__add_to_torrent_file(session, torrent_files, eps.id, f)
+                    video_files.append(VideoFile(bangumi_id=bangumi_id,
+                                                 episode_id=eps.id,
+                                                 file_path=f.decode('utf-8'),
+                                                 status=VideoFile.STATUS_DOWNLOADED))
 
 
 if __name__ == '__main__':

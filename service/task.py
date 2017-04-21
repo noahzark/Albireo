@@ -18,7 +18,11 @@ class TaskService:
     def __init__(self):
         fr = open('./config/config.yml', 'r')
         config = yaml.load(fr)
-        self.delete_delay = config['task']['delete_delay']
+        self.delete_delay = {'bangumi': 10, 'episode': 1}
+        if config['task'].get('delete_delay') is None:
+            logger.warn('delete delay section is not set, please update your config file!')
+        else:
+            self.delete_delay = ['delete_delay']
 
     def list_pending_delete_banguimi(self):
         try:

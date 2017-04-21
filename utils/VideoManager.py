@@ -60,6 +60,8 @@ class VideoManager:
                 'height':  integer,
                 'duration': integer (millisecond)
             }
+
+        if an error occurred, this method will return None
         '''
         try:
             output = subprocess.check_output([
@@ -84,7 +86,7 @@ class VideoManager:
             return result
         except subprocess.CalledProcessError as error:
             logger.warn(error)
-            return {}
+            return None
 
 
 video_manager = VideoManager()

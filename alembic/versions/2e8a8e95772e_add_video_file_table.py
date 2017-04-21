@@ -63,19 +63,24 @@ def upgrade():
             'status': 3
         }
         if row[1] == -1 or __is_uuid4(row[1]):
-            video_file['torrent_id'] = 'imported'
+            video_file['torrent_id'] = None
         else:
             video_file['torrent_id'] = row[1]
         video_file['episode_id'] = row[0]
         video_file['file_path'] = row[2]
         video_file['bangumi_id'] = row[3]
-        video_file_list.append(video_file)
+
         meta_info = video_manager.get_video_meta(
             u'{0}/{1}/{2}'.format(get_base_path(), str(video_file['bangumi_id']), video_file['file_path']))
+
+        if meta_info is None:
+            continue
 
         video_file['resolution_w'] = meta_info.get('width')
         video_file['resolution_h'] = meta_info.get('height')
         video_file['duration'] = meta_info.get('duration')
+
+        video_file_list.append(video_file)
 
     op.bulk_insert(video_file_table, video_file_list)
 

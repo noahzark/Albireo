@@ -32,7 +32,6 @@ class FeedScanner:
         session = SessionManager.Session()
         try:
             return session.query(VideoFile).\
-                filter(VideoFile.torrent_id == None).\
                 filter(VideoFile.download_url != None).\
                 filter(VideoFile.status == VideoFile.STATUS_DOWNLOAD_PENDING).\
                 all()
