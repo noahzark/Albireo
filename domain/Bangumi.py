@@ -31,8 +31,8 @@ class Bangumi(Base):
     # @deprecated
     eps_regex = Column(TEXT, nullable=True)
     status = Column(Integer, nullable=False)
-    create_time = Column(TIMESTAMP, default=datetime.now(), nullable=False)
-    update_time = Column(TIMESTAMP, default=datetime.now(), nullable=False)
+    create_time = Column(TIMESTAMP, default=datetime.now, nullable=False)
+    update_time = Column(TIMESTAMP, default=datetime.now, nullable=False)
 
     episodes = relationship('Episode', order_by=Episode.episode_no, back_populates='bangumi',
                             cascade='all, delete, delete-orphan')

@@ -20,7 +20,7 @@ def list_bangumi():
     sort_field = request.args.get('order_by', 'update_time')
     sort_order = request.args.get('sort', 'desc')
     name = request.args.get('name', None)
-    return admin_service.list_bangumi(page, count, sort_field, sort_order, name)
+    return admin_service.list_bangumi(page, count=count, sort_field=sort_field, sort_order=sort_order, name=name)
 
 @admin_api.route('/bangumi', methods=['POST'])
 @login_required
