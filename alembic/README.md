@@ -1,6 +1,6 @@
-#Generic single-database configuration.
+# Generic single-database configuration.
 
-##Migration Guide:
+## Migration Guide:
 
 Before run alembic, add current working directory to environment
 
@@ -23,7 +23,7 @@ $ alembic upgrade head
 alembic will update database for you.
 
 
-##Developer Guide:
+## Developer Guide:
 When you add a new column, new table, you need to generate a alembic migration script for user to update from certain version to your modified version.
 
 Usually, you just need run an auto-generate command after you have modified domain module.

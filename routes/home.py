@@ -36,7 +36,7 @@ def episode_detail(episode_id):
 def list_bangumi():
     page = int(request.args.get('page', 1))
     count = int(request.args.get('count', 10))
-    sort_field = request.args.get('order_by', 'update_time')
+    sort_field = request.args.get('order_by', 'air_date')
     sort_order = request.args.get('sort', 'desc')
     name = request.args.get('name', None)
     return bangumi_service.list_bangumi(page, count, sort_field, sort_order, name, current_user.id)
