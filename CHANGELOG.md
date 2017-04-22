@@ -1,3 +1,7 @@
+#1.0.1-beta
+
+Change the default order_by value in list_bangumi of home api
+
 #1.0.0-beta
 Add delete bangumi and episode ability to admin API. these delete operation is managed by task. A task is a database record contains progress, status and type information. It can be resume
  from a interruption.
