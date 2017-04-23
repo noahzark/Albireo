@@ -1,3 +1,7 @@
+#1.1.0-beta
+
+Add Video Files CRUD api
+
 #1.0.1-beta
 
 Change the default order_by value in list_bangumi of home api

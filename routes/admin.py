@@ -114,11 +114,32 @@ def update_episode(episode_id):
 def delete_episode(episode_id):
     return admin_service.delete_episode(episode_id)
 
-@admin_api.route('/episode/<episode_id>/video_file', methods=['GET'])
+@admin_api.route('/video-file', methods=['GET'])
 @login_required
 @auth_user(User.LEVEL_ADMIN)
-def get_episode_video_file_list(episode_id):
+def get_episode_video_file_list():
+    episode_id = request.args.get('episode_id')
     return admin_service.get_episode_video_file_list(episode_id)
+
+@admin_api.route('/video-file', methods=['POST'])
+@login_required
+@auth_user(User.LEVEL_ADMIN)
+def add_video_file():
+    video_dict = json.loads(request.get_data(as_text=True))
+    return admin_service.add_video_file(video_dict)
+
+@admin_api.route('/video-file/<video_file_id>', methods=['PUT'])
+@login_required
+@auth_user(User.LEVEL_ADMIN)
+def update_video_file(video_file_id):
+    video_dict = json.loads(request.get_data(as_text=True))
+    return admin_service.update_video_file(video_file_id, video_dict)
+
+@admin_api.route('/video-file/<video_file_id>', methods=['DELETE'])
+@login_required
+@auth_user(User.LEVEL_ADMIN)
+def delete_video_file(video_file_id):
+    return admin_service.delete_video_file(video_file_id)
 
 # @admin_api.route('/episode/<episode_id>/upload', methods=['POST'])
 # @login_required

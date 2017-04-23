@@ -475,6 +475,64 @@ class AdminService:
         finally:
             SessionManager.Session.remove()
 
+    def add_video_file(self, video_dict):
+        try:
+            session = SessionManager.Session()
+            video_file = VideoFile(bangumi_id=video_dict['bangumi_id'],
+                                   episode_id=video_dict['episode_id'],
+                                   download_url=video_dict.get('download_url'),
+                                   file_path=video_dict.get('file_path'),
+                                   file_name=video_dict.get('file_name'),
+                                   status=video_dict.get('status', 1),
+                                   resolution_w=video_dict.get('resolution_w'),
+                                   resolution_h=video_dict.get('resolution_h'),
+                                   duration=video_dict.get('duration'),
+                                   label=video_dict.get('label'))
+            session.add(video_file)
+            session.commit()
+            video_file_id = str(video_file.id)
+            return json_resp({'data': video_file_id})
+        finally:
+            SessionManager.Session.remove()
+
+    def update_video_file(self, video_file_id, video_dict):
+        try:
+            session = SessionManager.Session()
+            video_file = session.query(VideoFile).filter(VideoFile.id == video_file_id).one()
+            video_file.download_url = video_dict.get('download_url')
+            video_file.file_path = video_dict.get('file_path')
+            video_file.file_name = video_dict.get('file_name')
+            video_file.status = video_dict.get('status', 1)
+            video_file.resolution_w = video_dict.get('resolution_w')
+            video_file.resolution_h = video_dict.get('resolution_h')
+            video_file.duration = video_dict.get('duration')
+            video_file.label = video_dict.get('label')
+            session.commit()
+            return json_resp({'msg': 'OK'})
+        except NoResultFound:
+            raise ClientError(ClientError.NOT_FOUND, 404)
+        finally:
+            SessionManager.Session.remove()
+
+    def delete_video_file(self, video_file_id):
+        try:
+            session = SessionManager.Session()
+            video_file = session.query(VideoFile).filter(VideoFile.id == video_file_id).one()
+            if video_file.file_path is not None and video_file.status == VideoFile.STATUS_DOWNLOADED:
+                file_abs_path = u'{0}/{1}/{2}'.format(self.base_path, str(video_file.bangumi_id), video_file.file_path)
+                try:
+                    os.remove(file_abs_path)
+                except Exception as error:
+                    logger.warn(error)
+
+            session.delete(video_file)
+            session.commit()
+            return json_resp({'msg': 'ok'})
+        except NoResultFound:
+            raise ClientError(ClientError.NOT_FOUND, 404)
+        finally:
+            SessionManager.Session.remove()
+
     # def upload_episode(self, episode_id, file):
     #     try:
     #         filename = secure_filename(file.filename)
