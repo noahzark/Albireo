@@ -13,3 +13,6 @@ class Downloader:
 
     def get_files(self, torrent_id):
         pass
+
+    def get_complete_torrents(self):
+        pass

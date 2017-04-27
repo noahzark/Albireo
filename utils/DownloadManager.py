@@ -103,9 +103,10 @@ class DownloadManager:
             finally:
                 SessionManager.Session.remove()
 
+        @inlineCallbacks
         def get_files(files):
-            print files
-            threads.deferToThread(update_video_files, files)
+            logger.debug(files)
+            yield threads.deferToThread(update_video_files, files)
 
         def fail_to_get_files(result):
             logger.warn('fail to get files of %s', torrent_id)
@@ -128,5 +129,10 @@ class DownloadManager:
             result = yield self.downloader.remove_torrent(torrent_id, remove_data)
             result_list.append(result)
         returnValue(result_list)
+
+    @inlineCallbacks
+    def get_complete_torrents(self):
+        torrent_dict = yield self.downloader.get_complete_torrents()
+        returnValue(torrent_dict)
 
 download_manager = DownloadManager(DelugeDownloader)

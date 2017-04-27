@@ -70,5 +70,16 @@ class DelugeDownloader(Downloader):
         files = yield client.core.get_torrent_status(torrent_id, ['files'])
         returnValue(files['files'])
 
+    @inlineCallbacks
     def remove_torrent(self, torrent_id, remove_data):
-        client.core.remove_torrent(torrent_id, remove_data)
+        yield client.core.remove_torrent(torrent_id, remove_data)
+
+    @inlineCallbacks
+    def get_complete_torrents(self):
+        '''
+        get complete torrents
+        :return: a dict which contains all complete torrents (progress = 100), key is torrent_id, value is dict {files: tuple}
+        '''
+        torrent_dict = yield client.core.get_torrents_status({'progress': (100,)}, ['files'])
+        returnValue(torrent_dict)
+
