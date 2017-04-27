@@ -74,7 +74,7 @@ class VideoManager:
                 'v:0',
                 '-of',
                 'json',
-                video_path
+                b'{0}'.format(video_path.encode('utf-8'))
             ])
             meta = json.loads(output)
             result = {}
