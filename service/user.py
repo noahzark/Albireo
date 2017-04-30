@@ -74,7 +74,7 @@ class UserCredential(UserMixin):
             SessionManager.Session.remove()
 
     @staticmethod
-    def register_user(name, password, invite_code):
+    def register_user(name, password, email, invite_code):
         session = SessionManager.Session()
         try:
             code = session.query(InviteCode).filter(InviteCode.code == invite_code).one()
@@ -82,6 +82,7 @@ class UserCredential(UserMixin):
                 raise ClientError(ClientError.INVALID_INVITE_CODE)
             user = User(name=name,
                         password=generate_password_hash(password),
+                        email=email,
                         level=0)
             session.add(user)
             session.commit()

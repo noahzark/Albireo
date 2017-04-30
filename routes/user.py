@@ -55,6 +55,7 @@ def register():
         name = register_data['name']
         password = register_data['password']
         password_repeat = register_data['password_repeat']
+        email = register_data['email']
         invite_code = register_data['invite_code']
         if password != password_repeat:
             raise ClientError(ClientError.PASSWORD_MISMATCH)
@@ -111,4 +112,5 @@ def get_user_info():
     user_info = {}
     user_info['name'] = current_user.name
     user_info['level'] = current_user.level
+    user_info['email'] = current_user.email
     return json_resp({'data': user_info})

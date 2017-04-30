@@ -14,6 +14,8 @@ class User(Base):
     # default user level is 0
     level = Column(Integer, nullable=False)
 
+    email = Column(String(512), nullable=True)
+
     # predefined user level
     LEVEL_DEFAULT = 0
     LEVEL_USER = 1
