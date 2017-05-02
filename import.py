@@ -48,7 +48,7 @@ class ImportTools:
             for f in fn:
                 (_, ext) = os.path.splitext(f)
                 if ext == '.mp4':
-                    file_list.append(os.path.join(dp, f))
+                    file_list.append(os.path.join(dn, f))
 
         return file_list
 
