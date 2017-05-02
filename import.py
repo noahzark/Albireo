@@ -42,11 +42,21 @@ class ImportTools:
 
         return False
 
+    def __list_file_recursively(self, download_dir):
+        file_list = []
+        for dp, dn, fn in os.walk(download_dir):
+            for f in fn:
+                (_, ext) = os.path.splitext(f)
+                if ext == '.mp4':
+                    file_list.append(os.path.join(dp, f))
+
+        return file_list
+
     def update_bangumi(self, bangumi_id=None):
         fr = open('./config/config.yml', 'r')
         config = yaml.load(fr)
         download_dir = config['download']['location'] + '/' + str(bangumi_id)
-        files = os.listdir(download_dir)
+        files = self.__list_file_recursively(download_dir)
 
         session = SessionManager.Session()
         eps_list = session.query(Episode).\
