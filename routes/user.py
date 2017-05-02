@@ -51,7 +51,7 @@ def register():
     '''
     content = request.get_data(True, as_text=True)
     register_data = json.loads(content)
-    if ('name' in register_data) and ('password' in register_data) and ('password_repeat' in register_data) and ('invite_code' in register_data):
+    if ('name' in register_data) and ('password' in register_data) and ('password_repeat' in register_data) and ('invite_code' in register_data) and ('email' in register_data):
         name = register_data['name']
         password = register_data['password']
         password_repeat = register_data['password_repeat']
@@ -59,7 +59,7 @@ def register():
         invite_code = register_data['invite_code']
         if password != password_repeat:
             raise ClientError(ClientError.PASSWORD_MISMATCH)
-        if UserCredential.register_user(name, password, invite_code):
+        if UserCredential.register_user(name=name, password=password, email=email, invite_code=invite_code):
             return json_resp({'msg': 'OK'})
     else:
         raise ClientError(ClientError.INVALID_REQUEST)

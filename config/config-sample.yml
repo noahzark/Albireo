@@ -24,6 +24,7 @@ download:
   location: /  # change this location
 
 app_secret_key: amanogawa_saya
+app_secret_password_salt: kayoitsuma
 
 feedparser:
   timeout: 60 # timeout in seconds

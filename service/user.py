@@ -7,8 +7,10 @@ from domain.InviteCode import InviteCode
 from utils.SessionManager import SessionManager
 from domain.User import User
 from werkzeug.security import generate_password_hash, check_password_hash
+from itsdangerous import URLSafeTimedSerializer
 
 from utils.exceptions import ClientError, ServerError
+from server import get_config
 
 
 class UserCredential(UserMixin):
@@ -18,6 +20,9 @@ class UserCredential(UserMixin):
         self.name = user.name
         self.password = user.password
         self.level = user.level
+        self.email = user.email
+        self.register_time = user.register_time
+        self.update_time = user.update_time
 
 
     def update_password(self, old_pass, new_pass):
@@ -39,6 +44,22 @@ class UserCredential(UserMixin):
         finally:
             SessionManager.Session.remove()
 
+    # https://realpython.com/blog/python/handling-email-confirmation-in-flask/
+    def generate_confirm_email_token(self):
+        serializer = URLSafeTimedSerializer(get_config('app_secret_key'))
+        return serializer.dumps(self.email, salt=get_config('app_secret_password_salt'))
+
+    def confirm_token(self, token, expiration=3600):
+        serializer = URLSafeTimedSerializer(get_config('app_secret_key'))
+        try:
+            email = serializer.loads(
+                token,
+                salt=get_config('app_secret_password_salt'),
+                max_age=expiration
+            )
+        except:
+            return False
+        return email == self.email
 
     @classmethod
     def get(cls, id):
