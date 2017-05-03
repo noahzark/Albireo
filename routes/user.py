@@ -60,6 +60,11 @@ def register():
         if password != password_repeat:
             raise ClientError(ClientError.PASSWORD_MISMATCH)
         if UserCredential.register_user(name=name, password=password, email=email, invite_code=invite_code):
+            # login automatically
+            credential = UserCredential.login_user(name, password)
+            login_user(credential, remember=False)
+            # send email
+            credential.send_confirm_email()
             return json_resp({'msg': 'OK'})
     else:
         raise ClientError(ClientError.INVALID_REQUEST)
@@ -114,3 +119,13 @@ def get_user_info():
     user_info['level'] = current_user.level
     user_info['email'] = current_user.email
     return json_resp({'data': user_info})
+
+@user_api.route('/email/confirm', methods=['POST'])
+@login_required
+def get_confirm_email():
+    data = json.loads(request.get_data(as_text=True))
+    token = data.get('token')
+    if token is None:
+        raise ClientError('Invalid Token')
+    return current_user.confirm_token(token)
+

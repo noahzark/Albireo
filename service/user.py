@@ -10,8 +10,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer
 
 from utils.exceptions import ClientError, ServerError
-from server import get_config
-
+from utils.http import json_resp
+from server import app, mail
+from flask_mail import Message
+from flask import render_template
 
 class UserCredential(UserMixin):
 
@@ -21,13 +23,14 @@ class UserCredential(UserMixin):
         self.password = user.password
         self.level = user.level
         self.email = user.email
+        self.email_confirmed = user.email_confirmed
         self.register_time = user.register_time
         self.update_time = user.update_time
 
 
     def update_password(self, old_pass, new_pass):
+        session = SessionManager.Session()
         try:
-            session = SessionManager.Session()
             user = session.query(User).filter(User.id == self.id).one()
             if check_password_hash(user.password, old_pass):
                 user.password = generate_password_hash(new_pass)
@@ -37,29 +40,71 @@ class UserCredential(UserMixin):
                 raise ClientError(ClientError.PASSWORD_INCORRECT)
         except NoResultFound:
             raise ServerError('user not found')
-        except ClientError as error:
-            raise error
-        except Exception as error:
-            raise error
         finally:
             SessionManager.Session.remove()
 
+    def update_email(self, new_email, password):
+        session = SessionManager.Session()
+        try:
+            user = session.query(User).filter(User.id == self.id).one()
+            if check_password_hash(user.password, password):
+                user.email = new_email
+                user.email_confirmed = False
+                # send email
+                self.send_confirm_email()
+                return json_resp({'msg': 'ok'})
+            else:
+                raise ClientError(ClientError.PASSWORD_INCORRECT)
+        except NoResultFound:
+            raise ServerError('user not found')
+        finally:
+            SessionManager.Session.remove()
+
+
     # https://realpython.com/blog/python/handling-email-confirmation-in-flask/
     def generate_confirm_email_token(self):
-        serializer = URLSafeTimedSerializer(get_config('app_secret_key'))
-        return serializer.dumps(self.email, salt=get_config('app_secret_password_salt'))
+        serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+        return serializer.dumps(self.email, salt=app.config['SECRET_PASSWORD_SALT'])
 
     def confirm_token(self, token, expiration=3600):
-        serializer = URLSafeTimedSerializer(get_config('app_secret_key'))
+        serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+        session = SessionManager.Session()
         try:
             email = serializer.loads(
                 token,
-                salt=get_config('app_secret_password_salt'),
+                salt=app.config['SECRET_PASSWORD_SALT'],
                 max_age=expiration
             )
+            if email == self.email:
+                self.email_confirmed = True
+                user = session.query(User).filter(User.id == self.id).one()
+                user.email_confirmed = True
+                session.commit()
+                return json_resp({'msg': 'ok'})
+            else:
+                raise ClientError('Invalid Token')
         except:
-            return False
-        return email == self.email
+            raise ClientError('Invalid Token')
+        finally:
+            SessionManager.Session.remove()
+
+
+    def send_confirm_email(self):
+        '''
+        send an confirm email to user. contains a link to confirm the email
+        confirm link is not provide by this app, a client must implement this endpoint to complete the confirmation.
+        '''
+        token = self.generate_confirm_email_token()
+        confirm_url = '{0}://{1}/email-confirm?token={2}'.format(app.config['SERVER_PROTOCOL'], app.config['SERVER_NAME'], token)
+        subject = '[{0}] Email Address Confirmation'.format(app.config['SITE_NAME'])
+        email_content = render_template('email-template.html', info={
+            'confirm_title': subject,
+            'confirm_url': confirm_url,
+            'site_name': app.config['SITE_NAME'],
+            'user_name': self.name
+        })
+        msg = Message(subject, recipients=[self.email], html=email_content)
+        mail.send(msg)
 
     @classmethod
     def get(cls, id):
@@ -122,10 +167,6 @@ class UserCredential(UserMixin):
             raise ServerError(error.message)
         finally:
             SessionManager.Session.remove()
-
-    @staticmethod
-    def update_pass():
-        pass
 
     @staticmethod
     def reset_pass(name, password, invite_code):

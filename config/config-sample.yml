@@ -41,3 +41,21 @@ feedparser:
 domain:
   image: # the image domain for your image resource, such as thumbnails and cover
   video: # the video domain for your video resource
+
+# site name
+site:
+  name: 'yoursite.com'
+  host: 'yoursite.com' # hostname and port
+  protocol: 'https'
+
+
+# mail configuration reference at: https://pythonhosted.org/flask-mail/
+mail:
+  mail_server: 'localhost'
+  mail_port: 25
+  mail_use_tls: False
+  mail_use_ssl: False
+  mail_debug: app.debug
+  mail_username: None
+  mail_password: None
+  default_mail_sender: None

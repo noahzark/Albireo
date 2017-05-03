@@ -17,6 +17,7 @@ else:
 
 from flask import Flask
 from flask_login import LoginManager
+from flask_mail import Mail
 
 from utils.http import json_resp
 from utils.exceptions import ClientError, ServerError
@@ -50,7 +51,25 @@ login_manager.session_protection = 'strong'
 
 app = Flask(__name__)
 
-app.secret_key = get_config('app_secret_key')
+mail = Mail(app)
+
+# update configuration
+app.config.update(
+    SECRET_KEY=get_config('app_secret_key'),
+    SECRET_PASSWORD_SALT=get_config('app_secret_password_salt'),
+    MAIL_SERVER=get_config('mail_server'),
+    MAIL_PORT=get_config('mail_port'),
+    MAIL_USE_TLS=get_config('mail_use_tls'),
+    MAIL_USE_SSL=get_config('mail_use_ssl'),
+    MAIL_DEBUG=get_config('mail_debug'),
+    MAIL_USERNAME=get_config('mail_username'),
+    MAIL_PASSWORD=get_config('mail_password'),
+    DEFAULT_MAIL_SENDER=get_config('default_mail_sender'),
+    SITE_NAME=get_config('site')['name'],
+    SERVER_NAME=get_config('site')['host'],
+    SERVER_PROTOCOL=get_config('site')['protocol']
+)
+
 app.session_interface = PgSessionInterface()
 
 base_path = get_config('download')['location']

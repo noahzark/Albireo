@@ -1,5 +1,5 @@
 from domain.base import Base
-from sqlalchemy import Column, String, TEXT, Integer, TIMESTAMP
+from sqlalchemy import Column, String, TEXT, Integer, TIMESTAMP, BOOLEAN
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import relationship
 from uuid import uuid4
@@ -17,6 +17,7 @@ class User(Base):
     level = Column(Integer, nullable=False, default=0)
 
     email = Column(String(512), nullable=True)
+    email_confirmed = Column(BOOLEAN, nullable=False, default=False)
 
     register_time = Column(TIMESTAMP, nullable=False, default=datetime)
     update_time = Column(TIMESTAMP, nullable=False, default=datetime, onupdate=datetime)
@@ -26,8 +27,4 @@ class User(Base):
     LEVEL_USER = 1
     LEVEL_ADMIN = 2
     LEVEL_SUPER_USER = 3
-
-    # email_active value
-    EMAIL_INACTIVATED = 1
-    EMAIL_ACTIVATED = 2
 
