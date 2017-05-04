@@ -107,6 +107,7 @@ def reset_pass():
     else:
         raise ClientError('invalid parameters')
 
+
 @user_api.route('/info', methods=['GET'])
 @login_required
 def get_user_info():
@@ -119,6 +120,7 @@ def get_user_info():
     user_info['level'] = current_user.level
     user_info['email'] = current_user.email
     return json_resp({'data': user_info})
+
 
 @user_api.route('/email/confirm', methods=['POST'])
 @login_required

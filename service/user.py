@@ -11,9 +11,12 @@ from itsdangerous import URLSafeTimedSerializer
 
 from utils.exceptions import ClientError, ServerError
 from utils.http import json_resp
-from server import app, mail
 from flask_mail import Message
 from flask import render_template
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 class UserCredential(UserMixin):
 
@@ -63,10 +66,12 @@ class UserCredential(UserMixin):
 
     # https://realpython.com/blog/python/handling-email-confirmation-in-flask/
     def generate_confirm_email_token(self):
+        from server import app
         serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
         return serializer.dumps(self.email, salt=app.config['SECRET_PASSWORD_SALT'])
 
     def confirm_token(self, token, expiration=3600):
+        from server import app
         serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
         session = SessionManager.Session()
         try:
@@ -94,8 +99,9 @@ class UserCredential(UserMixin):
         send an confirm email to user. contains a link to confirm the email
         confirm link is not provide by this app, a client must implement this endpoint to complete the confirmation.
         '''
+        from server import app, mail
         token = self.generate_confirm_email_token()
-        confirm_url = '{0}://{1}/email-confirm?token={2}'.format(app.config['SERVER_PROTOCOL'], app.config['SERVER_NAME'], token)
+        confirm_url = '{0}://{1}/email-confirm?token={2}'.format(app.config['SITE_PROTOCOL'], app.config['SITE_HOST'], token)
         subject = '[{0}] Email Address Confirmation'.format(app.config['SITE_NAME'])
         email_content = render_template('email-template.html', info={
             'confirm_title': subject,
@@ -112,10 +118,12 @@ class UserCredential(UserMixin):
         try:
             user = session.query(User).filter(User.id == id).one()
             credential =  cls(user)
-            SessionManager.Session.remove()
             return credential
-        except Exception:
+        except Exception as error:
+            logger.warn(error)
             return None
+        finally:
+            SessionManager.Session.remove()
 
     @classmethod
     def login_user(cls,name, password):

@@ -66,8 +66,8 @@ app.config.update(
     MAIL_PASSWORD=get_config('mail_password'),
     DEFAULT_MAIL_SENDER=get_config('default_mail_sender'),
     SITE_NAME=get_config('site')['name'],
-    SERVER_NAME=get_config('site')['host'],
-    SERVER_PROTOCOL=get_config('site')['protocol']
+    SITE_HOST=get_config('site')['host'],
+    SITE_PROTOCOL=get_config('site')['protocol']
 )
 
 app.session_interface = PgSessionInterface()
