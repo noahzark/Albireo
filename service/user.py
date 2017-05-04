@@ -14,9 +14,10 @@ from utils.http import json_resp
 from flask_mail import Message
 from flask import render_template
 
-import logging
+import logging, re
 
 logger = logging.getLogger(__name__)
+
 
 class UserCredential(UserMixin):
 
@@ -29,7 +30,6 @@ class UserCredential(UserMixin):
         self.email_confirmed = user.email_confirmed
         self.register_time = user.register_time
         self.update_time = user.update_time
-
 
     def update_password(self, old_pass, new_pass):
         session = SessionManager.Session()
@@ -63,9 +63,11 @@ class UserCredential(UserMixin):
         finally:
             SessionManager.Session.remove()
 
-
-    # https://realpython.com/blog/python/handling-email-confirmation-in-flask/
     def generate_confirm_email_token(self):
+        """
+        # https://realpython.com/blog/python/handling-email-confirmation-in-flask/
+        :return: a serialized token contains email and token timestamp
+        """
         from server import app
         serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
         return serializer.dumps(self.email, salt=app.config['SECRET_PASSWORD_SALT'])
@@ -93,12 +95,11 @@ class UserCredential(UserMixin):
         finally:
             SessionManager.Session.remove()
 
-
     def send_confirm_email(self):
-        '''
+        """
         send an confirm email to user. contains a link to confirm the email
         confirm link is not provide by this app, a client must implement this endpoint to complete the confirmation.
-        '''
+        """
         from server import app, mail
         token = self.generate_confirm_email_token()
         confirm_url = '{0}://{1}/email-confirm?token={2}'.format(app.config['SITE_PROTOCOL'], app.config['SITE_HOST'], token)
@@ -113,11 +114,11 @@ class UserCredential(UserMixin):
         mail.send(msg)
 
     @classmethod
-    def get(cls, id):
+    def get(cls, user_id):
         session = SessionManager.Session()
         try:
-            user = session.query(User).filter(User.id == id).one()
-            credential =  cls(user)
+            user = session.query(User).filter(User.id == user_id).one()
+            credential = cls(user)
             return credential
         except Exception as error:
             logger.warn(error)
@@ -126,7 +127,7 @@ class UserCredential(UserMixin):
             SessionManager.Session.remove()
 
     @classmethod
-    def login_user(cls,name, password):
+    def login_user(cls, name, password):
         session = SessionManager.Session()
         try:
             user = session.query(User).filter(User.name == name).one()
@@ -149,6 +150,9 @@ class UserCredential(UserMixin):
 
     @staticmethod
     def register_user(name, password, email, invite_code):
+        email_patteren = re.compile("(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)")
+        if not email_patteren.match(email):
+            raise ClientError(ClientError.INVALID_EMAIL)
         session = SessionManager.Session()
         try:
             code = session.query(InviteCode).filter(InviteCode.code == invite_code).one()

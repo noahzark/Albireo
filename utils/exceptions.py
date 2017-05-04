@@ -25,6 +25,7 @@ class ClientError(BasicError):
     PASSWORD_MISMATCH = 'password not match'
     INVALID_INVITE_CODE = 'invalid invite code'
     DUPLICATE_NAME = 'duplicate name'
+    INVALID_EMAIL = 'invalid email'
 
     PASSWORD_INCORRECT = 'password incorrect'
 
