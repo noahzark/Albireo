@@ -55,7 +55,6 @@ mail:
   mail_port: 25
   mail_use_tls: False
   mail_use_ssl: False
-  mail_debug: app.debug
   mail_username: None
   mail_password: None
-  default_mail_sender: None
+  mail_default_sender: None

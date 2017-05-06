@@ -20,7 +20,7 @@ class User(Base):
     email_confirmed = Column(BOOLEAN, nullable=False, default=False)
 
     register_time = Column(TIMESTAMP, nullable=False, default=datetime.now)
-    update_time = Column(TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime)
+    update_time = Column(TIMESTAMP, nullable=False, default=datetime.now, onupdate=datetime.now)
 
     # predefined user level
     LEVEL_DEFAULT = 0

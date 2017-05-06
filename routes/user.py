@@ -71,7 +71,7 @@ def register():
 
 
 @user_api.route('/update_pass', methods=['POST'])
-@fresh_login_required
+@login_required
 def update_pass():
     '''
     update a user password, the original password is needed
@@ -119,6 +119,7 @@ def get_user_info():
     user_info['name'] = current_user.name
     user_info['level'] = current_user.level
     user_info['email'] = current_user.email
+    user_info['email_confirmed'] = current_user.email_confirmed
     return json_resp({'data': user_info})
 
 
@@ -131,3 +132,15 @@ def get_confirm_email():
         raise ClientError('Invalid Token')
     return current_user.confirm_token(token)
 
+
+@user_api.route('/email', methods=['POST'])
+@login_required
+def update_email():
+    data = json.loads(request.get_data(as_text=True))
+    email = data.get('email')
+    password = data.get('password')
+    if email is None:
+        raise ClientError('Invalid email')
+    if password is None:
+        raise ClientError('Invalid password')
+    return current_user.update_email(email, password)

@@ -51,20 +51,17 @@ login_manager.session_protection = 'strong'
 
 app = Flask(__name__)
 
-mail = Mail(app)
-
 # update configuration
 app.config.update(
     SECRET_KEY=get_config('app_secret_key'),
     SECRET_PASSWORD_SALT=get_config('app_secret_password_salt'),
-    MAIL_SERVER=get_config('mail_server'),
-    MAIL_PORT=get_config('mail_port'),
-    MAIL_USE_TLS=get_config('mail_use_tls'),
-    MAIL_USE_SSL=get_config('mail_use_ssl'),
-    MAIL_DEBUG=get_config('mail_debug'),
-    MAIL_USERNAME=get_config('mail_username'),
-    MAIL_PASSWORD=get_config('mail_password'),
-    DEFAULT_MAIL_SENDER=get_config('default_mail_sender'),
+    MAIL_SERVER=get_config('mail')['mail_server'],
+    MAIL_PORT=get_config('mail')['mail_port'],
+    MAIL_USE_TLS=get_config('mail')['mail_use_tls'],
+    MAIL_USE_SSL=get_config('mail')['mail_use_ssl'],
+    MAIL_USERNAME=get_config('mail')['mail_username'],
+    MAIL_PASSWORD=get_config('mail')['mail_password'],
+    MAIL_DEFAULT_SENDER=get_config('mail')['mail_default_sender'],
     SITE_NAME=get_config('site')['name'],
     SITE_HOST=get_config('site')['host'],
     SITE_PROTOCOL=get_config('site')['protocol']
@@ -91,6 +88,8 @@ app.register_blueprint(feed_api, url_prefix='/api/feed')
 app.register_blueprint(watch_api, url_prefix='/api/watch')
 app.register_blueprint(task_api, url_prefix='/api/task')
 app.register_blueprint(user_manage_api, url_prefix='/api/user-manage')
+
+mail = Mail(app)
 
 login_manager.init_app(app)
 

@@ -53,8 +53,11 @@ class UserCredential(UserMixin):
             if check_password_hash(user.password, password):
                 user.email = new_email
                 user.email_confirmed = False
+                self.email = new_email
+                self.email_confirmed = False
                 # send email
                 self.send_confirm_email()
+                session.commit()
                 return json_resp({'msg': 'ok'})
             else:
                 raise ClientError(ClientError.PASSWORD_INCORRECT)
