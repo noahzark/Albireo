@@ -75,15 +75,16 @@ class BangumiScanner(object):
     def update_bangumi_status(self, bangumi):
         session = SessionManager.Session
         try:
-        # if bangumi has no not downloaded episode, we consider it's finished.
+            # if bangumi has no not downloaded episode, we consider it's finished.
             episode_count = session.query(func.count(Episode.id)). \
-                filter(Episode.bangumi == bangumi). \
+                filter(Episode.bangumi_id == bangumi.id). \
                 filter(Episode.status == Episode.STATUS_NOT_DOWNLOADED). \
                 scalar()
-
+            logger.debug('bangumi %s has %d un-downloaded episodes', bangumi.name, episode_count)
             if (bangumi.status == Bangumi.STATUS_ON_AIR) and (episode_count == 0):
+                session.add(bangumi)
                 bangumi.status = Bangumi.STATUS_FINISHED
-            session.commit()
+                session.commit()
         except Exception as error:
             logger.warn(error)
         finally:
