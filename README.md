@@ -17,7 +17,7 @@ further more, the information can be used for more user friendly function.
 
 [Scheduler](#scheduler)
 
-[HTTP API](https://github.com/lordfriend/Albireo/wiki/HTTP-API)
+[HTTP API](http://docs.albireo.apiary.io/)
 
 [Upgrade From Old Version](https://github.com/lordfriend/Albireo/blob/master/alembic/README.md)
 
