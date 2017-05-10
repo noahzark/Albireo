@@ -1,0 +1,152 @@
+FORMAT: 1A
+# Albireo HTTP API
+This is Albireo project http API document. it contains end user and admin API for Client.
+
+
+# Group End User API
+
+API that mainly used for end user
+
+## my_bangumi [/api/home/my_bangumi]
+
+### List My Bangumi [GET]
+
+list all bangumi which is favorite by current user and status is 3 (WATCHING)
+
++ Response 200 (application/json)
+    
+    + Attributes
+    
+        + `data` (array[BangumiUnwatched]) - a list of bangumi which contains unwatched count
+
+## on_air [/api/home/on_air]
+
+### List All [GET]
+
+List all bangumi which is currently on air, on air means current date is between air_date and the last episode airdate plus one week.
+
++ Response 200 (application/json)
+
+    + Attributes
+
+        + `data` (array[BangumiFavorite]) - a list of bangumi which is on air
+
+## List bangumi [/api/home/bangumi{?page,count,sort_field,sort_order,name}]
+
++ Parameters
+    + page (number, optional) - the page number start from 1.
+        + Default: `1`
+    + count (number, optional) - count per page, by provide count = -1, client can obtain all data.
+        + Default: `10`
+    + sort_field (string, optional) - the field name used for sort by.
+        + Default: `air_date`
+    + sort_order (string, optional) - the sort order which can be only two value: desc and asc.
+        + Default: `desc`
+    + name (string, optional) - the search term for filtering result. this string will be matched by name_cn, name and summary.
+
+
+## List All [GET]
+
+List all bangumi base on the given query criteria.
+
++ Response 200 (application/json)
+
+    + Attributes
+
+        + total: `256` (number, required) - the total number of bangumi under given query criteria
+        + data (array[BangumiFavorite]) - a list of bangumi which is a sub set of all bangumi under given query criteria. if count is -1, this list will contains all bangumi
+
+### Get Bangumi Detail [GET /api/home/bangumi/{id}]
+
++ Parameters
+    + id (string, required) - bangumi id
+
++ Response 200 (application/json)
+
+    + Attributes
+
+        + data (BangumiExtended) - the bangumi object contains the episodes list.
+
+## Get Episode detail [/api/home/episode/{id}]
+
+Get the episode by specific id
+
++ Parameters
+    + id (string, required) - the episode id
+
+### Get Episode [GET]
+
++ Response 200 (application/json)
+
+    + Attributes (EpisodeExtended)
+
+
+# Data Structures
+
+## Bangumi
+- `id`: `46a469ee-5041-4f7c-8bf3-43ea6166a728` (string)
+- `bgm_id`: `174138` (number) - the id of this bangumi in bgm.tv
+- `name`: `ロクでなし魔術講師と禁忌教典` (string) - the original name (usually the original language) of the bangumi
+- `name_cn`: `不正经的魔术讲师与禁忌教典` (string) - the chinese translated name of the bangumi, can be null.
+- `summary`: `厌恶魔术的魔术讲师所展开的叛逆英雄幻想剧！魔术与科学共同发展的世界——卢瓦佛斯。位于魔导大国·阿尔扎诺帝国南部的“阿尔扎诺帝国魔法学院”，是学习世界最先端魔术的最高学舍...` (string) - description for bangumi, can be null
+- `image`: `http://lain.bgm.tv/pic/cover/l/fb/9a/212500_858ip.jpg` (string) - the original image url from bgm.tv, this should not be used except the bangumi is not saved into database yet. A client should use cover property.
+- `cover`: `https://yourdomain.com/pic/46a469ee-5041-4f7c-8bf3-43ea6166a728/cover.jpg` (string) - the image url of bangumi, which is stored locally
+- `create_time`: `1493655186672.0` (number)
+- `update_time`: `1493655186672.0` (number)
+- `eps_no_offset` (number) - A offset is used for adjust episode number matching issue. offset = <episode.episode_no> - <feed episode number>, can be null
+- `bangumi_moe`: `[{"_id":"58df79c779c3a0541f4b61bb","name":"ロクでなし魔術講師と禁忌教典","type":"bangumi"}]` (string) - the search term for bangumi.moe, this string is in fact a json string. For detail of this format, see https://github.com/BangumiMoe/rin-pr-apidoc/blob/master/DOC/api/tag.md
+- `libyk_so`: `{q: "不正经的魔术讲师与禁忌教典 简体 MP4", t: "dmhy"}` (string) - search term for libyk.com. The string is in fact a json string
+- `dmhy`: `不正经的魔术讲师与禁忌教典 简体 MP4` (string) - search term for dmhy
+- `type`: `2` (number)
+- `status`: `1` (number) - status of a bangumi, can be 0 (pending), 1 (on air), 2 (finished)
+- `air_date`: `2017-04-29` (string) - air date (aka on air starting date of bangumi)
+- `air_weekday`: `6` (number) - Which day of a week this bangumi is on air.
+- `delete_mark`: `1493655186672.0` (number) - used for mark the delete action timestamp, can be null
+- `acg_rip`: `世界奇妙物语 720 MP4`, (string) - the search term for acg.rip
+- `rss` (string) - DEPRECATED, will be removed in the future
+- `eps_regex` (string) - DEPRECATED, will be removed in the future
+- `eps`: `1` (number) - how many episodes the bangumi has
+
+## BangumiExtended (Bangumi)
+- `episodes` (array[Episode]) - episode list of the bangumi
+
+## BangumiFavorite (Bangumi)
+- `favorite_status`: `3` (number, optional) - current favorite status of the bangumi, this field can be one of the following value: 1 (WISH), 2 (WATCHED), 3 (WATCHING), 4 (PAUSE), 5 (ABANDONED)
+
+## BangumiUnwatched (BangumiFavorite)
+- `unwatched_count`: `10` (number, required) - how many episodes which is downloaded but not been watched by current user.
+
+## Episode
+- `id`: `f0317eb2-d487-4e89-9e8d-9cccffd73e00` (string)
+- `bangumi_id`: `46a469ee-5041-4f7c-8bf3-43ea6166a728` (string) - Id of bangumi that is the episode belong to.
+- `bgm_eps_id`: `711764` (number) - id of this episode in bgm.tv
+- `name`: `01` (string) - the original name (usually the original language) of the episode
+- `name_cn`: `没干劲的不正经老师` (string) - the chinese translated name of the episode, can be null
+- `thumbnail`: `https://yourdomain.com/pic/46a469ee-5041-4f7c-8bf3-43ea6166a728/thumbnails/1.png` (string)
+- `status`: `2` (number) - the status of episode, can be: 0 (not downloaded), 1 (downloading), 2 (downloaded)
+- `episode_no`: `1` (number) - the number of the episode
+- `create_time`: `1493655186675.0` (number)
+- `update_time`: `1493658358003.0` (number)
+- `airdate`: `2017-04-29` (string)
+- `delete_mark` (number) - can be null
+- `duration` (string)
+
+
+### EpisodeExtended (Episode)
+- `bangumi` (Bangumi) - the bangumi which this episode belongs to.
+- `video_files` (array[VideoFile]) - the actual video files associated with this episode.
+
+### VideoFile
+- `id`: `fe4150ee-4b11-46e3-b0ef-31aa6bce1095` (string)
+- `status`: `3` (number) - can be 1 (download pending), 2 (downloading), 3 (downloaded)
+- `torrent_id`: `614691f99c5073fa83d5d89582ff11024e929448` (string)
+- `url`: `https://yourdomain/video/02981eec-c817-47e5-baed-56d466afbb20/[DMG][Roku de Nashi Majutsu Koushi to Akashic Records][01][720P][GB].mp4` (string) - 
+- `file_path`: `[DMG][Roku de Nashi Majutsu Koushi to Akashic Records][01][720P]` (string)
+- `file_name` (string) - name of actual file, can be null
+- `resolution_w`: `1024` (number)
+- `download_url`: `magnet:?xt=urn:btih:614691f99c5073fa83d5d89582ff11024e929448&dn=%E4%B8%96%E7%95%8C%E5%A5%87%E5%A6%99%E7%89%A9%E8%AF%AD.2017%E5%B9%B4%E6%98%A5%E5%AD%A3%E7%89%B9%E5%88%AB%E7%AF%87.mp4` (string)
+- `episode_id`: `f0317eb2-d487-4e89-9e8d-9cccffd73e00` (string)
+- `resolution_h`: `576` (number)
+- `bangumi_id`: `46a469ee-5041-4f7c-8bf3-43ea6166a728` (string)
+- `duration`: `6399040` (number)
+- `label` (string)
