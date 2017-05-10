@@ -3,9 +3,10 @@ FORMAT: 1A
 This is Albireo project http API document. it contains end user and admin API for Client.
 
 
-# Group End User API
+# Group Home API
 
-API that mainly used for end user
+API for querying bangumi and episode in end user client. Including List bangumi and episode, get detail of a bangumi 
+and episode by specifying id.
 
 ## my_bangumi [/api/home/my_bangumi]
 
@@ -34,15 +35,15 @@ List all bangumi which is currently on air, on air means current date is between
 ## List bangumi [/api/home/bangumi{?page,count,sort_field,sort_order,name}]
 
 + Parameters
-    + page (number, optional) - the page number start from 1.
+    + `page` (number, optional) - the page number start from 1.
         + Default: `1`
-    + count (number, optional) - count per page, by provide count = -1, client can obtain all data.
+    + `count` (number, optional) - count per page, by provide count = -1, client can obtain all data.
         + Default: `10`
-    + sort_field (string, optional) - the field name used for sort by.
+    + `sort_field` (string, optional) - the field name used for sort by.
         + Default: `air_date`
-    + sort_order (string, optional) - the sort order which can be only two value: desc and asc.
+    + `sort_order` (string, optional) - the sort order which can be only two value: desc and asc.
         + Default: `desc`
-    + name (string, optional) - the search term for filtering result. this string will be matched by name_cn, name and summary.
+    + `name` (string, optional) - the search term for filtering result. this string will be matched by name_cn, name and summary.
 
 
 ## List All [GET]
@@ -81,7 +82,580 @@ Get the episode by specific id
     + Attributes (EpisodeExtended)
 
 
+# Group Favorite And Watch History API
+
+A set of APIs which allow end user to view and modify favorite status of a bangumi and record watch history of an episode.
+
+## Favorite Bangumi [/api/watch/favorite/bangumi/{bangumi_id}]
+
+Change the favorite status of a bangumi
+
++ Parameters
+    + `bangumi_id`: `46a469ee-5041-4f7c-8bf3-43ea6166a728` (string, required)
+
+### Change Bangumi Favorite Status [POST]
+
++ Request  (application/json)
+    
+    + Attributes
+
+        + status: `3` (number, required) - favorite status of the bangumi, can be one of the following value: 1 (WISH), 2 (WATCHED), 3 (WATCHING), 4 (PAUSE), 5 (ABANDONED)
+
++ Response 200 (application/json)
+
+        {
+            "message": "ok",
+            "status": 0
+        }
+
+## Favorite Episode [/api/watch/favorite/episode/{episode_id}]
+
+Change the favorite status of an episode, an episode favorite_status will affect my_bangumi API result if the bangumi of this episode is marked with 3 (WATCHING)
+When episode is not favorite or favorite status is not 3 (WATCHING) or 2 (WATCHED) and episode status is 2 (DOWNLOADED), my_bangumi result will count this episode into unwatch_count.
+
++ Parameters
+    + `episode_id`: `f0317eb2-d487-4e89-9e8d-9cccffd73e00` (string, required)
+
+### Change Episode Favorite Status [POST]
+
++ Request  (application/json)
+
+    + Attributes
+
+        + status: `3` (number, required) - favorite status of the episode, can be one of the following value:  1 (WISH), 2 (WATCHED), 3 (WATCHING), 4 (PAUSE), 5 (ABANDONED)
+        + bangumi_id: `f0317eb2-d487-4e89-9e8d-9cccffd73e00` - id of bangumi which the episode belongs to.
+
++ Response 200 (application/json)
+
+        {
+            "message": "ok",
+            "status": 0
+        }
+    
+## Episode Hisotry [/api/watch/history/{episode_id}]
+
+Add/update the watch history and progress. When this operation is success the favorite status of an episode is also changed depending on the watch progress.
+ If the watch progress is greater than a percentage which is controlled by client. a boolean field `is_finished` should be contained in request payload and set to true.
+ When is_finished is true, the favorite status of current episode will be changed to 2 (WATCHED), otherwise, the favorite status will be set to 3 (WATCHING)
+
++ Parameters
+    + `episode_id`: `f0317eb2-d487-4e89-9e8d-9cccffd73e00` (string, required)
+
+### Update/Add Watch History And Progress [POST]
+
++ Request  (application/json)
+
+    + Attributes
+
+        + bangumi_id: `46a469ee-5041-4f7c-8bf3-43ea6166a728` (string, required) - id of bangumi which current episode belongs to.
+        + last_watch_position: `3.0` (number, required) - a float value record the user watched position, it's the currentTime property of HTMLMediaElement, unit is second.
+        + percentage: `0.5012` (number, required) - a float value which is the result of currentTime / duration.
+        + is_finished: `false` (boolean, required) - This value indicates whether this episode is finished watching. Client should control the value on its own strategy. It's recommend to keep this value as true once the episode favorite status is changed to 2 (WATCHED). 
+
++ Response 200 (application/json)
+
+        {
+            "message": "ok",
+            "status": 0
+        }
+
+# Group Account API
+
+A set of API related with login, register and user information
+
+## Login [/api/user/login]
+
+Login current user and create a session
+
+### Login [POST]
+
++ Request  (application/json)
+
+    + Attributes
+
+        + name: `john_doe` (string, required) - user name
+        + password: `adfbasdf` (string, required)
+        + remmember: `true` (boolean, required) - whether to store the user session for a long period (365 days), if this value is false, only store session for one month.
+
++ Response 200 (application/json)
+
+    + Headers
+
+            set-cookie: session=c1234543-a419-4797-b3a1-b103f128b820.3oq6lYFBykUey9aPNm6D8RlXZ8Q; Expires=Sat, 10-Jun-2017 07:50:12 GMT; HttpOnly; Path=/
+
+    + Body
+    
+            {"msg": "OK"}
+
++ Response 400 (application/json)
+
+        {"message": "invalid parameter"}
+
++ Response 400 (application/json)
+
+        {"message": "invalid name or password"}
+
+## Logout [/api/user/logout]
+
+Logout the user session
+
+## Logout [POST]
+
++ Response 200 (application/json)
+
+        {"msg": "OK"}
+
+## Register User [/api/user/register]
+
+register a new user using invite code, note that a newly registered user is not administrator
+
+### Register [POST]
+
++ Request
+
+    + Attributes
+    
+        + name: `john_doe` (string, required) -  user name, must be unique
+        + password (string, required)
+        + password_repeat (string, required) - must equal to password
+        + invite_code (string, required)
+
++ Response 200 (application/json)
+
+        {"msg": "OK"}
+
++ Response 400 (application/json)
+
+        {"message": "invalid invite code"}
+
++ Response 400 (application/json)
+
+        {"message": "duplicate name"}
+
++ Response 400 (application/json)
+
+        {"message": "password not match"}
+
++ Response 400 (application/json)
+
+        {"message": "invalid parameter"}
+
+## GET User Info [/api/user/info]
+
+get user information, this api can be used for check session validation
+
+# Get Info [GET]
+
++ Response 200 (application/json)
+
+        {
+            "name": "john_doe",
+            "level": 0
+        }
+
++ Response 401 (application/json)
+
+        {
+            "message": "unauthorized access"
+        }
+
+## Reset Password [/api/user/reset_pass]
+
+Reset a user password using invite_code
+
+### Reset Password [POST]
+
++ Request
+
+    + Attributes
+    
+        + name: `john_doe` (string, required) -  user name
+        + password (string, required)
+        + password_repeat (string, required) - must equal to password
+        + invite_code (string, required)
+
++ Response 200 (application/json)
+
+        {"msg": "OK"}
+
++ Response 400 (application/json)
+
+        {"message": "invalid invite code"}
+
++ Response 400 (application/json)
+
+        {"message": "password not match"}
+
++ Response 400 (application/json)
+
+        {"message": "invalid parameter"}
+
+# Group Admin API
+
+A set of API for managing bangumi and episode, NOTE: ALL these api require user.level >= 2
+
+## Bangumi [/api/admin/bangumi{?page,count,order_by,sort,name}]
+
+Bangumi resource, include CRUD operations
+
+### List Bangumi [GET]
+
+List bangumi by filter criteria. support return all bangumi by passing count = -1
+
++ Parameters
+    + `page`: `1` (number, optional) - specify page of result set
+        + Default: `1`
+    + `count`: `10` (number, optional) - result count per page. if pass -1, return all bangumi
+        + Default: `10`
+    + `order_by`: `update_time` (string, optional) - sorting field, result set will sorted by this field.
+        + Default: `update_time`
+    + `sort`: `desc` (string, optional) - sort order, can be `desc` or `asc`
+        + Default: `desc`
+    + `name` (string, optional) - search term for name, name_cn, summary field contain specific string.
+
++ Response 200 (application/json)
+
+    + Attributes
+
+        + data (array[Bangumi]) - result list of current page filtered by given criteria. if count is -1, this list will contain all bangumi in database.
+        + total: 100 (number) - total number of matched result
+
+### Add Bangumi [POST]
+
+Add a bangumi
+
++ Request  (application/json)
+
+    + Attributes
+        + `bgm_id`: `174138` (number) - the id of this bangumi in bgm.tv
+        + `name`: `ロクでなし魔術講師と禁忌教典` (string) - the original name (usually the original language) of the bangumi
+        + `name_cn`: `不正经的魔术讲师与禁忌教典` (string) - the chinese translated name of the bangumi, can be null.
+        + `summary`: `厌恶魔术的魔术讲师所展开的叛逆英雄幻想剧！魔术与科学共同发展的世界——卢瓦佛斯。位于魔导大国·阿尔扎诺帝国南部的“阿尔扎诺帝国魔法学院”，是学习世界最先端魔术的最高学舍...` (string) - description for bangumi, can be null
+        + `image`: `http://lain.bgm.tv/pic/cover/l/fb/9a/212500_858ip.jpg` (string) - the original image url from bgm.tv, this should not be used except the bangumi is not saved into database yet. A client should use cover property.
+        + `eps_no_offset` (number) - A offset is used for adjust episode number matching issue. offset = <episode.episode_no> - <feed episode number>, can be null
+        + `type`: `2` (number)
+        + `air_date`: `2017-04-29` (string) - air date (aka on air starting date of bangumi)
+        + `air_weekday`: `6` (number) - Which day of a week this bangumi is on air.
+        + `eps`: `1` (number) - how many episodes the bangumi has
+        + `episodes`
+            + `bgm_eps_id`: `288990` (number)
+            + `episode_no`: `1` (number)
+            + `name`: `納涼床の女神` (string)
+            + `name_cn`: `纳凉露台的女神` (string)
+            + `duration`: `00:24:00` (string)
+            + `airdate`: `2013-07-07` (string)
+
++ Response 200 (application/json)
+
+    + Attributes
+        + data
+            + id: `46a469ee-5041-4f7c-8bf3-43ea6166a728` (string) - bangumi id of the newly added.
+
+
+### Update Bangumi [PUT /api/admin/bangumi/{bangumi_id}]
+
+Update a bangumi, this operation will not update all fields which client post. To learn which field is allowed to update,
+see the source code
+
++ Parameters
+    + `bangumi_id` (string, required)
+
++ Request  (application/json)
+
+    + Attributes (Bangumi)
+
++ Response 200 (application/json)
+
+        {"msg": "ok"}
+
+## Get Bangumi [GET /api/admin/bangumi/{bangumi_id}]
+
+Get a bangumi detail with all episodes information
+
++ Parameters
+    + bangumi_id (string, required)
+
++ Response 200 (application/json)
+
+    + Attributes
+        + data (BangumiExtended)
+
++ Response 404 (application/json)
+
+        {"message": "NOT FOUND"}
+
+### Delete Bangumi [DELETE /api/admin/bangumi/{bangumi_id}]
+
+Delete a bangumi, this operation will add a delete_mark field to bangumi, after a given delay (configured in config file), a task will 
+delete this bangumi. administrator can undo a delete before that time by just remove the delete_mark.
+
++ Parameters
+    + `bangumi_id` (string, required)
+
++ Response 200 (application/json)
+
+    + Attributes
+        + data
+            + `delete_delay` 10 (number) - after how long the bangumi will be deleted, unit is minute.
+
+
+## Query From Bangumi.tv [/api/admin/query{?name,type,offset,count}]
+
+Provide A bridge to get bangumi information from bangumi.tv.
+
+### Search Bangumi [GET]
+
+Search bangumi from bangumi.tv by giving a specific search term.
+
++ Parameters
+    + `name` (string, optional) - search term to filter bangumi from bangumi.tv, if this value is null, undefined, a 404 is returned
+    + `type` (number, optional) - type of bangumi, 2 is anime, 6 is tv series.
+        + Default: `2`
+    + `offset` (number, optional) - item offset in the result list returned by bangumi.tv. usually this value is used for supporting pagination. offset = (page - 1) * count.
+        + Default: `0`
+    + `count` (number, optional) - number of items per page
+        + Default: `10`
+
++ Response 200 (application/json)
+    
+    + Attributes
+        + data (array[BangumiRaw])
+        + total (number)
+
+### Get Bangumi Detail [GET /api/admin/query/{bgm_id}]
+
+Get the bangumi detail information by bangumi.tv bgm_id
+
++ Parameters
+    + `bgm_id`: `193042` (number, required)
+
++ Response 200 (application/json)
+
+    + Attributes (BangumiRawLarge)
+
+
+## Episode [/api/admin/episode{?page,count,order_by,sort,status}]
+
+Episode resource, include CRUD operations
+
+### List Episode [GET]
+
+List All Episode
+
++ Parameters
+    + page: `1` (number, optional)
+        + Default: `1`
+    + count: `10` (number, optional)
+        + Default: `10`
+    + `order_by`: `bangumi_id` (string, optional)
+        + Default: `bangumi_id`
+    + sort: `desc` (string, optional) - sort order can be `desc` or `asc`
+        + Default: `desc`
+    + status: `1` (number, optional) - filter by episode status
+
++ Response 200 (application/json)
+
+    + Attributes
+        + data (array[Episode]) - a list of current page of the result filtered by search criteria
+        + total: `100` (number) - total number of result filtered by search criteria
+
+
+### Add Episode [POST]
+
+Add an episode, this episode must related with a bangumi
+
++ Request  (application/json)
+
+    + Attributes
+        + `bangumi_id` (string, required)
+        + `bgm_eps_id` (string, required)
+        + `episode_no` (number, required)
+        + `name` (string, required)
+        + `name_cn` (string, optional)
+        + `duration` (string, optional) - format is HH:mm:ss
+        + `airdate` (string, optional) - format is YYYY-MM-DD
+
++ Response 200 (application/json)
+
+    + Attributes
+        + data
+            + id (string) - the id of newly added episode
+
+### Get Episode [GET /api/admin/episode/{episode_id}]
+
+Get an episode detail
+
++ Parameters
+    + `episode_id` (string, required)
+
++ Response 200 (application/json)
+
+    + Attributes (Episode)
+
+### Updaate Episode [PUT /api/admin/episode/{episode_id}]
+
+Update an episode, only a few property will be updated, for more detail, read the source code.
+
++ Parameters
+    + `episode_id` (string, required)
+    
++ Request  (application/json)
+
+    + Attributes (Episode)
+
++ Response 200 (application/json)
+
+        {"msg": "ok"}
+
+### Delete an episode [DELETE /api/admin/episode/{episode_id}]
+
+Delete an episode, this operation will only add an delete_mark property to episode as current time.
+after a delay, task will run and delete this episode. user can undo the delete operation by remove the delete_mark before it is actually deleted.
+
++ Parameters
+    + `episode_id` (string, required)
+
++ Response 200 (application/json)
+
+    + Attributes
+        + data
+            + `delete_delay` (number) - delete_delay for episode, read from config file, unit is minute
+
+## Video File [/api/video-file{?episode_id}]
+
+Video_file related operation, A video_file is an object which describe the video file property including url, resolution, duration, etc.
+
+### List Video File [GET]
+
+List all video files of specifial episode.
+
++ Parameters
+    + `episode_id` (string, required)
+
++ Response 200 (application/json)
+
+    + Attributes
+        + data (array[VideoFile])
+
+### Add Video File [POST]
+
+Add a video_file to a special episode, this method is usually used for manually download video from a special magnet url
+
++ Request  (application/json)
+
+    + Attributes
+        + `bangumi_id`: `46a469ee-5041-4f7c-8bf3-43ea6166a728` (string, required)
+        + `episode_id`: `f0317eb2-d487-4e89-9e8d-9cccffd73e00` (string, required)
+        + `status`: `3` (number, required) - can be 1 (download pending), 2 (downloading), 3 (downloaded)
+        + `file_path`: `[DMG][Roku de Nashi Majutsu Koushi to Akashic Records][01][720P]` (string, optional)
+        + `file_name` (string, optional) - name of actual file, can be null
+        + `download_url`: `magnet:?xt=urn:btih:614691f99c5073fa83d5d89582ff11024e929448&dn=%E4%B8%96%E7%95%8C%E5%A5%87%E5%A6%99%E7%89%A9%E8%AF%AD.2017%E5%B9%B4%E6%98%A5%E5%AD%A3%E7%89%B9%E5%88%AB%E7%AF%87.mp4` (string, optional)
+        + `resolution_w`: `1024` (number, optional)
+        + `resolution_h`: `576` (number, optional)
+        + `duration`: `6399040` (number, optional)
+        + `label` (string, optional)
+
++ Response 200 (application/json)
+
+    + Attributes
+        + data: `fe4150ee-4b11-46e3-b0ef-31aa6bce1095` (string) - id of newly added video_file
+    
+### Update Video File [PUT /api/admin/video-file/{id}]
+
+Update a video_file, not all property will be updated.
+
++ Parameters
+    + id (string, required)
+
++ Request  (application/json)
+
+    + Attributes (VideoFile)
+
++ Response 200 (application/json)
+
+        {"msg": "OK"}
+
+### Delete A Video File [DELETE /api/admin/video-file/{id}]
+
+Delete a video_file, this operation is an instant operation and could not revert. Note that currently
+delete a video_file won't remove the torrent session from deluge associated with its torrent id. But will
+remove the file associated with file_path of this video_file.
+
++ Parameters
+    + id (string, required)
+
++ Response 200 (application/json)
+
+        {"msg": "ok"}
+
 # Data Structures
+
+## BangumiRaw
+- `bgm_id`: `193042` (number)
+- `rating` (Rating)
+- `name`: `有頂天家族2` (string)
+- `air_date`: `2017-04-09` (string)
+- `image`: `http://lain.bgm.tv/pic/cover/l/0d/e4/193042_So0pa.jpg` (string)
+- `name_cn`: `有顶天家族2` (string)
+- `eps`: `12` (number)
+- `rank`: `428` (number)
+- `summary`: `人居市街内，狸猫匍地行，天狗翱长空。居于京都下鸭神社糺之森的下鸭一家。...。` (string)
+- `air_weekday`: `7` (number)
+- `id`: `587b0a9b-c2ba-4f01-b553-6d14ed60f311` (string, optional) - this is the bangumi id in database, if this id is found, client should let user know that this bangumi already exists in database.
+
+## Rating
+- `count` (RatingCount)
+- `total`: `157` (number)
+- `score`: `7.9` (number)
+
+## RatingCount
+- `10`: `9` (number)
+- `1`: `0` (number)
+- `3`: `0` (number)
+- `2`: `0` (number)
+- `5`: `1` (number)
+- `4`: `0` (number)
+- `7`: `35` (number)
+- `6`: `8` (number)
+- `9`: `15` (number)
+- `8`: `89` (number)
+
+## BangumiRawLarge
+- `id`: `68035` (number)
+- `url`: `http://bgm.tv/subject/68035` (string)
+- `type`: `2` (number)
+- `name`: `有頂天家族` (string)
+- `name_cn`: `有顶天家族` (string)
+- `summary`: `作品讲述原狸猫一族名门下鸭家的家主被人类下火锅后，不中用的下鸭四兄弟与其老母撑起家道中落的下鸭家的故事。老大矢一郎个性认真，但一到紧要关头就手足无措；老二变身为青蛙，不肯出井底；老三最爱看好戏，喜欢恶作剧；老幺胆子小，变身总是忘了藏尾巴。不靠谱的四兄弟………困境重重、霉运不断，四兄弟有机会保护母亲，重振家威吗？` (string)
+- `eps` (array[EpisodeRaw])
+- `air_date`: `2013-07-07` (string)
+- `air_weekday`: `7` (number)
+- `rating` (Rating)
+- `rank`: `247` (number)
+- `images` (BgmImage) - you should use the `large` property of image.
+- `collection` (object) - this is a trivial object for Albireo. for more detail, visit: https://github.com/jabbany/dhufufu/blob/master/bangumi/api.txt
+- `crt` (array[object]) - this is a trivial object for Albireo. for more detail, visit: https://github.com/jabbany/dhufufu/blob/master/bangumi/api.txt
+- `staff` (array[object]) - this is a trivial object for Albireo. for more detail, visit: https://github.com/jabbany/dhufufu/blob/master/bangumi/api.txt
+- `topic` (array[object]) - this is a trivial object for Albireo. for more detail, visit: https://github.com/jabbany/dhufufu/blob/master/bangumi/api.txt
+- `blog` (array[object]) - this is a trivial object for Albireo. for more detail, visit: https://github.com/jabbany/dhufufu/blob/master/bangumi/api.txt
+
+## EpisodeRaw
+- `id`: `288990` (number)
+- `url`: `http://bgm.tv/ep/288990` (string)
+- `type`: `0` (number)
+- `sort`: `1` (number)
+- `name`: `納涼床の女神` (string)
+- `name_cn`: `纳凉露台的女神` (string)
+- `duration`: `00:24:00` (string)
+- `airdate`: `2013-07-07` (string)
+- `comment`: `99` (number)
+- `desc`: `脚本：菅正太郎 / 絵コンテ：吉原正行 / 演出：菅沼芙実彦 / 作画監督：川面恒介
+
+## BgmImage
+- `large`: `http://lain.bgm.tv/pic/crt/l/a6/73/5807_prsn_Igcj1.jpg` (string)
+- `medium`: `http://lain.bgm.tv/pic/crt/m/a6/73/5807_prsn_Igcj1.jpg` (string)
+- `small`: `http://lain.bgm.tv/pic/crt/s/a6/73/5807_prsn_Igcj1.jpg` (string)
+- `grid`: `http://lain.bgm.tv/pic/crt/g/a6/73/5807_prsn_Igcj1.jpg` (string)
 
 ## Bangumi
 - `id`: `46a469ee-5041-4f7c-8bf3-43ea6166a728` (string)
@@ -122,7 +696,7 @@ Get the episode by specific id
 - `bgm_eps_id`: `711764` (number) - id of this episode in bgm.tv
 - `name`: `01` (string) - the original name (usually the original language) of the episode
 - `name_cn`: `没干劲的不正经老师` (string) - the chinese translated name of the episode, can be null
-- `thumbnail`: `https://yourdomain.com/pic/46a469ee-5041-4f7c-8bf3-43ea6166a728/thumbnails/1.png` (string)
+- `thumbnail`: `https://yourdomain.com/pic/46a469ee-5041-4f7c-8bf3-43ea6166a728/thumbnails/1.png` (string, optional)
 - `status`: `2` (number) - the status of episode, can be: 0 (not downloaded), 1 (downloading), 2 (downloaded)
 - `episode_no`: `1` (number) - the number of the episode
 - `create_time`: `1493655186675.0` (number)
@@ -132,11 +706,11 @@ Get the episode by specific id
 - `duration` (string)
 
 
-### EpisodeExtended (Episode)
+## EpisodeExtended (Episode)
 - `bangumi` (Bangumi) - the bangumi which this episode belongs to.
 - `video_files` (array[VideoFile]) - the actual video files associated with this episode.
 
-### VideoFile
+## VideoFile
 - `id`: `fe4150ee-4b11-46e3-b0ef-31aa6bce1095` (string)
 - `status`: `3` (number) - can be 1 (download pending), 2 (downloading), 3 (downloaded)
 - `torrent_id`: `614691f99c5073fa83d5d89582ff11024e929448` (string)
