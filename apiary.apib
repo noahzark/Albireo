@@ -588,6 +588,93 @@ remove the file associated with file_path of this video_file.
 
         {"msg": "ok"}
 
+# Group Feed API
+
+This API is used for verify the search result for search term of some resource site. All of the API under this group are also required user.level >= 2
+
+## dmhy [/api/feed/dmhy/{keywords}]
+
+Get the feed result from dmhy. This API is unstable because it is a proxy API
+
++ Parameters
+    + keywords (string, required) - the search term for dmhy
+
+### Get Feed Result [GET]
+
++ Response 200 (application/json)
+
+    + Attributes
+        + data (array[FeedResult]) - the result of query, can be empty array if no result matched.
+        + status: `0` (number)
+
+## acg.rip [/api/feed/acg-rip/{keywords}]
+
+Get the feed result from acg.rip. This API is unstable because it is a proxy API
+
++ Parameters
+    + keywords (string, required) - the search term for dmhy
+
+### Get Feed Result [GET]
+
++ Response 200 (application/json)
+
+    + Attributes
+        + data (array[FeedResult]) - the result of query, can be empty array if no result matched.
+        + status: `0` (number)
+
+## libyk [/api/feed/libyk-so{?q,t}]
+Get the feed result from libyk.com, This API is unstable because it is a proxy API
+
++ Parameters
+    + q (string, required) - the searchh term
+    + t (string, required) - the source for search, can be `yyets`, `dmhy`, `tokyo`
+
+### GET Feed Result [GET]
+
++ Response 200 (application/json)
+
+    + Attributes
+        + data (array[FeedResult]) - the result of query, can be empty array if no result matched.
+        + status: `0` (number)
+
+## Bangumi.moe Proxy [/api/feed/bangumi-moe]
+
+Proxy for bangumi.moe API which method is POST
+
+### Proxy [POST]
+
+Return response of this method can be any
+
++ Request  (application/json)
+    
+    + Attributes
+        + url (string, required) - target bangumi.moe url to reach
+        + payload (object, required) - bangumi.moe request payload
+
++ Response 200 (application/json)
+    
+    + Attributes (object)
+
+## Bangumi.moe Torrent Search [/api/feed/bangumi-moe/torrent/search]
+
+Search torrents using tag_ids, for more detail, see https://github.com/BangumiMoe/rin-pr-apidoc/blob/master/DOC/api/torrent.md
+
+### Search [POST]
+
++ Request  (application/json)
+
+    + Attributes
+        + tag_id (array[string]) - tag id list
+        + p (number, optional) - page
+
++ Response 200 (application)
+
+    + Attributes
+        + count (number)
+        + page_count (number),
+        + torrents (array[object]) - see rin-pr document
+        
+
 # Data Structures
 
 ## BangumiRaw
@@ -724,3 +811,7 @@ remove the file associated with file_path of this video_file.
 - `bangumi_id`: `46a469ee-5041-4f7c-8bf3-43ea6166a728` (string)
 - `duration`: `6399040` (number)
 - `label` (string)
+
+## FeedResult
+- `title` (string) - the feed title of item
+- `episode_no` (number) - the episode number parsed from title, using regular expression, if no episode no is matched, it is -1.
