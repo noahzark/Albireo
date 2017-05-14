@@ -674,6 +674,22 @@ Search torrents using tag_ids, for more detail, see https://github.com/BangumiMo
         + page_count (number),
         + torrents (array[object]) - see rin-pr document
         
+# Group Task
+
+This is a set of API that related to tasks
+
+## Pending Delete Bangumi [/api/task/bangumi]
+
+Show pending delete bangumi.
+
+### List Pending Delete Bangumi
+
++ Response 200 (application/json)
+
+    + Attributes
+        + data (array[BangumiPendingDelete]) - pending delete bangumi list
+        + `delete_delay` (number)
+    
 
 # Data Structures
 
@@ -776,6 +792,9 @@ Search torrents using tag_ids, for more detail, see https://github.com/BangumiMo
 
 ## BangumiUnwatched (BangumiFavorite)
 - `unwatched_count`: `10` (number, required) - how many episodes which is downloaded but not been watched by current user.
+
+## BangumiPendingDelete (Bangumi)
+- `delete_eta`: `5` (number, required) - estimated time left to delete this bangumi.
 
 ## Episode
 - `id`: `f0317eb2-d487-4e89-9e8d-9cccffd73e00` (string)
