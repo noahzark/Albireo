@@ -676,7 +676,7 @@ Search torrents using tag_ids, for more detail, see https://github.com/BangumiMo
         
 # Group Task
 
-This is a set of API that related to tasks
+This is a set of API that related to tasks. All APIs in this group require user.level >= 2
 
 ## Pending Delete Bangumi [/api/task/bangumi]
 
@@ -743,6 +743,58 @@ Restore a pending delete episode, only available before episode is actually dele
 
             {'msg': 'ok'}
 
+# Group User Management
+
+A set of API which used to management user and invite code. All APIs in this group require user.level >= 2.
+
+## User [/api/user-manage{?name,count,offset}]
+
+User related operations
+
+### List All User [GET]
+
++ Parameters
+    + `name` (string, optional) - user name to search.
+    + `count`: `10` (number, optional) - number of items per page.
+        + Default: `10`
+    + `offset`: `0` (number, optional) - start position off current page.
+        + Default: `0`
+
++ Response 200 (application)
+
+    + Attributes
+        + `data` (array[User]) - list of user in current page
+        + `total` (number) - total number under current search term.
+
+### Promote A User [POST /api/user-manage/promote]
+
++ Request  (application/json)
+
+    + Attributes
+        + `id`: `f0317eb3-d487-4e89-9e8d-9cf0ffd73e00` (string, required) - user id
+        + `to_level`: `2` (number, required) - level to be promoted.
+
++ Response 200 (application/json)
+
+    + Attributes
+        
+            {"msg": "OK"}
+
+
+## Invite Code [/invite{?num}]
+
+Invite code related operations
+
+### Create A New Invite Code [POST]
+
++ Parameters
+    + `num`: 1 (number, optional) - how many invite codes to be generated.
+        + Default: `1`
+
++ Response 200 (application/json)
+
+    + Attributes
+        + `data` (array[string]) - invite code list which are newly generated.
 
 # Data Structures
 
@@ -896,3 +948,8 @@ Restore a pending delete episode, only available before episode is actually dele
 - `type` (number) - type of task, can be 1 (TYPE_BANGUMI_DELETE), 2 (TYPE_EPISODE_DELETE)
 - `content` (string) - task content, usually a serialized json string. the structures for task can vary for different tasks.
 - `status` (number) - status of task, can be 1 (STATUS_IN_PROGRESS), 2 (STATUS_COMPLETE)
+
+## User
+- `id` (string)
+- `name` (string)
+- `level` (number) - level of user, default is 0, admin is 2, superuser is 3
