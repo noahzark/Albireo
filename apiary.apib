@@ -680,16 +680,69 @@ This is a set of API that related to tasks
 
 ## Pending Delete Bangumi [/api/task/bangumi]
 
-Show pending delete bangumi.
+Operations related with pending delete bangumi.
 
-### List Pending Delete Bangumi
+### List Pending Delete Bangumi [GET]
 
 + Response 200 (application/json)
 
     + Attributes
         + data (array[BangumiPendingDelete]) - pending delete bangumi list
-        + `delete_delay` (number)
+        + `delete_delay` (number) - the configured delete delay for bangumi
     
+## Pending Delete Episode [/api/task/episode]
+
+Operations related with pending delete episode
+
+### List Pending Delete Episode [GET]
+
++ Response 200 (application/json)
+
+    + Attributes
+        + data (array[EpisodePendingDelete]) - pending delete episode list
+        + `delete_delay` (number) - the configured delete delay for episode
+        
+## Task [/api/task/task]
+
+Operations related with task
+
+### List Tasks [GET]
+
++ Response 200 (application/json)
+
+    + Attributes
+        + data (array[Task]) - a list of tasks
+
+## Restore Bangumi [/api/task/restore/bangumi/{id}]
+
+Restore a pending delete bangumi, only available before bangumi is actually deleted.
+
++ Parameters
+    + `id` (string, required) - bangumi id
+
+### Restore [POST]
+
++ Response 200 (application/json)
+
+    + Attributes
+        
+            {"msg": "ok"}
+
+## Restore Episode [/api/task/restore/episode/{episode_id}]
+
+Restore a pending delete episode, only available before episode is actually deleted.
+
++ Parameters
+    + `episode_id` (string, required) - episode id
+
+### Restore [POST]
+
++ Response 200 (application/json)
+
+    + Attributes
+
+            {'msg': 'ok'}
+
 
 # Data Structures
 
@@ -816,6 +869,9 @@ Show pending delete bangumi.
 - `bangumi` (Bangumi) - the bangumi which this episode belongs to.
 - `video_files` (array[VideoFile]) - the actual video files associated with this episode.
 
+## EpisodePendingDelete (Episode)
+- `delete_eta`: `1` (number, required) - estimated time left to delete this episode.
+
 ## VideoFile
 - `id`: `fe4150ee-4b11-46e3-b0ef-31aa6bce1095` (string)
 - `status`: `3` (number) - can be 1 (download pending), 2 (downloading), 3 (downloaded)
@@ -834,3 +890,9 @@ Show pending delete bangumi.
 ## FeedResult
 - `title` (string) - the feed title of item
 - `episode_no` (number) - the episode number parsed from title, using regular expression, if no episode no is matched, it is -1.
+
+## Task
+- `id` (string)
+- `type` (number) - type of task, can be 1 (TYPE_BANGUMI_DELETE), 2 (TYPE_EPISODE_DELETE)
+- `content` (string) - task content, usually a serialized json string. the structures for task can vary for different tasks.
+- `status` (number) - status of task, can be 1 (STATUS_IN_PROGRESS), 2 (STATUS_COMPLETE)

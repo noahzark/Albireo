@@ -11,3 +11,4 @@ alembic.ini
 .cache
 twistd.pid
 .session
+.vscode
