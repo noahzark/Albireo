@@ -70,56 +70,64 @@ def register():
         raise ClientError(ClientError.INVALID_REQUEST)
 
 
-@user_api.route('/update_pass', methods=['POST'])
+@user_api.route('/update-pass', methods=['POST'])
 @login_required
 def update_pass():
-    '''
+    """
     update a user password, the original password is needed
     :return: response
-    '''
+    """
     content = request.get_data(True, as_text=True)
     user_data = json.loads(content)
     if ('new_password' in user_data) and ('new_password_repeat' in user_data) and ('password' in user_data):
-        if(user_data['new_password'] != user_data['new_password_repeat']):
+        if user_data['new_password'] != user_data['new_password_repeat']:
             raise ClientError('password not match')
         current_user.update_password(user_data['password'], user_data['new_password'])
 
         return logout()
-
-
-@user_api.route('/reset_pass', methods=['POST'])
-def reset_pass():
-    '''
-    reset a user password, invite_code is required
-    :return:
-    '''
-    content = request.get_data(True, as_text=True)
-    user_data = json.loads(content)
-    if ('name' in user_data) and ('password' in user_data) and ('password_repeat' in user_data) and ('invite_code' in user_data):
-        name = user_data['name']
-        password = user_data['password']
-        password_repeat = user_data['password_repeat']
-        invite_code = user_data['invite_code']
-        if password != password_repeat:
-            raise ClientError('password not match')
-        if UserCredential.reset_pass(name, password, invite_code):
-            return json_resp({'msg': 'OK'})
     else:
-        raise ClientError('invalid parameters')
+        raise ClientError(ClientError.INVALID_REQUEST)
+
+
+@user_api.route('/reset-pass', method=['POST'])
+def reset_pass():
+    """
+    reset password using token    
+    """
+    data = json.loads(request.get_data(True, as_text=True))
+    if ('new_pass' in data) and ('new_pass_repeat' in data) and ('token' in data):
+        new_pass = data['new_pass']
+        new_pass_repeat = data['new_pass_repeat']
+        if new_pass != new_pass_repeat:
+            raise ClientError(ClientError.PASSWORD_MISMATCH)
+        return UserCredential.update_password_with_token(new_pass, token=data['token'])
+    else:
+        raise ClientError(ClientError.INVALID_REQUEST)
+
+
+@user_api.route('/request-reset-pass', method=['POST'])
+def request_reset_pass():
+    data = json.loads(request.get_data(True, as_text=True))
+    if 'email' in data:
+        UserCredential.send_pass_reset_email(data['email'])
+        return json_resp({'message': 'ok'})
+    else:
+        raise ClientError(ClientError.INVALID_REQUEST)
 
 
 @user_api.route('/info', methods=['GET'])
 @login_required
 def get_user_info():
-    '''
+    """
     get current user name and level
-    :return: response
-    '''
-    user_info = {}
-    user_info['name'] = current_user.name
-    user_info['level'] = current_user.level
-    user_info['email'] = current_user.email
-    user_info['email_confirmed'] = current_user.email_confirmed
+    :return: response 
+    """
+    user_info = {
+        'name': current_user.name,
+        'level': current_user.level,
+        'email': current_user.email,
+        'email_confirmed': current_user.email_confirmed
+    }
     return json_resp({'data': user_info})
 
 

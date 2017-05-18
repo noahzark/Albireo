@@ -18,9 +18,10 @@ import logging, re
 
 logger = logging.getLogger(__name__)
 
+PASSWORD_DIGEST_LENGTH = 8
+
 
 class UserCredential(UserMixin):
-
     def __init__(self, user):
         self.id = user.id
         self.name = user.name
@@ -31,12 +32,17 @@ class UserCredential(UserMixin):
         self.register_time = user.register_time
         self.update_time = user.update_time
 
+
+    @staticmethod
+    def get_pass_hash(password):
+        return generate_password_hash(password, method='pbkdf2:sha256', salt_length=8)
+
     def update_password(self, old_pass, new_pass):
         session = SessionManager.Session()
         try:
             user = session.query(User).filter(User.id == self.id).one()
             if check_password_hash(user.password, old_pass):
-                user.password = generate_password_hash(new_pass)
+                user.password = UserCredential.get_pass_hash(new_pass)
                 session.commit()
                 return True
             else:
@@ -124,7 +130,7 @@ class UserCredential(UserMixin):
         Get last 8 hash string from password
         :return: digest of password
         """
-        return password[-8:]
+        return password[-PASSWORD_DIGEST_LENGTH:]
 
     @staticmethod
     def generate_reset_email_token(user):
@@ -150,11 +156,11 @@ class UserCredential(UserMixin):
         from server import app, mail
         session = SessionManager.Session()
         try:
-            user = session.query(User).\
-                filter(User.email == email).\
+            user = session.query(User). \
+                filter(User.email == email). \
                 one()
             if not user.email_confirmed:
-                raise ClientError("Email not confirmed")
+                raise ClientError(ClientError.EMAIL_NOT_CONFIRMED)
             # generate token
             token = UserCredential.generate_reset_email_token(user)
 
@@ -171,7 +177,36 @@ class UserCredential(UserMixin):
             msg = Message(subject, recipients=[email], html=reset_content)
             mail.send(msg)
         except NoResultFound:
-            raise ClientError("Email not exists", 404)
+            raise ClientError(ClientError.EMAIL_NOT_EXISTS, 404)
+        finally:
+            SessionManager.Session.remove()
+
+    @staticmethod
+    def update_password_with_token(new_pass, token, expiration=3600):
+        from server import app
+        serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+        session = SessionManager.Session()
+        try:
+            combine_str = serializer.loads(token,
+                                           salt=app.config['SECRET_PASSWORD_SALT'],
+                                           max_age=expiration)
+            email = combine_str[:-(PASSWORD_DIGEST_LENGTH + 1)]
+            old_pass_digest = combine_str[-PASSWORD_DIGEST_LENGTH:]
+            user = session.query(User).filter(User.email == email).one()
+            if not user.email_confirmed:
+                raise ClientError(ClientError.EMAIL_NOT_CONFIRMED)
+
+            if old_pass_digest != UserCredential.get_password_digest(user.password):
+                raise ClientError('invalid token')
+
+            user.password = UserCredential.get_pass_hash(new_pass)
+
+            session.commit()
+
+            return json_resp({'message': 'ok'})
+
+        except NoResultFound:
+            raise ClientError(ClientError.EMAIL_NOT_EXISTS, 404)
         finally:
             SessionManager.Session.remove()
 
@@ -221,7 +256,7 @@ class UserCredential(UserMixin):
             if code.used_by is not None:
                 raise ClientError(ClientError.INVALID_INVITE_CODE)
             user = User(name=name,
-                        password=generate_password_hash(password),
+                        password=UserCredential.get_pass_hash(password),
                         email=email,
                         level=0)
             session.add(user)
@@ -235,28 +270,6 @@ class UserCredential(UserMixin):
             raise ClientError(ClientError.INVALID_INVITE_CODE)
         except IntegrityError:
             raise ClientError(ClientError.DUPLICATE_NAME)
-        except ClientError as error:
-            raise error
-        except Exception as error:
-            raise ServerError(error.message)
-        finally:
-            SessionManager.Session.remove()
-
-    @staticmethod
-    def reset_pass(name, password, invite_code):
-        session = SessionManager.Session()
-        try:
-            user = session.query(User).filter(User.name == name).one()
-            code = session.query(InviteCode).filter(and_(InviteCode.code == invite_code, InviteCode.used_by == user.id)).one()
-
-            user.password = generate_password_hash(password)
-
-            session.commit()
-            return True
-        except NoResultFound:
-            raise ClientError(ClientError.INVALID_INVITE_CODE)
-        except DataError:
-            raise ClientError(ClientError.INVALID_INVITE_CODE)
         except ClientError as error:
             raise error
         except Exception as error:

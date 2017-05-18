@@ -33,6 +33,10 @@ class ClientError(BasicError):
 
     NOT_VALID_BODY = 'not valid body'
 
+    EMAIL_NOT_EXISTS = 'email not exists'
+
+    EMAIL_NOT_CONFIRMED = 'email not confirmed'
+
     def __init__(self, message, status=400, payload=None):
         BasicError.__init__(self, message, status, payload)
 
