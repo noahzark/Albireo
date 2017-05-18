@@ -100,12 +100,14 @@ class UserCredential(UserMixin):
 
     def send_confirm_email(self):
         """
-        send an confirm email to user. contains a link to confirm the email
+        Send an confirm email to user. contains a link to confirm the email
         confirm link is not provide by this app, a client must implement this endpoint to complete the confirmation.
         """
         from server import app, mail
         token = self.generate_confirm_email_token()
-        confirm_url = '{0}://{1}/email-confirm?token={2}'.format(app.config['SITE_PROTOCOL'], app.config['SITE_HOST'], token)
+        confirm_url = '{0}://{1}/email-confirm?token={2}'.format(app.config['SITE_PROTOCOL'],
+                                                                 app.config['SITE_HOST'],
+                                                                 token)
         subject = '[{0}] Email Address Confirmation'.format(app.config['SITE_NAME'])
         email_content = render_template('email-template.html', info={
             'confirm_title': subject,
@@ -115,6 +117,63 @@ class UserCredential(UserMixin):
         })
         msg = Message(subject, recipients=[self.email], html=email_content)
         mail.send(msg)
+
+    @staticmethod
+    def get_password_digest(password):
+        """
+        Get last 8 hash string from password
+        :return: digest of password
+        """
+        return password[-8:]
+
+    @staticmethod
+    def generate_reset_email_token(user):
+        """
+        Generate a one-time token used for resetting password, this token contains a digest of current password and 
+        email of a valid user.
+        :return: a serialized token contains email, a password digest and a token timestamp
+        """
+        from server import app
+        serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+        combine_str = '{0}&{1}'.format(user.email, UserCredential.get_password_digest(user.password))
+        return serializer.dumps(combine_str, salt=app.config['SECRET_PASSWORD_SALT'])
+
+    @staticmethod
+    def send_pass_reset_email(email):
+        """
+        Send a password reset email which includes a link to navigate user to a endpoint to reset his/her password.
+        The link contains a token get from self.generate_reset_email_token method. end point has the responsibility 
+        to verify the token.
+        :param email: the user email from user input. this must be a confirmed email of a valid user.
+        :return: 
+        """
+        from server import app, mail
+        session = SessionManager.Session()
+        try:
+            user = session.query(User).\
+                filter(User.email == email).\
+                one()
+            if not user.email_confirmed:
+                raise ClientError("Email not confirmed")
+            # generate token
+            token = UserCredential.generate_reset_email_token(user)
+
+            reset_url = '{0}://{1}/reset-pass?token={2}'.format(app.config['SITE_PROTOCOL'],
+                                                                app.config['SITE_HOST'],
+                                                                token)
+            subject = '[{0}] Password Request for {1}'.format(app.config['SITE_NAME'], user.name)
+            reset_content = render_template('reset-template.html', info={
+                'reset_title': subject,
+                'reset_url': reset_url,
+                'site_name': app.config['SITE_NAME'],
+                'user_name': user.name
+            })
+            msg = Message(subject, recipients=[email], html=reset_content)
+            mail.send(msg)
+        except NoResultFound:
+            raise ClientError("Email not exists", 404)
+        finally:
+            SessionManager.Session.remove()
 
     @classmethod
     def get(cls, user_id):
