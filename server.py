@@ -7,7 +7,7 @@ logging.basicConfig(format=FORMAT, datefmt='%Y/%m/%d %H:%M:%S')
 
 logger = logging.getLogger()
 
-isDebug = os.getenv('DEBUG', False)
+isDebug = bool(os.getenv('DEBUG', False))
 
 if isDebug:
     logger.setLevel(logging.DEBUG)
@@ -38,6 +38,7 @@ import yaml
 import os
 
 isDebug = os.getenv('DEBUG', False)
+
 
 def get_config(key):
 
@@ -105,4 +106,4 @@ def unauthorized():
 
 if __name__ == '__main__':
     app.debug = isDebug
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', threaded=app.debug)
