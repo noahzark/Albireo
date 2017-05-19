@@ -1,5 +1,4 @@
 from flask_login import UserMixin
-from sqlalchemy import and_
 from sqlalchemy.exc import IntegrityError, DataError
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -13,8 +12,10 @@ from utils.exceptions import ClientError, ServerError
 from utils.http import json_resp
 from flask_mail import Message
 from flask import render_template
+from smtplib import SMTPAuthenticationError
 
-import logging, re
+import logging
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -32,18 +33,31 @@ class UserCredential(UserMixin):
         self.register_time = user.register_time
         self.update_time = user.update_time
 
-
     @staticmethod
     def get_pass_hash(password):
         return generate_password_hash(password, method='pbkdf2:sha256', salt_length=8)
 
     def update_password(self, old_pass, new_pass):
+        from server import app, mail
         session = SessionManager.Session()
         try:
             user = session.query(User).filter(User.id == self.id).one()
             if check_password_hash(user.password, old_pass):
                 user.password = UserCredential.get_pass_hash(new_pass)
                 session.commit()
+                if user.email is not None and user.email_confirmed:
+                    # send notification mail
+                    subject = '[{0}] Password Update Notification'.format(app.config['SITE_NAME'])
+                    email_content = render_template('update-pass-notification.html', info={
+                        'title': subject,
+                        'user_name': user.name,
+                        'site_name': app.config['SITE_NAME']
+                    })
+                    msg = Message(subject, recipients=[self.email], html=email_content)
+                    try:
+                        mail.send(msg)
+                    except SMTPAuthenticationError:
+                        raise ServerError('SMTP authentication failed', 500)
                 return True
             else:
                 raise ClientError(ClientError.PASSWORD_INCORRECT)
@@ -52,21 +66,33 @@ class UserCredential(UserMixin):
         finally:
             SessionManager.Session.remove()
 
-    def update_email(self, new_email, password):
+    def update_email(self, new_email):
+        from server import app, mail
         session = SessionManager.Session()
         try:
             user = session.query(User).filter(User.id == self.id).one()
-            if check_password_hash(user.password, password):
-                user.email = new_email
-                user.email_confirmed = False
-                self.email = new_email
-                self.email_confirmed = False
-                # send email
-                self.send_confirm_email()
-                session.commit()
-                return json_resp({'msg': 'ok'})
-            else:
-                raise ClientError(ClientError.PASSWORD_INCORRECT)
+            if user.email is not None and user.email_confirmed:
+                # send notification mail
+                subject = '[{0}] Email Address Update Notification'.format(app.config['SITE_NAME'])
+                email_content = render_template('email-change-notification.html', info={
+                    'title': subject,
+                    'user_name': user.name,
+                    'site_name': app.config['SITE_NAME']
+                })
+                msg = Message(subject, recipients=[self.email], html=email_content)
+                try:
+                    mail.send(msg)
+                except SMTPAuthenticationError:
+                    raise ServerError('SMTP authentication failed', 500)
+            # update
+            user.email = new_email
+            user.email_confirmed = False
+            self.email = new_email
+            self.email_confirmed = False
+            # send email
+            self.send_confirm_email()
+            session.commit()
+            return json_resp({'message': 'ok'})
         except NoResultFound:
             raise ServerError('user not found')
         finally:
@@ -91,12 +117,12 @@ class UserCredential(UserMixin):
                 salt=app.config['SECRET_PASSWORD_SALT'],
                 max_age=expiration
             )
-            if email == self.email:
+            if (email == self.email) and (not self.email_confirmed):
                 self.email_confirmed = True
                 user = session.query(User).filter(User.id == self.id).one()
                 user.email_confirmed = True
                 session.commit()
-                return json_resp({'msg': 'ok'})
+                return json_resp({'message': 'ok'})
             else:
                 raise ClientError('Invalid Token')
         except:
@@ -115,14 +141,17 @@ class UserCredential(UserMixin):
                                                                  app.config['SITE_HOST'],
                                                                  token)
         subject = '[{0}] Email Address Confirmation'.format(app.config['SITE_NAME'])
-        email_content = render_template('email-template.html', info={
+        email_content = render_template('email-confirm.html', info={
             'confirm_title': subject,
             'confirm_url': confirm_url,
             'site_name': app.config['SITE_NAME'],
             'user_name': self.name
         })
         msg = Message(subject, recipients=[self.email], html=email_content)
-        mail.send(msg)
+        try:
+            mail.send(msg)
+        except SMTPAuthenticationError:
+            raise ServerError('SMTP authentication failed', 500)
 
     @staticmethod
     def get_password_digest(password):
@@ -168,14 +197,17 @@ class UserCredential(UserMixin):
                                                                 app.config['SITE_HOST'],
                                                                 token)
             subject = '[{0}] Password Request for {1}'.format(app.config['SITE_NAME'], user.name)
-            reset_content = render_template('reset-template.html', info={
+            reset_content = render_template('reset-pass.html', info={
                 'reset_title': subject,
                 'reset_url': reset_url,
                 'site_name': app.config['SITE_NAME'],
                 'user_name': user.name
             })
             msg = Message(subject, recipients=[email], html=reset_content)
-            mail.send(msg)
+            try:
+                mail.send(msg)
+            except SMTPAuthenticationError:
+                raise ServerError('SMTP authentication failed', 500)
         except NoResultFound:
             raise ClientError(ClientError.EMAIL_NOT_EXISTS, 404)
         finally:

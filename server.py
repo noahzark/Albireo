@@ -72,9 +72,11 @@ app.session_interface = PgSessionInterface()
 base_path = get_config('download')['location']
 video_manager.set_base_path(base_path)
 
+
 @app.errorhandler(ClientError)
 def handle_client_exception(error):
     return json_resp(error.to_dict(), error.status)
+
 
 @app.errorhandler(ServerError)
 def handle_server_exception(error):

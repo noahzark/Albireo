@@ -89,7 +89,7 @@ def update_pass():
         raise ClientError(ClientError.INVALID_REQUEST)
 
 
-@user_api.route('/reset-pass', method=['POST'])
+@user_api.route('/reset-pass', methods=['POST'])
 def reset_pass():
     """
     reset password using token    
@@ -105,7 +105,7 @@ def reset_pass():
         raise ClientError(ClientError.INVALID_REQUEST)
 
 
-@user_api.route('/request-reset-pass', method=['POST'])
+@user_api.route('/request-reset-pass', methods=['POST'])
 def request_reset_pass():
     data = json.loads(request.get_data(True, as_text=True))
     if 'email' in data:
@@ -146,9 +146,9 @@ def get_confirm_email():
 def update_email():
     data = json.loads(request.get_data(as_text=True))
     email = data.get('email')
-    password = data.get('password')
+    # password = data.get('password')
     if email is None:
         raise ClientError('Invalid email')
-    if password is None:
-        raise ClientError('Invalid password')
-    return current_user.update_email(email, password)
+    # if password is None:
+    #     raise ClientError('Invalid password')
+    return current_user.update_email(email)
