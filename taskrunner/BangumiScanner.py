@@ -64,7 +64,6 @@ class BangumiScanner(object):
         finally:
             SessionManager.Session.remove()
 
-
     def check_bangumi_status(self, bangumi):
         return bangumi.status == Bangumi.STATUS_FINISHED
 

@@ -39,6 +39,7 @@ requirements: python 2.7, deluge ( > 1.3.12 ), postgresql 9.3 and above, ffmpeg,
 - alembic
 - subprocess32
 - cfscrape
+- Flask-Mail
 
 NOTE: ffmpeg is presume accessible with `ffmpeg` command
 
@@ -52,6 +53,15 @@ There are some config that must be modified before your run the project
     - location this is the default location of downloaded file, you should set this **absolute path** to your own download directory which your application and deluge has the permission to write
 
 - app_secret_key this is used by flask to encrypt session for security reason
+
+- app_secret_password_salt this is used for generate some token with hash salt
+
+- site site related information
+    - name will be appeared in some email template
+    - host will be used for link in email
+    - protocol will be used for link in email
+    
+- mail used by Flask-Mail.
 
 ### init database
 

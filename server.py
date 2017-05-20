@@ -1,5 +1,5 @@
 import logging
-import os, errno
+import os
 
 FORMAT = '%(asctime)-15s %(module)s:%(lineno)d %(message)s'
 
@@ -7,7 +7,7 @@ logging.basicConfig(format=FORMAT, datefmt='%Y/%m/%d %H:%M:%S')
 
 logger = logging.getLogger()
 
-isDebug = os.getenv('DEBUG', False)
+isDebug = bool(os.getenv('DEBUG', False))
 
 if isDebug:
     logger.setLevel(logging.DEBUG)
@@ -17,10 +17,10 @@ else:
 
 from flask import Flask
 from flask_login import LoginManager
+from flask_mail import Mail
 
 from utils.http import json_resp
 from utils.exceptions import ClientError, ServerError
-from utils.SessionManager import SessionManager
 from service.user import UserCredential
 from utils.VideoManager import video_manager
 from utils.flask_sessions import PgSessionInterface
@@ -38,6 +38,7 @@ import os
 
 isDebug = os.getenv('DEBUG', False)
 
+
 def get_config(key):
 
     __fr = open('./config/config.yml', 'r')
@@ -50,15 +51,32 @@ login_manager.session_protection = 'strong'
 
 app = Flask(__name__)
 
-app.secret_key = get_config('app_secret_key')
+# update configuration
+app.config.update(
+    SECRET_KEY=get_config('app_secret_key'),
+    SECRET_PASSWORD_SALT=get_config('app_secret_password_salt'),
+    MAIL_SERVER=get_config('mail')['mail_server'],
+    MAIL_PORT=get_config('mail')['mail_port'],
+    MAIL_USE_TLS=get_config('mail')['mail_use_tls'],
+    MAIL_USE_SSL=get_config('mail')['mail_use_ssl'],
+    MAIL_USERNAME=get_config('mail')['mail_username'],
+    MAIL_PASSWORD=get_config('mail')['mail_password'],
+    MAIL_DEFAULT_SENDER=get_config('mail')['mail_default_sender'],
+    SITE_NAME=get_config('site')['name'],
+    SITE_HOST=get_config('site')['host'],
+    SITE_PROTOCOL=get_config('site')['protocol']
+)
+
 app.session_interface = PgSessionInterface()
 
 base_path = get_config('download')['location']
 video_manager.set_base_path(base_path)
 
+
 @app.errorhandler(ClientError)
 def handle_client_exception(error):
     return json_resp(error.to_dict(), error.status)
+
 
 @app.errorhandler(ServerError)
 def handle_server_exception(error):
@@ -73,11 +91,15 @@ app.register_blueprint(watch_api, url_prefix='/api/watch')
 app.register_blueprint(task_api, url_prefix='/api/task')
 app.register_blueprint(user_manage_api, url_prefix='/api/user-manage')
 
+mail = Mail(app)
+
 login_manager.init_app(app)
+
 
 @login_manager.user_loader
 def load_user(user_id):
     return UserCredential.get(user_id)
+
 
 @login_manager.unauthorized_handler
 def unauthorized():
