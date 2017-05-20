@@ -16,7 +16,7 @@ each registered user. A user center is added to home page for user to update ema
  
 ## Breaking Changes
 
-- register API now require email address and will send an email to confirm that address.
+- register API now require email address and will send an email to confirm that address. return 201 {"message": "ok"} when success
 - update password API change it path from `update_pass` to `update-pass`, once this operation success, a notification mail will be sent to user
  email address.
 - reset password API no longer use a invite code and username to validate user identity, it now use a token with new password to directly reset password

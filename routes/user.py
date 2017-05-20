@@ -65,7 +65,7 @@ def register():
             login_user(credential, remember=False)
             # send email
             credential.send_confirm_email()
-            return json_resp({'msg': 'OK'})
+            return json_resp({'message': 'ok'}, 201)
     else:
         raise ClientError(ClientError.INVALID_REQUEST)
 
