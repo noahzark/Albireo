@@ -1,5 +1,5 @@
 import logging
-import os, errno
+import os
 
 FORMAT = '%(asctime)-15s %(module)s:%(lineno)d %(message)s'
 
@@ -21,7 +21,6 @@ from flask_mail import Mail
 
 from utils.http import json_resp
 from utils.exceptions import ClientError, ServerError
-from utils.SessionManager import SessionManager
 from service.user import UserCredential
 from utils.VideoManager import video_manager
 from utils.flask_sessions import PgSessionInterface
@@ -96,9 +95,11 @@ mail = Mail(app)
 
 login_manager.init_app(app)
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return UserCredential.get(user_id)
+
 
 @login_manager.unauthorized_handler
 def unauthorized():
@@ -106,4 +107,4 @@ def unauthorized():
 
 if __name__ == '__main__':
     app.debug = isDebug
-    app.run(host='0.0.0.0', threaded=app.debug)
+    app.run(host='0.0.0.0')
