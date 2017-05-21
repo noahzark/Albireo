@@ -6,18 +6,16 @@ from utils.http import json_resp
 import json
 from service.user import UserCredential
 from flask_login import login_user, logout_user, login_required, fresh_login_required, current_user
-from service.auth import auth_user
-from domain.User import User
-
 
 user_api = Blueprint('user', __name__)
 
+
 @user_api.route('/login', methods=['POST'])
 def login():
-    '''
+    """
     login a user
     :return: response
-    '''
+    """
     content = request.get_data(True, as_text=True)
     login_data = json.loads(content)
     if ('name' in login_data) and ('password' in login_data):
@@ -34,21 +32,21 @@ def login():
 @user_api.route('/logout', methods=['POST'])
 @login_required
 def logout():
-    '''
+    """
     logout a user
     :return: response
-    '''
+    """
     logout_user()
     return json_resp({'msg': 'ok'})
 
 
 @user_api.route('/register', methods=['POST'])
 def register():
-    '''
+    """
     register a new user using invite code, note that a newly registered user is not administrator, you need to
     use an admin user to promote it
     :return: response
-    '''
+    """
     content = request.get_data(True, as_text=True)
     register_data = json.loads(content)
     if ('name' in register_data) and ('password' in register_data) and ('password_repeat' in register_data) and ('invite_code' in register_data) and ('email' in register_data):
@@ -148,7 +146,16 @@ def update_email():
     email = data.get('email')
     # password = data.get('password')
     if email is None:
-        raise ClientError('Invalid email')
+        raise ClientError(ClientError.INVALID_EMAIL)
     # if password is None:
     #     raise ClientError('Invalid password')
     return current_user.update_email(email)
+
+
+@user_api.route('/email/resend', methods=['POST'])
+@login_required
+def send_confirm_mail():
+    if current_user.email is None:
+        raise ClientError(ClientError.INVALID_EMAIL)
+    current_user.send_confirm_email()
+    return json_resp({"message": "ok"})

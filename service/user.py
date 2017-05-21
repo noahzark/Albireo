@@ -23,6 +23,7 @@ PASSWORD_DIGEST_LENGTH = 8
 
 
 class UserCredential(UserMixin):
+
     def __init__(self, user):
         self.id = user.id
         self.name = user.name
@@ -93,6 +94,8 @@ class UserCredential(UserMixin):
             self.send_confirm_email()
             session.commit()
             return json_resp({'message': 'ok'})
+        except IntegrityError:
+            raise ClientError('duplicate email')
         except NoResultFound:
             raise ServerError('user not found')
         finally:
@@ -190,6 +193,7 @@ class UserCredential(UserMixin):
                 one()
             if not user.email_confirmed:
                 raise ClientError(ClientError.EMAIL_NOT_CONFIRMED)
+
             # generate token
             token = UserCredential.generate_reset_email_token(user)
 
@@ -204,12 +208,12 @@ class UserCredential(UserMixin):
                 'user_name': user.name
             })
             msg = Message(subject, recipients=[email], html=reset_content)
-            try:
-                mail.send(msg)
-            except SMTPAuthenticationError:
-                raise ServerError('SMTP authentication failed', 500)
+            mail.send(msg)
+            session.commit()
+        except SMTPAuthenticationError:
+            raise ServerError('SMTP authentication failed', 500)
         except NoResultFound:
-            raise ClientError(ClientError.EMAIL_NOT_EXISTS, 404)
+            raise ClientError(ClientError.EMAIL_NOT_EXISTS, 400)
         finally:
             SessionManager.Session.remove()
 
@@ -238,7 +242,7 @@ class UserCredential(UserMixin):
             return json_resp({'message': 'ok'})
 
         except NoResultFound:
-            raise ClientError(ClientError.EMAIL_NOT_EXISTS, 404)
+            raise ClientError(ClientError.EMAIL_NOT_EXISTS, 400)
         finally:
             SessionManager.Session.remove()
 
@@ -300,8 +304,11 @@ class UserCredential(UserMixin):
             raise ClientError(ClientError.INVALID_INVITE_CODE)
         except DataError:
             raise ClientError(ClientError.INVALID_INVITE_CODE)
-        except IntegrityError:
-            raise ClientError(ClientError.DUPLICATE_NAME)
+        except IntegrityError as error:
+            if error.diag.column_name == 'name':
+                raise ClientError(ClientError.DUPLICATE_NAME)
+            elif error.diag.column_name == 'email':
+                raise ClientError(ClientError.DUPLICATE_EMAIL)
         except ClientError as error:
             raise error
         except Exception as error:

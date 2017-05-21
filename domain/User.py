@@ -16,7 +16,7 @@ class User(Base):
     # when user confirm their email, promote to level 1
     level = Column(Integer, nullable=False, default=0)
 
-    email = Column(String(512), nullable=True)
+    email = Column(String(512), unique=True, nullable=True)
     email_confirmed = Column(BOOLEAN, nullable=False, default=False)
 
     register_time = Column(TIMESTAMP, nullable=False, default=datetime.now)

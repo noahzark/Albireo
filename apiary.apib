@@ -277,7 +277,7 @@ will send an email contains a link which includes a token to reset user password
 + Request  (application/json)
 
     + Attributes
-    
+
         + `email`: `john_doe@example.com` (string, required) - email address of user who want reset his/her password. must be valid and confirmed.
 
 + Response 200 (application/json)
@@ -329,6 +329,14 @@ A confirm email will be send to new email address, and a notification email will
 
         {"message": "ok"}
 
+### Resend Confirm Email [POST /api/user/email/resend]
+
+Resend a confirm email to current email address.
+
++ Response 200 (application/json)
+
+        {"message": "ok"}
+
 ### Confirm Email [POST /api/user/email/confirm]
 
 Confirm email will set `email_confirmed` field to true.
@@ -336,7 +344,7 @@ Confirm email will set `email_confirmed` field to true.
 + Request  (application/json)
 
     + Attributes
-    
+
         + `token` (string, required) - token from confirm email link.
 
 + Response 200 (application/json)

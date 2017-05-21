@@ -25,6 +25,7 @@ class ClientError(BasicError):
     PASSWORD_MISMATCH = 'password not match'
     INVALID_INVITE_CODE = 'invalid invite code'
     DUPLICATE_NAME = 'duplicate name'
+    DUPLICATE_EMAIL = 'duplicate email'
     INVALID_EMAIL = 'invalid email'
 
     PASSWORD_INCORRECT = 'password incorrect'
@@ -36,6 +37,8 @@ class ClientError(BasicError):
     EMAIL_NOT_EXISTS = 'email not exists'
 
     EMAIL_NOT_CONFIRMED = 'email not confirmed'
+
+    REQUEST_TOO_FREQUENT = 'request too frequent';
 
     def __init__(self, message, status=400, payload=None):
         BasicError.__init__(self, message, status, payload)
