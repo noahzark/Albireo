@@ -16,6 +16,12 @@ class UserManage:
     def __init__(self):
         pass
 
+    def __mask_email(self, email):
+        if email is None:
+            return email
+        (email_name, email_domain) = email.split('@')
+        return '{0}**@{1}'.format(email_name[0:2], email_domain)
+
     def list_user(self, name, count, offset):
         session = SessionManager.Session()
         try:
@@ -44,7 +50,9 @@ class UserManage:
                 user_dict_list.append({
                     'id': str(user.id),
                     'name': user.name,
-                    'level': user.level
+                    'level': user.level,
+                    'email': self.__mask_email(user.email),
+                    'email_confirmed': user.email_confirmed
                 })
 
             return json_resp({'data': user_dict_list, 'total': total})
