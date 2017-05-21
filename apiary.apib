@@ -584,7 +584,7 @@ Get an episode detail
 
     + Attributes (Episode)
 
-### Updaate Episode [PUT /api/admin/episode/{episode_id}]
+### Update Episode [PUT /api/admin/episode/{episode_id}]
 
 Update an episode, only a few property will be updated, for more detail, read the source code.
 
@@ -1049,3 +1049,5 @@ List all unused invite code
 - `id` (string)
 - `name` (string)
 - `level` (number) - level of user, default is 0, admin is 2, superuser is 3
+- `email` (string) - email of user, this field is masked to hide the whole string of email
+- `email_confirmed` - whether user has confirmed its email
