@@ -7,7 +7,7 @@ def auth_user(mini_level):
         @wraps(func)
         def func_wrapper(*args, **kwargs):
             if current_user is not None:
-                if current_user.level < mini_level:
+                if current_user.level < mini_level or current_user.email is None or not current_user.email_confirmed:
                     raise ClientError('Permission denied', 403)
                 else:
                     return func(*args, **kwargs)
