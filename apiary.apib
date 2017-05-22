@@ -5,7 +5,7 @@ This is Albireo project http API document. it contains end user and admin API fo
 
 # Group Home API
 
-API for querying bangumi and episode in end user client. Including List bangumi and episode, get detail of a bangumi 
+API for querying bangumi and episode in end user client. Including List bangumi and episode, get detail of a bangumi
 and episode by specifying id.
 
 ## my_bangumi [/api/home/my_bangumi]
@@ -15,9 +15,9 @@ and episode by specifying id.
 list all bangumi which is favorite by current user and status is 3 (WATCHING)
 
 + Response 200 (application/json)
-    
+
     + Attributes
-    
+
         + `data` (array[BangumiUnwatched]) - a list of bangumi which contains unwatched count
 
 ## on_air [/api/home/on_air]
@@ -96,7 +96,7 @@ Change the favorite status of a bangumi
 ### Change Bangumi Favorite Status [POST]
 
 + Request  (application/json)
-    
+
     + Attributes
 
         + status: `3` (number, required) - favorite status of the bangumi, can be one of the following value: 1 (WISH), 2 (WATCHED), 3 (WATCHING), 4 (PAUSE), 5 (ABANDONED)
@@ -131,7 +131,7 @@ When episode is not favorite or favorite status is not 3 (WATCHING) or 2 (WATCHE
             "message": "ok",
             "status": 0
         }
-    
+
 ## Episode Hisotry [/api/watch/history/{episode_id}]
 
 Add/update the watch history and progress. When this operation is success the favorite status of an episode is also changed depending on the watch progress.
@@ -150,7 +150,7 @@ Add/update the watch history and progress. When this operation is success the fa
         + bangumi_id: `46a469ee-5041-4f7c-8bf3-43ea6166a728` (string, required) - id of bangumi which current episode belongs to.
         + last_watch_position: `3.0` (number, required) - a float value record the user watched position, it's the currentTime property of HTMLMediaElement, unit is second.
         + percentage: `0.5012` (number, required) - a float value which is the result of currentTime / duration.
-        + is_finished: `false` (boolean, required) - This value indicates whether this episode is finished watching. Client should control the value on its own strategy. It's recommend to keep this value as true once the episode favorite status is changed to 2 (WATCHED). 
+        + is_finished: `false` (boolean, required) - This value indicates whether this episode is finished watching. Client should control the value on its own strategy. It's recommend to keep this value as true once the episode favorite status is changed to 2 (WATCHED).
 
 + Response 200 (application/json)
 
@@ -184,7 +184,7 @@ Login current user and create a session
             set-cookie: session=c1234543-a419-4797-b3a1-b103f128b820.3oq6lYFBykUey9aPNm6D8RlXZ8Q; Expires=Sat, 10-Jun-2017 07:50:12 GMT; HttpOnly; Path=/
 
     + Body
-    
+
             {"msg": "OK"}
 
 + Response 400 (application/json)
@@ -214,15 +214,16 @@ register a new user using invite code, note that a newly registered user is not 
 + Request
 
     + Attributes
-    
-        + name: `john_doe` (string, required) -  user name, must be unique
-        + password (string, required)
-        + password_repeat (string, required) - must equal to password
-        + invite_code (string, required)
 
-+ Response 200 (application/json)
+        + `name`: `john_doe` (string, required) -  user name, must be unique
+        + `password` (string, required)
+        + `password_repeat` (string, required) - must equal to password
+        + `email` (string, required)
+        + `invite_code` (string, required)
 
-        {"msg": "OK"}
++ Response 201 (application/json)
+
+        {"message": "ok"}
 
 + Response 400 (application/json)
 
@@ -240,17 +241,23 @@ register a new user using invite code, note that a newly registered user is not 
 
         {"message": "invalid parameter"}
 
++ Response 400 (application/json)
+
+        {"message": "invalid email"}
+
 ## GET User Info [/api/user/info]
 
 get user information, this api can be used for check session validation
 
-# Get Info [GET]
+### Get Info [GET]
 
 + Response 200 (application/json)
 
         {
             "name": "john_doe",
-            "level": 0
+            "level": 0,
+            "email": "john_doe@example.com",
+            "email_confirmed": True
         }
 
 + Response 401 (application/json)
@@ -259,28 +266,113 @@ get user information, this api can be used for check session validation
             "message": "unauthorized access"
         }
 
-## Reset Password [/api/user/reset_pass]
+## Request Reset Password [/api/user/request-reset-pass]
 
-Reset a user password using invite_code
+used for users forgot their password, request a password reset
 
-### Reset Password [POST]
+### Send Request [POST]
 
-+ Request
+will send an email contains a link which includes a token to reset user password. email address must be a valid and confirmed email address
+
++ Request  (application/json)
 
     + Attributes
-    
-        + name: `john_doe` (string, required) -  user name
-        + password (string, required)
-        + password_repeat (string, required) - must equal to password
-        + invite_code (string, required)
+
+        + `email`: `john_doe@example.com` (string, required) - email address of user who want reset his/her password. must be valid and confirmed.
 
 + Response 200 (application/json)
 
-        {"msg": "OK"}
+        {"message": "ok"}
 
 + Response 400 (application/json)
 
-        {"message": "invalid invite code"}
+        {"message": "invalid request"}
+
++ Response 400 (application/json)
+
+        {"message": "email does not exist"}
+
+
+## Update Password [/api/user/update-pass]
+
+Update user password
+
+### Update Password [POST]
+
+This operation will send a notification email to user. and logout current user.
+
++ Request  (application/json)
+
+    + Attributes
+
+        + `password`: `asdf1234` (string, required) - current password
+        + `new_password`: `123456abc` (string, required) - new password
+        + `new_password_repeat`: `123456abc` (string, required)
+
++ Response 200
+
+## User Email [/api/user/email]
+
+Operations related with user email
+
+### Update Email [POST /api/user/email]
+
+A confirm email will be send to new email address, and a notification email will be sent to old email address.
+
++ Request  (application/json)
+
+    + Attributes
+
+        + `email`: `john_doe@example.com` (string, required)
+
++ Response 200 (application/json)
+
+        {"message": "ok"}
+
+### Resend Confirm Email [POST /api/user/email/resend]
+
+Resend a confirm email to current email address.
+
++ Response 200 (application/json)
+
+        {"message": "ok"}
+
+### Confirm Email [POST /api/user/email/confirm]
+
+Confirm email will set `email_confirmed` field to true.
+
++ Request  (application/json)
+
+    + Attributes
+
+        + `token` (string, required) - token from confirm email link.
+
++ Response 200 (application/json)
+
+        {"message": "ok"}
+
+
+## Reset Password [/api/user/reset-pass]
+
+Reset a user password with new password and token. token can be acquired by using request-reset-pass API
+
+### Reset Password [POST]
+
++ Request  (application/json)
+
+    + Attributes
+
+        + `new_pass` (string, required)
+        + `new_pass_repeat` (string, required) - must equal to password
+        + `token` (string, required)
+
++ Response 200 (application/json)
+
+        {"message": "ok"}
+
++ Response 400 (application/json)
+
+        {"message": "invalid token"}
 
 + Response 400 (application/json)
 
@@ -386,7 +478,7 @@ Get a bangumi detail with all episodes information
 
 ### Delete Bangumi [DELETE /api/admin/bangumi/{bangumi_id}]
 
-Delete a bangumi, this operation will add a delete_mark field to bangumi, after a given delay (configured in config file), a task will 
+Delete a bangumi, this operation will add a delete_mark field to bangumi, after a given delay (configured in config file), a task will
 delete this bangumi. administrator can undo a delete before that time by just remove the delete_mark.
 
 + Parameters
@@ -417,7 +509,7 @@ Search bangumi from bangumi.tv by giving a specific search term.
         + Default: `10`
 
 + Response 200 (application/json)
-    
+
     + Attributes
         + data (array[BangumiRaw])
         + total (number)
@@ -492,13 +584,13 @@ Get an episode detail
 
     + Attributes (Episode)
 
-### Updaate Episode [PUT /api/admin/episode/{episode_id}]
+### Update Episode [PUT /api/admin/episode/{episode_id}]
 
 Update an episode, only a few property will be updated, for more detail, read the source code.
 
 + Parameters
     + `episode_id` (string, required)
-    
+
 + Request  (application/json)
 
     + Attributes (Episode)
@@ -559,7 +651,7 @@ Add a video_file to a special episode, this method is usually used for manually 
 
     + Attributes
         + data: `fe4150ee-4b11-46e3-b0ef-31aa6bce1095` (string) - id of newly added video_file
-    
+
 ### Update Video File [PUT /api/admin/video-file/{id}]
 
 Update a video_file, not all property will be updated.
@@ -646,13 +738,13 @@ Proxy for bangumi.moe API which method is POST
 Return response of this method can be any
 
 + Request  (application/json)
-    
+
     + Attributes
         + url (string, required) - target bangumi.moe url to reach
         + payload (object, required) - bangumi.moe request payload
 
 + Response 200 (application/json)
-    
+
     + Attributes (object)
 
 ## Bangumi.moe Torrent Search [/api/feed/bangumi-moe/torrent/search]
@@ -673,7 +765,7 @@ Search torrents using tag_ids, for more detail, see https://github.com/BangumiMo
         + count (number)
         + page_count (number),
         + torrents (array[object]) - see rin-pr document
-        
+
 # Group Task
 
 This is a set of API that related to tasks. All APIs in this group require user.level >= 2
@@ -689,7 +781,7 @@ Operations related with pending delete bangumi.
     + Attributes
         + data (array[BangumiPendingDelete]) - pending delete bangumi list
         + `delete_delay` (number) - the configured delete delay for bangumi
-    
+
 ## Pending Delete Episode [/api/task/episode]
 
 Operations related with pending delete episode
@@ -701,7 +793,7 @@ Operations related with pending delete episode
     + Attributes
         + data (array[EpisodePendingDelete]) - pending delete episode list
         + `delete_delay` (number) - the configured delete delay for episode
-        
+
 ## Task [/api/task/task]
 
 Operations related with task
@@ -723,7 +815,7 @@ Restore a pending delete bangumi, only available before bangumi is actually dele
 ### Restore [POST]
 
 + Response 200 (application/json)
-        
+
         {"msg": "ok"}
 
 ## Restore Episode [/api/task/restore/episode/{episode_id}]
@@ -771,7 +863,7 @@ User related operations
         + `to_level`: `2` (number, required) - level to be promoted.
 
 + Response 200 (application/json)
-        
+
         {"msg": "OK"}
 
 
@@ -932,7 +1024,7 @@ List all unused invite code
 - `id`: `fe4150ee-4b11-46e3-b0ef-31aa6bce1095` (string)
 - `status`: `3` (number) - can be 1 (download pending), 2 (downloading), 3 (downloaded)
 - `torrent_id`: `614691f99c5073fa83d5d89582ff11024e929448` (string)
-- `url`: `https://yourdomain/video/02981eec-c817-47e5-baed-56d466afbb20/[DMG][Roku de Nashi Majutsu Koushi to Akashic Records][01][720P][GB].mp4` (string) - 
+- `url`: `https://yourdomain/video/02981eec-c817-47e5-baed-56d466afbb20/[DMG][Roku de Nashi Majutsu Koushi to Akashic Records][01][720P][GB].mp4` (string) -
 - `file_path`: `[DMG][Roku de Nashi Majutsu Koushi to Akashic Records][01][720P]` (string)
 - `file_name` (string) - name of actual file, can be null
 - `resolution_w`: `1024` (number)
@@ -957,3 +1049,5 @@ List all unused invite code
 - `id` (string)
 - `name` (string)
 - `level` (number) - level of user, default is 0, admin is 2, superuser is 3
+- `email` (string) - email of user, this field is masked to hide the whole string of email
+- `email_confirmed` - whether user has confirmed its email
