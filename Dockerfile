@@ -24,7 +24,7 @@ RUN echo "Installing deluge, postgresql, etc.."
 RUN apt-get
 # avoide invoke-rc.d: policy-rc.d denied execution of start
 RUN echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d
-RUN sudo apt-get -y --force-yes install deluged deluge-webui postgresql postgresql-contrib python-pip postgresql-client python-dev libyaml-dev python-psycopg2 ffmpeg nodejs
+RUN sudo apt-get -y --force-yes install deluged deluge-webui postgresql postgresql-contrib python-pip postgresql-client python-dev libyaml-dev python-psycopg2 ffmpeg nodejs python-imaging
 
 RUN echo "Setting up postgresql user and database..."
 # Adjust PostgreSQL configuration so that remote connections to the

@@ -9,6 +9,7 @@ from utils.SessionManager import SessionManager
 from utils.VideoManager import video_manager
 from datetime import datetime
 from sqlalchemy import exc
+from utils.color import get_dominant_color
 import logging
 import yaml
 
@@ -36,7 +37,8 @@ class DownloadManager:
 
         def create_thumbnail(episode, file_path):
             time = '00:00:01.000'
-            video_manager.create_episode_thumbnail(episode, file_path, time)
+            video_path = video_manager.create_episode_thumbnail(episode, file_path, time)
+            return get_dominant_color(video_path)
 
         def update_video_meta(video_file):
             meta = video_manager.get_video_meta(u'{0}/{1}/{2}'.format(self.base_path, str(video_file.bangumi_id), video_file.file_path))

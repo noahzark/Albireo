@@ -19,7 +19,8 @@ import os, errno
 from urlparse import urlparse
 from utils.VideoManager import video_manager
 from service.common import utils
-from werkzeug.utils import secure_filename
+from utils.color import get_dominant_color
+# from werkzeug.utils import secure_filename
 
 import logging
 
@@ -89,13 +90,14 @@ class AdminService:
         extname = os.path.splitext(path)[1]
         cover_path = bangumi_path + '/cover' + extname
         self.file_downloader.download_file(bangumi.image, cover_path)
+        return cover_path
 
     def search_bangumi(self, type, term, offset, count):
-        '''
+        """
         search bangumi from bangumi.tv, properly handling cookies is required for the bypass anti-bot mechanism
         :param term: a urlencoded word of the search term.
         :return: a json object
-        '''
+        """
 
         result = {"data": [], "total": 0}
         api_url = 'http://api.bgm.tv/search/subject/{0}?responseGroup=large&max_result={1}&start={2}&type={3}'.format(term.encode('utf-8'), count, offset, type)
@@ -154,7 +156,6 @@ class AdminService:
 
         return r.text
 
-
     def list_bangumi(self, page, count, sort_field, sort_order, name):
         try:
             session = SessionManager.Session()
@@ -172,7 +173,6 @@ class AdminService:
                     scalar()
             else:
                 total = session.query(func.count(Bangumi.id)).scalar()
-
 
             if sort_order == 'desc':
                 query_object = query_object.\
@@ -243,8 +243,13 @@ class AdminService:
             session.commit()
 
             bangumi_id = str(bangumi.id)
-
-            self.__save_bangumi_cover(bangumi)
+            try:
+                cover_path = self.__save_bangumi_cover(bangumi)
+                # get dominant color
+                bangumi.cover_color = get_dominant_color(cover_path)
+                session.commit()
+            except Exception as error:
+                logger.warn(error)
 
             return json_resp({'data': {'id': bangumi_id}})
         finally:
