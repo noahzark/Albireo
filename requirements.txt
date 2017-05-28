@@ -10,3 +10,4 @@ alembic
 subprocess32
 cfscrape
 Flask-Mail
+colorthief

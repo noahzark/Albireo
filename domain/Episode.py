@@ -25,6 +25,9 @@ class Episode(Base):
 
     delete_mark = Column(TIMESTAMP, nullable=True)
 
+    # dominant color extracted from thumbnail image
+    thumbnail_color = Column(String, nullable=True)
+
     bangumi = relationship('Bangumi', back_populates='episodes')
 
     torrent_files = relationship('TorrentFile', order_by=TorrentFile.episode_id, back_populates='episode',
