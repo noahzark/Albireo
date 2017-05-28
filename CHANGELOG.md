@@ -1,3 +1,34 @@
+# 2.1.0-beta
+
+Add dominant color extraction for bangumi cover image and episode thumbnail image.
+
+## New Dependencies
+
+To support color extraction. color-thief.py is added which need the following dependencies
+
+- `python-imaging`  a system dependency that can be installed via `apt-get install python-imaging`.
+- `colorthief`  a python dependency that can be installed via `pip install colorthief`  
+
+## API Update
+
+- bangumi object adds a new field reflecting the bangumi table change, cover_color, which is a hex string represents the dominant color for
+cover image.
+
+- episode object adds a new field reflrecting the episodes table change, thumbnail_color, which is a hex string represents the dominant color
+ for thumbnail image of certain episode.
+ 
+## Database Changes
+
+- bangumi table add a varchar column `cover_color`
+- episodes table add a varchar column `thumbnail_color`
+
+## Update Guide
+
+1. Install python-imaging via `apt-get install python-imaging` then install colorthief via `pip install colorthief`
+2. run [database upgrade](https://github.com/lordfriend/Albireo/blob/master/alembic/README.md)
+3. update your client to the latest version which will support this feature.
+
+
 # 2.0.0-beta
 
 From this version. There are a lot of changes brought to User API. reset password by invite code is no longer supported. a email is required for

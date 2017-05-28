@@ -1,7 +1,7 @@
 from domain.base import Base
 from domain.Episode import Episode
 from domain.VideoFile import VideoFile
-from sqlalchemy import Column, Integer, TEXT, DATE, TIMESTAMP
+from sqlalchemy import Column, Integer, TEXT, DATE, TIMESTAMP, String
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import relationship
 from uuid import uuid4
@@ -33,6 +33,9 @@ class Bangumi(Base):
     status = Column(Integer, nullable=False)
     create_time = Column(TIMESTAMP, default=datetime.now, nullable=False)
     update_time = Column(TIMESTAMP, default=datetime.now, nullable=False)
+
+    # dominant color extracted from current bangumi cover image
+    cover_color = Column(String, nullable=True)
 
     episodes = relationship('Episode', order_by=Episode.episode_no, back_populates='bangumi',
                             cascade='all, delete, delete-orphan')

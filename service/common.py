@@ -1,11 +1,11 @@
 import yaml
-import json
 import os, errno
 from urlparse import urlparse
 
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 class CommonUtils:
 

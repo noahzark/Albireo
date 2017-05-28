@@ -54,7 +54,6 @@ class BangumiService:
         finally:
             SessionManager.Session.remove()
 
-
     def episode_detail(self, episode_id, user_id):
         session = SessionManager.Session()
         try:
@@ -152,7 +151,6 @@ class BangumiService:
                     scalar()
             else:
                 total = session.query(func.count(Bangumi.id)).scalar()
-
 
             if sort_order == 'desc':
                 query_object = query_object.\
