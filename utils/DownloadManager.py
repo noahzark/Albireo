@@ -38,7 +38,12 @@ class DownloadManager:
         def create_thumbnail(episode, file_path):
             time = '00:00:01.000'
             video_path = video_manager.create_episode_thumbnail(episode, file_path, time)
-            return get_dominant_color(video_path)
+            try:
+                color = get_dominant_color(video_path)
+                return color
+            except Exception as error:
+                logger.warn(error)
+                return None
 
         def update_video_meta(video_file):
             meta = video_manager.get_video_meta(u'{0}/{1}/{2}'.format(self.base_path, str(video_file.bangumi_id), video_file.file_path))
@@ -77,7 +82,7 @@ class DownloadManager:
                         video_file.status = VideoFile.STATUS_DOWNLOADED
                         episode.update_time = datetime.now()
                         episode.status = Episode.STATUS_DOWNLOADED
-                        create_thumbnail(episode, file_path)
+                        episode.thumbnail_color = create_thumbnail(episode, file_path)
                         update_video_meta(video_file)
                     else:
                         file_path_list = [file['path'] for file in file_list]
@@ -87,14 +92,14 @@ class DownloadManager:
                                 video_file.status = VideoFile.STATUS_DOWNLOADED
                                 episode.update_time = datetime.now()
                                 episode.status = Episode.STATUS_DOWNLOADED
-                                create_thumbnail(episode, file_path)
+                                episode.thumbnail_color = create_thumbnail(episode, file_path)
                                 update_video_meta(video_file)
                                 break
                             elif video_file.file_path is not None and file_path == video_file.file_path:
                                 video_file.status = VideoFile.STATUS_DOWNLOADED
                                 episode.update_time = datetime.now()
                                 episode.status = Episode.STATUS_DOWNLOADED
-                                create_thumbnail(episode, file_path)
+                                episode.thumbnail_color = create_thumbnail(episode, file_path)
                                 update_video_meta(video_file)
                                 break
 
