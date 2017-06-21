@@ -55,32 +55,108 @@ class WatchService:
         finally:
             SessionManager.Session.remove()
 
-    def episode_history(self, bangumi_id, episode_id, user_id, last_watch_position, percentage, is_finished):
-        last_watch_time = datetime.now()
+    def episode_history(self,
+                        bangumi_id,
+                        episode_id,
+                        user_id,
+                        last_watch_position,
+                        percentage,
+                        is_finished):
+        """
+        synchronize the episode history,
+        if last_watch_time is early than the data in database, the given data will simply be dropped.
+        :param bangumi_id:
+        :param episode_id:
+        :param user_id:
+        :param last_watch_position:
+        :param percentage:
+        :param is_finished:
+        :return:
+        """
         watch_status = WatchProgress.WATCHED if is_finished else WatchProgress.WATCHING
 
         session = SessionManager.Session()
         try:
             watch_progress = session.query(WatchProgress).\
-                filter(WatchProgress.bangumi_id == bangumi_id).\
                 filter(WatchProgress.episode_id == episode_id).\
                 filter(WatchProgress.user_id == user_id).\
                 first()
             if watch_progress is None:
+
                 watch_progress = WatchProgress(bangumi_id=bangumi_id,
                                                episode_id=episode_id,
                                                user_id=user_id,
                                                watch_status=watch_status,
                                                last_watch_position=last_watch_position,
-                                               last_watch_time=last_watch_time,
-                                               percentage=0)
+                                               last_watch_time=datetime.utcnow(),
+                                               percentage=percentage)
                 session.add(watch_progress)
+                session.commit()
             else:
                 watch_progress.watch_status = watch_status
-                watch_progress.last_watch_time = last_watch_time
+                watch_progress.last_watch_time = datetime.utcnow()
                 watch_progress.last_watch_position = last_watch_position
                 watch_progress.percentage = percentage
+                session.commit()
 
+            return json_resp({'message': 'ok', 'status': 0})
+        finally:
+            SessionManager.Session.remove()
+
+    def synchronize_history(self, user_id, records):
+        """
+        synchronize client history records with server.
+        drop outdated record, drop duplicates on server.
+        :param user_id:
+        :param records:
+        :return:
+        """
+        episode_id_list = [record['episode_id'] for record in records]
+        if len(episode_id_list) == 0:
+            return json_resp({'message': 'ok', 'status': 0})
+        session = SessionManager.Session()
+        try:
+            watch_progress_list = session.query(WatchProgress). \
+                filter(WatchProgress.user_id == user_id).\
+                filter(WatchProgress.episode_id.in_(episode_id_list)).\
+                all()
+
+            # remove duplicate records, records can be duplicate when client send records concurrently
+            eps_id_dict = {}
+            for watch_progress in watch_progress_list:
+                episode_id = str(watch_progress.episode_id)
+                if episode_id in eps_id_dict:
+                    if eps_id_dict[episode_id].last_watch_time < watch_progress.last_watch_time:
+                        session.delete(eps_id_dict[episode_id])
+                        eps_id_dict[episode_id] = watch_progress
+                    else:
+                        session.delete(watch_progress)
+                else:
+                    eps_id_dict[episode_id] = watch_progress
+
+            # synchronize
+            for record in records:
+                watch_status = WatchProgress.WATCHED if record.get('is_finished') else WatchProgress.WATCHING
+                last_watch_time = datetime.utcfromtimestamp(record['last_watch_time'] / 1000)
+                record_found = False
+                for watch_progress in watch_progress_list:
+                    if str(watch_progress.episode_id) == record['episode_id']:
+                        record_found = True
+                        if watch_progress.last_watch_time <= last_watch_time:
+                            watch_progress.watch_status = watch_status
+                            watch_progress.last_watch_time = last_watch_time
+                            watch_progress.last_watch_position = record['last_watch_position']
+                            watch_progress.percentage = record['percentage']
+                        break
+                if not record_found:
+                    watch_progress = WatchProgress(bangumi_id=record['bangumi_id'],
+                                                   episode_id=record['episode_id'],
+                                                   user_id=user_id,
+                                                   watch_status=watch_status,
+                                                   last_watch_position=record['last_watch_position'],
+                                                   last_watch_time=last_watch_time,
+                                                   percentage=record['percentage'])
+                    session.add(watch_progress)
             session.commit()
             return json_resp({'message': 'ok', 'status': 0})
         finally:

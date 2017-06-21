@@ -15,6 +15,7 @@ from domain.Task import Task
 from domain.VideoFile import VideoFile
 
 from utils.http import FileDownloader
+from utils.color import get_dominant_color
 import yaml, os, errno, re
 from urlparse import urlparse
 from alembic import command
@@ -28,7 +29,8 @@ group.add_argument('--user-add', nargs=2, metavar=('USERNAME', 'PASSWORD'), help
 group.add_argument('--user-del', nargs=1, metavar=('USERNAME'), help='delete an user')
 group.add_argument('--user-promote', nargs=2, metavar=('USERNAME', 'LEVEL'), help='promote an user')
 group.add_argument('--db-init', action='store_true', help='init database, if tables not exists, create it')
-group.add_argument('--cover', action='store_true', help='scan bangumi, download missing cover')
+group.add_argument('--cover', action='store_true',
+                   help='scan bangumi, download missing cover or generate missing color palette')
 group.add_argument('--bgm-reset', nargs=1, metavar=('BANGUMI_ID'), help='clear a bangumi\'s related table records')
 
 args = parser.parse_args()
@@ -113,12 +115,30 @@ elif args.cover:
                     # download bangumi image
                     print 'start to download bangumi cover of %s (%s)' % (bangumi.name, str(bangumi.id))
                     file_downloader.download_file(bangumi.image, bangumi_cover_path)
+                if bangumi.cover_color is None:
+                    try:
+                        bangumi.cover_color = get_dominant_color(bangumi_cover_path, 5)
+                        session.commit()
+                    except Exception as err:
+                        print err
             except OSError as exception:
                 if exception.errno == errno.EACCES:
                     # permission denied
                     raise exception
                 else:
                     print exception
+
+        # check episode thumbnail color
+        eps_cur = session.query(Episode).filter(Episode.bangumi_id == bangumi.id)
+        for episode in eps_cur:
+            if episode.status == Episode.STATUS_DOWNLOADED and episode.thumbnail_color is None:
+                thumbnail_path = u'{0}/{1}/thumbnails/{2}.png'.format(download_location, str(bangumi.id), str(episode.episode_no))
+                try:
+                    episode.thumbnail_color = get_dominant_color(thumbnail_path, 5)
+                except Exception as err:
+                    print err
+        print 'finish check bangumi #{0}'.format(str(bangumi.id))
+
 elif args.bgm_reset:
     session = SessionManager.Session()
     bangumi_id = args.bgm_reset[0]

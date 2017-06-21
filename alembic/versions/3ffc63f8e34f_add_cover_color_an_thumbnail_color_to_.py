@@ -45,9 +45,12 @@ def upgrade():
         if not os.path.exists(bangumi_path):
             print 'cover not found for {0}'.format(bangumi_id)
             continue
-        cover_color = get_dominant_color(cover_path)
-        connection.execute(sa.text(
-            "UPDATE bangumi SET cover_color = '{0}' WHERE id = '{1}'".format(cover_color, bangumi_id)))
+        try:
+            cover_color = get_dominant_color(cover_path, quality=5)
+            connection.execute(sa.text(
+                "UPDATE bangumi SET cover_color = '{0}' WHERE id = '{1}'".format(cover_color, bangumi_id)))
+        except Exception as error:
+            print error
 
         # query episodes
         episode_result = connection.execute(sa.text(
@@ -59,9 +62,12 @@ def upgrade():
             if not os.path.exists(thumbnail_path):
                 print 'thumbnail not found for {0}'.format(episode_id)
                 continue
-            thumbnail_color = get_dominant_color(thumbnail_path)
-            connection.execute(sa.text(
-                "UPDATE episodes SET thumbnail_color = '{0}' WHERE id = '{1}'".format(thumbnail_color, episode_id)))
+            try:
+                thumbnail_color = get_dominant_color(thumbnail_path, quality=5)
+                connection.execute(sa.text(
+                    "UPDATE episodes SET thumbnail_color = '{0}' WHERE id = '{1}'".format(thumbnail_color, episode_id)))
+            except Exception as error:
+                print error
 
         print 'Finish for bangumi #{0}'.format(bangumi_id)
 

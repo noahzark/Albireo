@@ -1,3 +1,7 @@
+# 2.1.1-beta
+
+Fix a bug when get_dominant_color raise an error, the update scripts will interrupted.
+
 # 2.1.0-beta
 
 Add dominant color extraction for bangumi cover image and episode thumbnail image.
