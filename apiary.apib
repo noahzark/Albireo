@@ -159,6 +159,26 @@ Add/update the watch history and progress. When this operation is success the fa
             "status": 0
         }
 
+### Synchronize Episode History [POST /api/watch/history/synchronize]
+
+Batch synchronize episode history to server. By comparing with last_watch_time between client and server.
+a watch_progress record may be updated or untouched. if last_watch_time from client is later or equal than server, 
+server watch_progress record will be updated, otherwise the record from client will be dropped.
+Note that the last_watch_time must be UTC time.
+
++ Request  (application/json)
+
+    + Attributes
+
+        + records (array[WatchHistoryRecord]) - an array of watch history record to be synchronized.
+
++ Response 200 (application/json)
+
+        {
+            "message": "ok",
+            "status": 0
+        }
+
 # Group Account API
 
 A set of API related with login, register and user information
@@ -1067,3 +1087,11 @@ List all unused invite code
 - `percentage`: `1.0` (number) - watched percentage of video duration. from 0 ~ 1
 - `last_watch_time`: `1497574966172.0` (number) - a timestamp of last record time
 - `id`: `808a7d09-629f-41a3-a1bc-0924a95c5cc6` (string)
+
+## WatchHistoryRecord
+- `bangumi_id`: `02981eec-c817-47e5-baed-56d466afbb20` (string)
+- `episode_id`: `324bbe92-df97-4dee-b0ed-1d7cca97599e` (string)
+- `last_watch_position`: `1481.177687` (number) - last watched video progress by seconds
+- `last_watch_time`: `1497574966172.0` (number) - a timestamp of last record time
+- `percentage`: `1.0` (number) - watched percentage of video duration. from 0 ~ 1
+- `is_finished` (boolean) - whether this watch history is finished watching. when this field is true, watch_status of watch_progress will be 2 (WATCHED).
