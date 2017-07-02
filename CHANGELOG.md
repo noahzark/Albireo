@@ -1,3 +1,11 @@
+# 2.2.0-beta
+
+Add new API for client synchronizing watch history with server with multiple items, this API provide ability for client 
+reducing API call for synchronizing history.
+
+No database changes
+
+
 # 2.1.1-beta
 
 Fix a bug when get_dominant_color raise an error, the update scripts will interrupted.
