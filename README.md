@@ -40,6 +40,7 @@ requirements: python 2.7, deluge ( > 1.3.12 ), postgresql 9.3 and above, ffmpeg,
 - subprocess32
 - cfscrape
 - Flask-Mail
+- colorthief
 
 NOTE: ffmpeg is presume accessible with `ffmpeg` command
 
