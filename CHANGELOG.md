@@ -1,3 +1,8 @@
+# 2.2.1-beta
+
+Add case-insensitive support for search bangumi API (include /api/admin/bangumi)
+Add missing field `cover` in my_bangumi API.
+
 # 2.2.0-beta
 
 Add new API for client synchronizing watch history with server with multiple items, this API provide ability for client 
