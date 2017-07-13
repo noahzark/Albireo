@@ -7,6 +7,7 @@ from domain.Favorites import Favorites
 from domain.WatchProgress import WatchProgress
 from domain.Bangumi import Bangumi
 from domain.Episode import Episode
+from service.common import utils
 
 import logging
 
@@ -198,6 +199,7 @@ class WatchService:
             for fav, bgm in result:
                 bangumi_dict = row2dict(bgm)
                 bangumi_dict['favorite_status'] = fav.status
+                bangumi_dict['cover'] = utils.generate_cover_link(bangumi)
                 for unwatched_count, bangumi_id in episode_count:
                     if bangumi_id == bgm.id:
                         bangumi_dict['unwatched_count'] = unwatched_count
