@@ -166,10 +166,10 @@ class AdminService:
                 name_pattern = '%{0}%'.format(name.encode('utf-8'),)
                 logger.debug(name_pattern)
                 query_object = query_object.\
-                    filter(or_(Bangumi.name.like(name_pattern), Bangumi.name_cn.like(name_pattern)))
+                    filter(or_(Bangumi.name.ilike(name_pattern), Bangumi.name_cn.ilike(name_pattern)))
                 # count total rows
                 total = session.query(func.count(Bangumi.id)).\
-                    filter(or_(Bangumi.name.like(name_pattern), Bangumi.name_cn.like(name_pattern))).\
+                    filter(or_(Bangumi.name.ilike(name_pattern), Bangumi.name_cn.ilike(name_pattern))).\
                     scalar()
             else:
                 total = session.query(func.count(Bangumi.id)).scalar()
