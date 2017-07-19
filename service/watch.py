@@ -9,6 +9,7 @@ from domain.Bangumi import Bangumi
 from domain.Episode import Episode
 from service.common import utils
 
+import traceback
 import logging
 
 logger = logging.getLogger(__name__)
@@ -159,6 +160,10 @@ class WatchService:
                                                    percentage=record['percentage'])
                     session.add(watch_progress)
             session.commit()
+            return json_resp({'message': 'ok', 'status': 0})
+        except Exception as error:
+            logger.warn(traceback.format_exc(error))
+            # always return success even operation failed
             return json_resp({'message': 'ok', 'status': 0})
         finally:
             SessionManager.Session.remove()

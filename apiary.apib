@@ -162,8 +162,11 @@ Add/update the watch history and progress. When this operation is success the fa
 ### Synchronize Episode History [POST /api/watch/history/synchronize]
 
 Batch synchronize episode history to server. By comparing with last_watch_time between client and server.
-a watch_progress record may be updated or untouched. if last_watch_time from client is later or equal than server, 
+a watch_progress record may be updated or untouched. if last_watch_time from client is later or equal than server,
 server watch_progress record will be updated, otherwise the record from client will be dropped.
+
+**This API always return success even the operation actually failed.**
+
 Note that the last_watch_time must be UTC time.
 
 + Request  (application/json)
