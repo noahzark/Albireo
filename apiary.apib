@@ -8,11 +8,15 @@ This is Albireo project http API document. it contains end user and admin API fo
 API for querying bangumi and episode in end user client. Including List bangumi and episode, get detail of a bangumi
 and episode by specifying id.
 
-## my_bangumi [/api/home/my_bangumi]
+## my_bangumi [/api/home/my_bangumi{?status}]
 
 ### List My Bangumi [GET]
 
-list all bangumi which is favorite by current user and status is 3 (WATCHING)
+list all bangumi which is favorite by current user
+
++ Parameters
+    + `status` (number, optional) - the favorite status, can be one of the following value:  1 (WISH), 2 (WATCHED), 3 (WATCHING), 4 (PAUSE), 5 (ABANDONED)
+        + Default: `3`
 
 + Response 200 (application/json)
 

@@ -1,3 +1,7 @@
+# 2.3.0-beta
+Enhance my_bangumi api, now it accept a search parameter `status` which is an integer represents the status of favorite.
+default status is 3 (Watching) which will maintain the backward compatibility.
+
 # 2.2.1-beta
 
 Add case-insensitive support for search bangumi API (include /api/admin/bangumi)
