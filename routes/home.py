@@ -24,7 +24,10 @@ def on_air_bangumi():
 
 @home_api.route('/my_bangumi', methods=['GET'])
 def my_bangumi():
-    return watch_service.my_favorites(current_user.id, Favorites.WATCHING)
+    status = request.args.get('status', Favorites.WATCHING)
+    if status == 0:
+        status = None
+    return watch_service.my_favorites(current_user.id, status)
 
 @home_api.route('/episode/<episode_id>', methods=['GET'])
 @login_required
