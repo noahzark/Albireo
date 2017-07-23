@@ -1,3 +1,12 @@
+# 2.3.0-beta
+Enhance my_bangumi api, now it accept a search parameter `status` which is an integer represents the status of favorite.
+default status is 3 (Watching) which will maintain the backward compatibility.
+
+# 2.2.1-beta
+
+Add case-insensitive support for search bangumi API (include /api/admin/bangumi)
+Add missing field `cover` in my_bangumi API.
+
 # 2.2.0-beta
 
 Add new API for client synchronizing watch history with server with multiple items, this API provide ability for client 
