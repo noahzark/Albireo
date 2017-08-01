@@ -167,5 +167,5 @@ Web App + Admin Console: https://github.com/lordfriend/Deneb
 
 [Megumin](https://github.com/RoyaAoki/Megumin) contains all function except the admin console. support Android TV and mobile. 
 
-[![Get On Google Play](https://play.google.com/intl/en_us/badges/images/badge_new.png)](https://play.google.com/store/apps/details?id=com.sqrtf.megumin&rdid=com.sqrtf.megumin)
+[![Get On Google Play](https://play.google.com/intl/en_us/badges/images/badge_new.png)](https://play.google.com/store/apps/details?id=com.sqrtf.megumin)
 
