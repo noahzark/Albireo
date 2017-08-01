@@ -1,7 +1,6 @@
 # Albireo
 A bangumi auto download and management project
 This is the backend part.
-The web client for this project is [Deneb](https://github.com/lordfriend/Deneb)
 
 ## Motivation
 
@@ -20,6 +19,8 @@ further more, the information can be used for more user friendly function.
 [HTTP API](http://docs.albireo.apiary.io/)
 
 [Upgrade From Old Version](https://github.com/lordfriend/Albireo/blob/master/alembic/README.md)
+
+[Client Apps](#client-apps)
 
 ## Installation
 
@@ -152,3 +153,19 @@ Usage:
 
 You need to add some keywords in the admin bangumi detail page for the site you want scan. currently dmhy and acg.rip are supported. the rule for keywords can be found in
  corresponding site's help document.
+
+
+## Client Apps
+
+### Official
+
+Web App + Admin Console: https://github.com/lordfriend/Deneb
+
+### Community
+
+#### Android App
+
+[Megumin](https://github.com/RoyaAoki/Megumin) contains all function except the admin console. support Android TV and mobile. 
+
+[![Get On Google Play](https://play.google.com/intl/en_us/badges/images/badge_new.png)](https://play.google.com/store/apps/details?id=com.sqrtf.megumin&rdid=com.sqrtf.megumin)
+
