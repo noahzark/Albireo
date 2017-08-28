@@ -26,7 +26,10 @@ class Episode(Base):
     delete_mark = Column(TIMESTAMP, nullable=True)
 
     # dominant color extracted from thumbnail image
+    # @deprecated
     thumbnail_color = Column(String, nullable=True)
+
+    thumbnail_image_id = Column(postgresql.UUID(as_uuid=True), nullable=True)
 
     bangumi = relationship('Bangumi', back_populates='episodes')
 

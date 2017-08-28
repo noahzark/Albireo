@@ -13,6 +13,7 @@ from domain.ServerSession import ServerSession
 from domain.WatchProgress import WatchProgress
 from domain.Task import Task
 from domain.VideoFile import VideoFile
+from domain.Image import Image
 
 from utils.http import FileDownloader
 from utils.color import get_dominant_color
