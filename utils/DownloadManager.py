@@ -9,7 +9,7 @@ from utils.SessionManager import SessionManager
 from utils.VideoManager import video_manager
 from datetime import datetime
 from sqlalchemy import exc
-from utils.color import get_dominant_color
+from utils.image import get_dominant_color
 import logging
 import yaml
 

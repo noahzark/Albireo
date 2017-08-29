@@ -1,4 +1,6 @@
 from datetime import datetime
+
+from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import func
 from utils.SessionManager import SessionManager
 from utils.http import json_resp
@@ -173,6 +175,7 @@ class WatchService:
         try:
             q = session.query(Favorites, Bangumi).\
                 join(Bangumi).\
+                options(joinedload(Bangumi.cover_image)).\
                 filter(Bangumi.delete_mark == None).\
                 filter(Favorites.user_id == user_id)
 
@@ -205,6 +208,7 @@ class WatchService:
                 bangumi_dict = row2dict(bgm)
                 bangumi_dict['favorite_status'] = fav.status
                 bangumi_dict['cover'] = utils.generate_cover_link(bangumi)
+                utils.process_bangumi_dict(bgm, bangumi_dict)
                 for unwatched_count, bangumi_id in episode_count:
                     if bangumi_id == bgm.id:
                         bangumi_dict['unwatched_count'] = unwatched_count

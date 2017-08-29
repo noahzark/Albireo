@@ -16,7 +16,7 @@ from domain.VideoFile import VideoFile
 from domain.Image import Image
 
 from utils.http import FileDownloader
-from utils.color import get_dominant_color
+from utils.image import get_dominant_color
 import yaml, os, errno, re
 from urlparse import urlparse
 from alembic import command

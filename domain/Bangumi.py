@@ -1,3 +1,4 @@
+from domain.Image import Image
 from domain.base import Base
 from domain.Episode import Episode
 from domain.VideoFile import VideoFile
@@ -58,6 +59,10 @@ class Bangumi(Base):
 
     video_files = relationship('VideoFile', order_by=VideoFile.bangumi_id, back_populates='bangumi',
                                cascade='all, delete, delete-orphan')
+
+    cover_image = relationship(Image,
+                               foreign_keys=[cover_image_id],
+                               primaryjoin='Bangumi.cover_image_id==Image.id')
 
     # constant of bangumi status
     # A pending bangumi is not started to show on tv yet

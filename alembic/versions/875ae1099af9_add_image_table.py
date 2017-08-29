@@ -85,7 +85,7 @@ def upgrade():
                     "INSERT INTO image (id, file_path, dominant_color) VALUES ('{0}', '{1}', '{2}')".format(
                         image_id, thumbnail_path, episode_thumbnail_color)))
                 connection.execute(sa.text(
-                    "UPDATE episodes SET thumbnail_image_id = '{1}' WHERE id = '{1}'".format(image_id, episode_id)))
+                    "UPDATE episodes SET thumbnail_image_id = '{0}' WHERE id = '{1}'".format(image_id, episode_id)))
             except Exception as error:
                 print error
     print 'image table import completed. Start reading image dimension'
