@@ -16,11 +16,12 @@ from domain.Episode import Episode
 from domain.WatchProgress import WatchProgress
 from domain.Favorites import Favorites
 from domain.VideoFile import VideoFile
+from domain.Image import Image
 
 logger = logging.getLogger(__name__)
 
-class DeleteScanner:
 
+class DeleteScanner:
 
     def __init__(self, base_path, delete_delay):
         self.interval = 60
@@ -71,6 +72,11 @@ class DeleteScanner:
             # remove favorites
             for favorite in favorite_list:
                 session.delete(favorite)
+
+            # remove image
+            if bangumi.cover_image_id is not None:
+                image = session.query(Image).filter(Image.id == bangumi.cover_image_id).one()
+                session.delete(image)
 
             # remove bangumi
             session.delete(bangumi)
@@ -123,6 +129,11 @@ class DeleteScanner:
             for watch_progress in watch_progress_list:
                 session.delete(watch_progress)
 
+            # remove image
+            if episode.thumbnail_image_id is not None:
+                image = session.query(Image).filter(Image.id == episode.thumbnail_image_id).one()
+                session.delete(image)
+
             # remove episode
             session.delete(episode)
 
@@ -133,7 +144,6 @@ class DeleteScanner:
                 threads.blockingCallFromThread(reactor, download_manager.remove_torrents, task_content['video_file_list']['torrent_id'], True)
 
             self.__unshift_task_step(task_content, task, session)
-
 
             # remove files of episode
             bangumi_folder_path = '{0}/{1}'.format(self.base_path, str(episode.bangumi_id))

@@ -75,7 +75,7 @@ def upgrade():
             episode_id = eps[0]
             episode_no = eps[1]
             episode_thumbnail_color = eps[2]
-            thumbnail_path = u'{0}/thumbnails/{1}.png'.format(str(bangumi_id), episode_no)
+            thumbnail_path = '{0}/thumbnails/{1}.png'.format(str(bangumi_id), episode_no)
             if not os.path.exists(u'{0}/{1}'.format(base_path, thumbnail_path)):
                 print 'thumbnail not found for {0}'.format(episode_id)
                 continue
@@ -95,7 +95,7 @@ def upgrade():
         image_id = image[0]
         image_file_path = image[1]
         try:
-            im = Image.open(u'{0}/{1}'.format(base_path, image_file_path))
+            im = Image.open('{0}/{1}'.format(base_path, image_file_path))
             (width, height) = im.size
             connection.execute(sa.text("UPDATE image SET width = '{0}', height = '{1}' WHERE id = '{2}'".format(
                 width, height, image_id)))

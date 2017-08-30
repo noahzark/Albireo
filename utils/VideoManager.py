@@ -26,10 +26,10 @@ class VideoManager:
                                    '-vframes',
                                    '1',
                                    output_path])
-            return video_path
+            return output_path
         except subprocess.CalledProcessError as error:
             logger.warn(error)
-            return video_path
+            return output_path
 
     def create_episode_thumbnail(self, episode, relative_path, time):
         bangumi_id = str(episode.bangumi_id)
