@@ -162,6 +162,7 @@ class AdminService:
         try:
             session = SessionManager.Session()
             query_object = session.query(Bangumi).\
+                options(joinedload(Bangumi.cover_image)).\
                 filter(Bangumi.delete_mark == None)
 
             if name is not None:
@@ -194,6 +195,7 @@ class AdminService:
             for bgm in bangumi_list:
                 bangumi = row2dict(bgm)
                 bangumi['cover'] = utils.generate_cover_link(bgm)
+                utils.process_bangumi_dict(bgm, bangumi)
                 bangumi_dict_list.append(bangumi)
 
             return json_resp({'data': bangumi_dict_list, 'total': total})
@@ -408,7 +410,7 @@ class AdminService:
                 all()
 
             episode_dict = row2dict(episode)
-            utils.convert_image_dict(episode, episode_dict)
+            utils.process_episode_dict(episode, episode_dict)
 
             return json_resp({'data': episode_dict})
         except NoResultFound:
