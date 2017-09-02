@@ -1,3 +1,14 @@
+# 2.4.0-beta
+Redesign Image information storage. locally stored image will have their information stored in a specify table.
+
+## New table
+A new table `image` to store image information, a alembic upgrade scripts is needed. please read [database upgrade](https://github.com/lordfriend/Albireo/blob/master/alembic/README.md)
+
+## API update
+For each API that use a image url will now suggested to use a image object which contains: url, width, height, dominant_color.
+For compatibility reason. the old fields will remain there.
+
+
 # 2.3.0-beta
 Enhance my_bangumi api, now it accept a search parameter `status` which is an integer represents the status of favorite.
 default status is 3 (Watching) which will maintain the backward compatibility.
