@@ -56,7 +56,7 @@ class CommonUtils:
             'height': image_dict.get('height')
         }
         if self.image_domain is not None:
-            new_dict['image_url'] = self.image_domain + new_dict['image_url']
+            new_dict['url'] = self.image_domain + new_dict['url']
         return new_dict
 
     def process_bangumi_dict(self, bangumi, bangumi_dict):
