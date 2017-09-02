@@ -4,6 +4,8 @@ from urlparse import urlparse
 
 import logging
 
+from utils.db import row2dict
+
 logger = logging.getLogger(__name__)
 
 
@@ -46,5 +48,25 @@ class CommonUtils:
             video_link = self.video_domain + video_link
         return video_link
 
+    def convert_image_dict(self, image_dict):
+        new_dict = {
+            'url': '/pic/{0}'.format(image_dict['file_path']),
+            'dominant_color': image_dict.get('dominant_color'),
+            'width': image_dict.get('width'),
+            'height': image_dict.get('height')
+        }
+        if self.image_domain is not None:
+            new_dict['image_url'] = self.image_domain + new_dict['image_url']
+        return new_dict
+
+    def process_bangumi_dict(self, bangumi, bangumi_dict):
+        if bangumi.cover_image is not None:
+            bangumi_dict['cover_image'] = self.convert_image_dict(row2dict(bangumi.cover_image))
+        bangumi_dict.pop('cover_image_id', None)
+
+    def process_episode_dict(self, episode, episode_dict):
+        if episode.thumbnail_image is not None:
+            episode_dict['thumbnail_image'] = self.convert_image_dict(row2dict(episode.thumbnail_image))
+        episode_dict.pop('thumbnail_image_id')
 
 utils = CommonUtils()

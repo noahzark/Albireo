@@ -933,7 +933,6 @@ List all unused invite code
 - `summary`: `人居市街内，狸猫匍地行，天狗翱长空。居于京都下鸭神社糺之森的下鸭一家。...。` (string)
 - `air_weekday`: `7` (number)
 - `id`: `587b0a9b-c2ba-4f01-b553-6d14ed60f311` (string, optional) - this is the bangumi id in database, if this id is found, client should let user know that this bangumi already exists in database.
-- `cover_color`: `#ffcfc3` (string) - the dominant color of bangumi cover image.
 
 ## Rating
 - `count` (RatingCount)
@@ -951,6 +950,12 @@ List all unused invite code
 - `6`: `8` (number)
 - `9`: `15` (number)
 - `8`: `89` (number)
+
+## Image
+- `url`: `/pic/587b0a9b-c2ba-4f01-b553-6d14ed60f311/cover.jpg` (string) - the url for this image.
+- `dominant_color`: `#ffcfc3` (string) - the dominant color of this image.
+- `width`: 600 (number) - the width of the image in pixel.
+- `height`: 400 (number) - the height of the image in pixel.
 
 ## BangumiRawLarge
 - `id`: `68035` (number)
@@ -982,7 +987,6 @@ List all unused invite code
 - `airdate`: `2013-07-07` (string)
 - `comment`: `99` (number)
 - `desc`: `脚本：菅正太郎 / 絵コンテ：吉原正行 / 演出：菅沼芙実彦 / 作画監督：川面恒介
-- `thumbnail_color`: `#f2c3a0` (string) - dominant color of thumbnail image
 
 ## BgmImage
 - `large`: `http://lain.bgm.tv/pic/crt/l/a6/73/5807_prsn_Igcj1.jpg` (string)
@@ -997,7 +1001,9 @@ List all unused invite code
 - `name_cn`: `不正经的魔术讲师与禁忌教典` (string) - the chinese translated name of the bangumi, can be null.
 - `summary`: `厌恶魔术的魔术讲师所展开的叛逆英雄幻想剧！魔术与科学共同发展的世界——卢瓦佛斯。位于魔导大国·阿尔扎诺帝国南部的“阿尔扎诺帝国魔法学院”，是学习世界最先端魔术的最高学舍...` (string) - description for bangumi, can be null
 - `image`: `http://lain.bgm.tv/pic/cover/l/fb/9a/212500_858ip.jpg` (string) - the original image url from bgm.tv, this should not be used except the bangumi is not saved into database yet. A client should use cover property.
-- `cover`: `https://yourdomain.com/pic/46a469ee-5041-4f7c-8bf3-43ea6166a728/cover.jpg` (string) - the image url of bangumi, which is stored locally
+- `cover`: `https://yourdomain.com/pic/46a469ee-5041-4f7c-8bf3-43ea6166a728/cover.jpg` (string) - the image url of bangumi, which is stored locally. **Note that this field is DEPRECATED**
+- `cover_color`: `#ffcfc3` (string, optional) - the dominant color of bangumi cover image. **Note that this field is DEPRECATED**
+- `cover_image` (Image, optional) - cover image object.
 - `create_time`: `1493655186672.0` (number)
 - `update_time`: `1493655186672.0` (number)
 - `eps_no_offset` (number) - A offset is used for adjust episode number matching issue. offset = <episode.episode_no> - <feed episode number>, can be null
@@ -1032,7 +1038,7 @@ List all unused invite code
 - `bgm_eps_id`: `711764` (number) - id of this episode in bgm.tv
 - `name`: `01` (string) - the original name (usually the original language) of the episode
 - `name_cn`: `没干劲的不正经老师` (string) - the chinese translated name of the episode, can be null
-- `thumbnail`: `https://yourdomain.com/pic/46a469ee-5041-4f7c-8bf3-43ea6166a728/thumbnails/1.png` (string, optional)
+- `thumbnail`: `https://yourdomain.com/pic/46a469ee-5041-4f7c-8bf3-43ea6166a728/thumbnails/1.png` (string, optional) **Note that this field is DEPRECATED**
 - `status`: `2` (number) - the status of episode, can be: 0 (not downloaded), 1 (downloading), 2 (downloaded)
 - `episode_no`: `1` (number) - the number of the episode
 - `create_time`: `1493655186675.0` (number)
@@ -1040,6 +1046,8 @@ List all unused invite code
 - `airdate`: `2017-04-29` (string)
 - `delete_mark` (number) - can be null
 - `duration` (string)
+- `thumbnail_color`: `#f2c3a0` (string, optional) - dominant color of thumbnail image. May be null if thumbnail is not existed **Note that this field is DEPRECATED**
+- `thumbnail_image` (Image, optional) - image object of thumbnail image. May be null if thumbnail is not existed.
 
 ## EpisodeWithWatchProgress (Episode)
 - `watch_progress` (WatchProgress) - the watch progress information of current episode, can be undefined.

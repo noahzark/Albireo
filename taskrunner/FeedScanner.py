@@ -2,6 +2,7 @@ from twisted.internet.task import LoopingCall
 from twisted.internet import reactor, threads
 from twisted.internet.defer import inlineCallbacks, returnValue
 
+from domain.Image import Image
 from utils.SessionManager import SessionManager
 from utils.DownloadManager import download_manager
 from utils.VideoManager import video_manager
@@ -13,6 +14,8 @@ from domain.Favorites import Favorites
 from datetime import datetime
 
 import logging
+
+from utils.image import get_dominant_color, get_dimension
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +70,15 @@ class FeedScanner:
     def __create_thumbnail(self, episode, file_path):
         time = '00:00:01.000'
         video_manager.create_episode_thumbnail(episode, file_path, time)
+        thumbnail_path = '{0}/thumbnails/{1}.png'.format(str(episode.bangumi_id), episode.episode_no)
+        thumbnail_file_path = '{0}/{1}'.format(self.base_path, thumbnail_path)
+        color = get_dominant_color(thumbnail_file_path)
+        width, height = get_dimension(thumbnail_file_path)
+        episode.thumbnail_image = Image(file_path=thumbnail_path,
+                                        dominant_color=color,
+                                        width=width,
+                                        height=height)
+        episode.thumbnail_color = color
 
     def __update_video_meta(self, video_file):
         meta = video_manager.get_video_meta(u'{0}/{1}/{2}'.format(self.base_path, str(video_file.bangumi_id), video_file.file_path))

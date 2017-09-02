@@ -5,11 +5,12 @@ from domain.TorrentFile import TorrentFile
 from domain.Episode import Episode
 from domain.Bangumi import Bangumi
 from domain.VideoFile import VideoFile
+from domain.Image import Image
 from utils.SessionManager import SessionManager
 from utils.VideoManager import video_manager
 from datetime import datetime
 from sqlalchemy import exc
-from utils.color import get_dominant_color
+from utils.image import get_dominant_color, get_dimension
 import logging
 import yaml
 
@@ -25,25 +26,30 @@ class DownloadManager:
         self.base_path = config['download']['location']
 
     def connect(self):
-        '''
+        """
         connect to a downloader daemon, currently use deluge.
         :return: a Deferred object
-        '''
+        """
         return self.downloader.connect_to_daemon()
-
 
     def on_download_completed(self, torrent_id):
         logger.info('Download complete: %s', torrent_id)
 
         def create_thumbnail(episode, file_path):
             time = '00:00:01.000'
-            video_path = video_manager.create_episode_thumbnail(episode, file_path, time)
+            video_manager.create_episode_thumbnail(episode, file_path, time)
             try:
-                color = get_dominant_color(video_path)
-                return color
+                thumbnail_path = '{0}/thumbnails/{1}.png'.format(str(episode.bangumi_id), episode.episode_no)
+                thumbnail_file_path = '{0}/{1}'.format(self.base_path, thumbnail_path)
+                color = get_dominant_color(thumbnail_file_path)
+                width, height = get_dimension(thumbnail_file_path)
+                episode.thumbnail_image = Image(file_path=thumbnail_path,
+                                                dominant_color=color,
+                                                width=width,
+                                                height=height)
+                episode.thumbnail_color = color
             except Exception as error:
                 logger.warn(error)
-                return None
 
         def update_video_meta(video_file):
             meta = video_manager.get_video_meta(u'{0}/{1}/{2}'.format(self.base_path, str(video_file.bangumi_id), video_file.file_path))
@@ -82,7 +88,7 @@ class DownloadManager:
                         video_file.status = VideoFile.STATUS_DOWNLOADED
                         episode.update_time = datetime.now()
                         episode.status = Episode.STATUS_DOWNLOADED
-                        episode.thumbnail_color = create_thumbnail(episode, file_path)
+                        create_thumbnail(episode, file_path)
                         update_video_meta(video_file)
                     else:
                         file_path_list = [file['path'] for file in file_list]
@@ -92,14 +98,14 @@ class DownloadManager:
                                 video_file.status = VideoFile.STATUS_DOWNLOADED
                                 episode.update_time = datetime.now()
                                 episode.status = Episode.STATUS_DOWNLOADED
-                                episode.thumbnail_color = create_thumbnail(episode, file_path)
+                                create_thumbnail(episode, file_path)
                                 update_video_meta(video_file)
                                 break
                             elif video_file.file_path is not None and file_path == video_file.file_path:
                                 video_file.status = VideoFile.STATUS_DOWNLOADED
                                 episode.update_time = datetime.now()
                                 episode.status = Episode.STATUS_DOWNLOADED
-                                episode.thumbnail_color = create_thumbnail(episode, file_path)
+                                create_thumbnail(episode, file_path)
                                 update_video_meta(video_file)
                                 break
 
@@ -127,7 +133,6 @@ class DownloadManager:
     def download(self, download_url, download_location):
         torrent_id = yield self.downloader.download(download_url, download_location)
         returnValue(torrent_id)
-
 
     @inlineCallbacks
     def remove_torrents(self, torrent_id_list, remove_data):

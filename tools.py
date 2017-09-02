@@ -13,9 +13,10 @@ from domain.ServerSession import ServerSession
 from domain.WatchProgress import WatchProgress
 from domain.Task import Task
 from domain.VideoFile import VideoFile
+from domain.Image import Image
 
 from utils.http import FileDownloader
-from utils.color import get_dominant_color
+from utils.image import get_dominant_color, get_dimension
 import yaml, os, errno, re
 from urlparse import urlparse
 from alembic import command
@@ -121,6 +122,17 @@ elif args.cover:
                         session.commit()
                     except Exception as err:
                         print err
+                if bangumi.cover_image_id is None:
+                    try:
+                        width, height = get_dimension(bangumi_cover_path)
+                        cover_image = Image(file_path='{0}/cover{1}'.format(str(bangumi.id), extname),
+                                            dominant_color=bangumi.cover_color,
+                                            width=width,
+                                            height=height)
+                        bangumi.cover_image = cover_image
+                        session.commit()
+                    except Exception as err:
+                        print err
             except OSError as exception:
                 if exception.errno == errno.EACCES:
                     # permission denied
@@ -132,11 +144,22 @@ elif args.cover:
         eps_cur = session.query(Episode).filter(Episode.bangumi_id == bangumi.id)
         for episode in eps_cur:
             if episode.status == Episode.STATUS_DOWNLOADED and episode.thumbnail_color is None:
-                thumbnail_path = u'{0}/{1}/thumbnails/{2}.png'.format(download_location, str(bangumi.id), str(episode.episode_no))
+                thumbnail_path = '{0}/{1}/thumbnails/{2}.png'.format(download_location, str(bangumi.id), str(episode.episode_no))
                 try:
                     episode.thumbnail_color = get_dominant_color(thumbnail_path, 5)
+                    session.commit()
                 except Exception as err:
                     print err
+            if episode.status == Episode.STATUS_DOWNLOADED and episode.thumbnail_image_id is None:
+                thumbnail_path = '{0}/thumbnails/{1}.png'.format(str(bangumi.id), str(episode.episode_no))
+                thumbnail_file_path = '{0}/{1}'.format(download_location, thumbnail_path)
+                width, height = get_dimension(thumbnail_file_path)
+                thumbnail_image = Image(file_path=thumbnail_path,
+                                        dominant_color=episode.thumbnail_color,
+                                        width=width,
+                                        height=height)
+                episode.thumbnail_image = thumbnail_image
+                session.commit()
         print 'finish check bangumi #{0}'.format(str(bangumi.id))
 
 elif args.bgm_reset:

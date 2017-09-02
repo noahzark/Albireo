@@ -3,6 +3,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from domain.Episode import Episode
 from domain.Bangumi import Bangumi
+from domain.Image import Image
 from domain.TorrentFile import TorrentFile
 from domain.VideoFile import VideoFile
 from datetime import datetime
@@ -19,7 +20,7 @@ import os, errno
 from urlparse import urlparse
 from utils.VideoManager import video_manager
 from service.common import utils
-from utils.color import get_dominant_color
+from utils.image import get_dominant_color, get_dimension
 # from werkzeug.utils import secure_filename
 
 import logging
@@ -88,9 +89,10 @@ class AdminService:
 
         path = urlparse(bangumi.image).path
         extname = os.path.splitext(path)[1]
-        cover_path = bangumi_path + '/cover' + extname
-        self.file_downloader.download_file(bangumi.image, cover_path)
-        return cover_path
+        cover_path = '{0}/cover{1}'.format(str(bangumi.id), extname)
+        file_path = '{0}/{1}'.format(self.base_path, cover_path)
+        self.file_downloader.download_file(bangumi.image, file_path)
+        return file_path, cover_path
 
     def search_bangumi(self, type, term, offset, count):
         """
@@ -160,6 +162,7 @@ class AdminService:
         try:
             session = SessionManager.Session()
             query_object = session.query(Bangumi).\
+                options(joinedload(Bangumi.cover_image)).\
                 filter(Bangumi.delete_mark == None)
 
             if name is not None:
@@ -192,6 +195,7 @@ class AdminService:
             for bgm in bangumi_list:
                 bangumi = row2dict(bgm)
                 bangumi['cover'] = utils.generate_cover_link(bgm)
+                utils.process_bangumi_dict(bgm, bangumi)
                 bangumi_dict_list.append(bangumi)
 
             return json_resp({'data': bangumi_dict_list, 'total': total})
@@ -244,9 +248,14 @@ class AdminService:
 
             bangumi_id = str(bangumi.id)
             try:
-                cover_path = self.__save_bangumi_cover(bangumi)
+                (cover_file_path, cover_path) = self.__save_bangumi_cover(bangumi)
                 # get dominant color
-                bangumi.cover_color = get_dominant_color(cover_path)
+                bangumi.cover_color = get_dominant_color(cover_file_path)
+                (width, height) = get_dimension(cover_file_path)
+                bangumi.cover_image = Image(file_path=cover_path,
+                                            dominant_color=bangumi.cover_color,
+                                            width=width,
+                                            height=height)
                 session.commit()
             except Exception as error:
                 logger.warn(error)
@@ -299,7 +308,9 @@ class AdminService:
         try:
             session = SessionManager.Session()
 
-            bangumi = session.query(Bangumi).options(joinedload(Bangumi.episodes)).\
+            bangumi = session.query(Bangumi).\
+                options(joinedload(Bangumi.episodes).joinedload(Episode.thumbnail_image)).\
+                options(joinedload(Bangumi.cover_image)).\
                 filter(Bangumi.id == id).\
                 filter(Bangumi.delete_mark == None).\
                 one()
@@ -311,11 +322,13 @@ class AdminService:
                     continue
                 eps = row2dict(episode)
                 eps['thumbnail'] = utils.generate_thumbnail_link(episode, bangumi)
+                utils.process_episode_dict(episode, eps)
                 episodes.append(eps)
 
             bangumi_dict = row2dict(bangumi)
 
             bangumi_dict['episodes'] = episodes
+            utils.process_bangumi_dict(bangumi, bangumi_dict)
 
             bangumi_dict['cover'] = utils.generate_cover_link(bangumi)
 
@@ -391,11 +404,13 @@ class AdminService:
         try:
             session = SessionManager.Session()
             episode = session.query(Episode).\
+                options(joinedload(Episode.thumbnail_image)).\
                 filter(Episode.id == episode_id).\
                 filter(Episode.delete_mark == None).\
                 all()
 
             episode_dict = row2dict(episode)
+            utils.process_episode_dict(episode, episode_dict)
 
             return json_resp({'data': episode_dict})
         except NoResultFound:

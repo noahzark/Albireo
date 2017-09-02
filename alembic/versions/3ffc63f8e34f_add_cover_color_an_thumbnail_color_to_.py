@@ -17,7 +17,7 @@ import sqlalchemy as sa
 import yaml
 import os
 from urlparse import urlparse
-from utils.color import get_dominant_color
+from utils.image import get_dominant_color
 
 
 def get_base_path():
