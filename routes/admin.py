@@ -4,12 +4,13 @@ from utils.http import json_resp
 import json
 from service.admin import admin_service
 from service.auth import auth_user
-from flask_login import login_required
+from flask_login import login_required, current_user
 from domain.User import User
 from utils.exceptions import ClientError
 
 
 admin_api = Blueprint('bangumi', __name__)
+
 
 @admin_api.route('/bangumi', methods=['GET'])
 @login_required
@@ -22,12 +23,14 @@ def list_bangumi():
     name = request.args.get('name', None)
     return admin_service.list_bangumi(page, count=count, sort_field=sort_field, sort_order=sort_order, name=name)
 
+
 @admin_api.route('/bangumi', methods=['POST'])
 @login_required
 @auth_user(User.LEVEL_ADMIN)
 def add_bangumi():
     content = request.get_data(True, as_text=True)
-    return admin_service.add_bangumi(content)
+    return admin_service.add_bangumi(content, current_user.id)
+
 
 @admin_api.route('/bangumi/<id>', methods=['PUT'])
 @login_required
@@ -35,17 +38,20 @@ def add_bangumi():
 def update_bangumi(id):
     return admin_service.update_bangumi(id, json.loads(request.get_data(True, as_text=True)))
 
+
 @admin_api.route('/bangumi/<id>', methods=['GET'])
 @login_required
 @auth_user(User.LEVEL_ADMIN)
 def get_bangumi(id):
     return admin_service.get_bangumi(id)
 
+
 @admin_api.route('/bangumi/<id>', methods=['DELETE'])
 @login_required
 @auth_user(User.LEVEL_ADMIN)
 def delete_bangumi(id):
     return admin_service.delete_bangumi(id)
+
 
 @admin_api.route('/query', methods=['GET'])
 @login_required
@@ -59,6 +65,7 @@ def search_bangumi():
         return admin_service.search_bangumi(type, name, offset, count)
     else:
         raise ClientError('Name cannot be None', 400)
+
 
 @admin_api.route('/query/<bgm_id>', methods=['GET'])
 @login_required
@@ -81,12 +88,14 @@ def episode_list():
     status = request.args.get('status', None)
     return admin_service.list_episode(page, count, sort_field, sort_order, status)
 
+
 @admin_api.route('/episode', methods=['POST'])
 @login_required
 @auth_user(User.LEVEL_ADMIN)
 def add_episode():
     content = json.loads(request.get_data(True, as_text=True))
     return admin_service.add_episode(content)
+
 
 @admin_api.route('/episode/<episode_id>/thumbnail', methods=['PUT'])
 @login_required
@@ -102,17 +111,20 @@ def episode_thumbnail(episode_id):
 def get_episode(episode_id):
     return admin_service.get_episode(episode_id)
 
+
 @admin_api.route('/episode/<episode_id>', methods=['PUT'])
 @login_required
 @auth_user(User.LEVEL_ADMIN)
 def update_episode(episode_id):
     return admin_service.update_episode(episode_id, json.loads(request.get_data(True, as_text=True)))
 
+
 @admin_api.route('/episode/<episode_id>', methods=['DELETE'])
 @login_required
 @auth_user(User.LEVEL_ADMIN)
 def delete_episode(episode_id):
     return admin_service.delete_episode(episode_id)
+
 
 @admin_api.route('/video-file', methods=['GET'])
 @login_required
@@ -121,6 +133,7 @@ def get_episode_video_file_list():
     episode_id = request.args.get('episode_id')
     return admin_service.get_episode_video_file_list(episode_id)
 
+
 @admin_api.route('/video-file', methods=['POST'])
 @login_required
 @auth_user(User.LEVEL_ADMIN)
@@ -128,12 +141,14 @@ def add_video_file():
     video_dict = json.loads(request.get_data(as_text=True))
     return admin_service.add_video_file(video_dict)
 
+
 @admin_api.route('/video-file/<video_file_id>', methods=['PUT'])
 @login_required
 @auth_user(User.LEVEL_ADMIN)
 def update_video_file(video_file_id):
     video_dict = json.loads(request.get_data(as_text=True))
     return admin_service.update_video_file(video_file_id, video_dict)
+
 
 @admin_api.route('/video-file/<video_file_id>', methods=['DELETE'])
 @login_required

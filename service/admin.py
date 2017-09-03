@@ -16,7 +16,8 @@ from sqlalchemy.sql import select, func
 from sqlalchemy.orm import joinedload
 import yaml
 import json
-import os, errno
+import os
+import errno
 from urlparse import urlparse
 from utils.VideoManager import video_manager
 from service.common import utils
@@ -94,6 +95,16 @@ class AdminService:
         self.file_downloader.download_file(bangumi.image, file_path)
         return file_path, cover_path
 
+    def __process_user_obj_in_bangumi(self, bangumi, bangumi_dict):
+        if bangumi.created_by is not None:
+            bangumi_dict['created_by'] = row2dict(bangumi.created_by)
+            bangumi_dict['created_by'].pop('password', None)
+        if bangumi.maintained_by is not None:
+            bangumi_dict['maintained_by'] = row2dict(bangumi.maintained_by)
+            bangumi_dict['maintained_by'].pop('password', None)
+        bangumi_dict.pop('created_by_uid', None)
+        bangumi_dict.pop('maintained_by_uid', None)
+
     def search_bangumi(self, type, term, offset, count):
         """
         search bangumi from bangumi.tv, properly handling cookies is required for the bypass anti-bot mechanism
@@ -163,6 +174,8 @@ class AdminService:
             session = SessionManager.Session()
             query_object = session.query(Bangumi).\
                 options(joinedload(Bangumi.cover_image)).\
+                options(joinedload(Bangumi.created_by)).\
+                options(joinedload(Bangumi.maintained_by)).\
                 filter(Bangumi.delete_mark == None)
 
             if name is not None:
@@ -196,6 +209,7 @@ class AdminService:
                 bangumi = row2dict(bgm)
                 bangumi['cover'] = utils.generate_cover_link(bgm)
                 utils.process_bangumi_dict(bgm, bangumi)
+                self.__process_user_obj_in_bangumi(bgm, bangumi)
                 bangumi_dict_list.append(bangumi)
 
             return json_resp({'data': bangumi_dict_list, 'total': total})
@@ -203,7 +217,7 @@ class AdminService:
         finally:
             SessionManager.Session.remove()
 
-    def add_bangumi(self, content):
+    def add_bangumi(self, content, uid):
         try:
             bangumi_data = json.loads(content)
 
@@ -216,7 +230,9 @@ class AdminService:
                               image=bangumi_data.get('image'),
                               air_date=bangumi_data.get('air_date'),
                               air_weekday=bangumi_data.get('air_weekday'),
-                              status=self.__get_bangumi_status(bangumi_data.get('air_date')))
+                              status=self.__get_bangumi_status(bangumi_data.get('air_date')),
+                              created_by_uid=uid,
+                              maintained_by_uid=uid)
 
 
             # bangumi.dmhy = bangumi_data.get('dmhy')
@@ -292,13 +308,12 @@ class AdminService:
             if not bangumi.eps_no_offset:
                 # in case the eps_no_offset is empty string
                 bangumi.eps_no_offset = None
-
-
+            bangumi.maintained_by_uid = bangumi_dict.get('maintained_by_uid')
             bangumi.update_time = datetime.now()
 
             session.commit()
 
-            return json_resp({'msg': 'ok'})
+            return json_resp({'message': 'ok'})
         except NoResultFound:
             raise ClientError(ClientError.NOT_FOUND)
         finally:
@@ -310,7 +325,9 @@ class AdminService:
 
             bangumi = session.query(Bangumi).\
                 options(joinedload(Bangumi.episodes).joinedload(Episode.thumbnail_image)).\
-                options(joinedload(Bangumi.cover_image)).\
+                options(joinedload(Bangumi.cover_image)). \
+                options(joinedload(Bangumi.created_by)). \
+                options(joinedload(Bangumi.maintained_by)). \
                 filter(Bangumi.id == id).\
                 filter(Bangumi.delete_mark == None).\
                 one()
@@ -329,7 +346,7 @@ class AdminService:
 
             bangumi_dict['episodes'] = episodes
             utils.process_bangumi_dict(bangumi, bangumi_dict)
-
+            self.__process_user_obj_in_bangumi(bangumi, bangumi_dict)
             bangumi_dict['cover'] = utils.generate_cover_link(bangumi)
 
             return json_resp({'data': bangumi_dict})

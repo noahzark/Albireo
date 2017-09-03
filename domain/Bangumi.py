@@ -1,4 +1,5 @@
 from domain.Image import Image
+from domain.User import User
 from domain.base import Base
 from domain.Episode import Episode
 from domain.VideoFile import VideoFile
@@ -50,6 +51,10 @@ class Bangumi(Base):
     # it is a date time when bangumi is schedule to delete
     delete_mark = Column(TIMESTAMP, nullable=True)
 
+    created_by_uid = Column(postgresql.UUID(as_uuid=True), nullable=True)
+    maintained_by_uid = Column(postgresql.UUID(as_uuid=True), nullable=True)
+
+    # relationships
     episodes = relationship('Episode', order_by=Episode.episode_no, back_populates='bangumi',
                             cascade='all, delete, delete-orphan')
 
@@ -63,6 +68,14 @@ class Bangumi(Base):
     cover_image = relationship(Image,
                                foreign_keys=[cover_image_id],
                                primaryjoin='Bangumi.cover_image_id==Image.id')
+
+    created_by = relationship(User,
+                              foreign_keys=[created_by_uid],
+                              primaryjoin='Bangumi.created_by_uid==User.id')
+
+    maintained_by = relationship(User,
+                                 foreign_keys=[maintained_by_uid],
+                                 primaryjoin='Bangumi.maintained_by_uid==User.id')
 
     # constant of bangumi status
     # A pending bangumi is not started to show on tv yet
