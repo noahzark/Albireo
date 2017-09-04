@@ -54,6 +54,9 @@ class Bangumi(Base):
     created_by_uid = Column(postgresql.UUID(as_uuid=True), nullable=True)
     maintained_by_uid = Column(postgresql.UUID(as_uuid=True), nullable=True)
 
+    # how many days exceed the airdate of its episode will make an alert to maintainer.
+    alert_timeout = Column(Integer, default=2, nullable=False)
+
     # relationships
     episodes = relationship('Episode', order_by=Episode.episode_no, back_populates='bangumi',
                             cascade='all, delete, delete-orphan')

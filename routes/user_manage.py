@@ -9,6 +9,7 @@ user_manage_api = Blueprint('user_manage', __name__)
 
 user_manage_service = user_manage_service
 
+
 @user_manage_api.route('/', methods=['GET'])
 @login_required
 @auth_user(User.LEVEL_ADMIN)
@@ -19,14 +20,15 @@ def list_user():
     minlevel = int(request.args.get('minlevel', 0))
     return user_manage_service.list_user(name, count, offset, minlevel)
 
+
 @user_manage_api.route('/promote', methods=['POST'])
 @login_required
 @auth_user(User.LEVEL_SUPER_USER)
 def promote_user():
-    '''
+    """
     promote user as administrator
     :return: response
-    '''
+    """
     content = request.get_data(as_text=True)
     data = json.loads(content)
     return user_manage_service.promote_user(data.get('id'), data.get('to_level'))

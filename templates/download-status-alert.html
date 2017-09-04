@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Download Status Alert</title>
+</head>
+<body>
+<p>Dear {{ info.username }},</p>
+{% if info.sys %}
+<p>We inform you because you are the maintainer of the following bangumi which has some episodes resources updating
+    behind schedule.</p>
+{% else %}
+<p>We inform you because following bangumi which has some episodes resources updating behind schedule. But none of these
+    bangumi have an maintainer. So all admin will receive this alert</p>
+{% endif %}
+<p>To prevent a bangumi being in the list. You can either modify the maintainer of the bangumi to another admin, or
+    modify bangumi status to FINISHED</p>
+{% for bangumi_dict in bangumi_list %}
+    <h4>
+        <a href="{{ info.root_path + '/admin/bangumi/' + bangumi_dict['bangumi'].id }}">{{ bangumi_dict['bangumi'].name }}</a>
+    </h4>
+    <ul>
+        {% for episode in bangumi_dict['episodes'] %}
+            <li>
+                episode {{ episode.episode_no }} on air date is {{ episode.airdate }}
+            </li>
+        {% endfor %}
+    </ul>
+{% endfor %}
+</body>
+</html>
+
