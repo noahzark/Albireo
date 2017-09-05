@@ -1,12 +1,18 @@
 # 2.4.0-beta
 Redesign Image information storage. locally stored image will have their information stored in a specify table.
 
-## New table
-A new table `image` to store image information, a alembic upgrade scripts is needed. please read [database upgrade](https://github.com/lordfriend/Albireo/blob/master/alembic/README.md)
+## Database Changes
+- A new table `image` to store image information, a alembic upgrade scripts is needed. please read [database upgrade](https://github.com/lordfriend/Albireo/blob/master/alembic/README.md)
+- Add new fields on Bangumi table.
 
 ## API update
-For each API that use a image url will now suggested to use a image object which contains: url, width, height, dominant_color.
+- For each API that use a image url will now suggested to use a image object which contains: url, width, height, dominant_color.
 For compatibility reason. the old fields will remain there.
+- Add new field to bangumi management APIs. `created_by`, `mantained_by` and `alert_timeout`. These fields will work with a new 
+scanner which daily check the download status of all episode make sure they are up to date. if any of the episode is behind schedule
+ of over the `alert_timeout` day. an email will be sent to the `maintained_by` user. If `maintained_by` is not set, all admin
+ will receive an alert mail.
+   
 
 ## Bug fix
 
