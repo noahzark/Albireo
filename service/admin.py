@@ -309,6 +309,8 @@ class AdminService:
                 # in case the eps_no_offset is empty string
                 bangumi.eps_no_offset = None
             bangumi.maintained_by_uid = bangumi_dict.get('maintained_by_uid')
+            if not bangumi.maintained_by_uid:
+                bangumi.maintained_by_uid = None
             bangumi.update_time = datetime.now()
 
             session.commit()
