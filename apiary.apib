@@ -15,7 +15,7 @@ and episode by specifying id.
 list all bangumi which is favorite by current user
 
 + Parameters
-    + `status` (number, optional) - the favorite status, can be one of the following value:  1 (WISH), 2 (WATCHED), 3 (WATCHING), 4 (PAUSE), 5 (ABANDONED)
+    + `status` (number, optional) - the favorite status, can be one of the following value:  1 (WISH), 2 (WATCHED), 3 (WATCHING), 4 (PAUSE), 5 (ABANDONED) and 0 (all of above)
         + Default: `3`
 
 + Response 200 (application/json)
@@ -485,7 +485,7 @@ see the source code
 
 + Response 200 (application/json)
 
-        {"msg": "ok"}
+        {"message": "ok"}
 
 ## Get Bangumi [GET /api/admin/bangumi/{bangumi_id}]
 
@@ -862,7 +862,7 @@ Restore a pending delete episode, only available before episode is actually dele
 
 A set of API which used to management user and invite code. All APIs in this group require user.level >= 2.
 
-## User [/api/user-manage{?name,count,offset}]
+## User [/api/user-manage{?name,count,offset,minlevel}]
 
 User related operations
 
@@ -873,6 +873,8 @@ User related operations
     + `count`: `10` (number, optional) - number of items per page.
         + Default: `10`
     + `offset`: `0` (number, optional) - start position off current page.
+        + Default: `0`
+    + `minlevel`: `0` (number, optional) - the minimun level of user.
         + Default: `0`
 
 + Response 200 (application)
@@ -1019,9 +1021,13 @@ List all unused invite code
 - `rss` (string) - DEPRECATED, will be removed in the future
 - `eps_regex` (string) - DEPRECATED, will be removed in the future
 - `eps`: `1` (number) - how many episodes the bangumi has
+- `created_by_uid`: `b50263f6-c1a0-432c-af6b-19f8cb9e58d2` (string) - id of user who create this item.
+- `maintained_by_uid`: `b50263f6-c1a0-432c-af6b-19f8cb9e58d2` (string) - id of user who maintains this item, can be modified.
 
 ## BangumiExtended (Bangumi)
 - `episodes` (array[EpisodeWithWatchProgress]) - episode list of the bangumi
+- `created_by` (User, optional) - user object, who is the creator of the bangumi item. 
+- `maintained_by` (User, optional) - user object, who is the maintainer of the bangumi item.
 
 ## BangumiFavorite (Bangumi)
 - `favorite_status`: `3` (number, optional) - current favorite status of the bangumi, this field can be one of the following value: 1 (WISH), 2 (WATCHED), 3 (WATCHING), 4 (PAUSE), 5 (ABANDONED)
