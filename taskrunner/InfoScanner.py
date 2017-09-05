@@ -56,10 +56,9 @@ class InfoScanner:
         bangumi_tv_url = bangumi_tv_url_base + str(bgm_id) + bangumi_tv_url_param
         r = bangumi_request.get(bangumi_tv_url)
         if r.status_code < 400:
-            return (r.status_code, r.json())
+            return r.status_code, r.json()
         else:
-            return (r.status_code, {})
-
+            return r.status_code, {}
 
     def __scan_episode_in_thread(self):
         logger.info('start scan info of episode')
