@@ -1,3 +1,5 @@
+from domain.Image import Image
+from domain.User import User
 from domain.base import Base
 from domain.Episode import Episode
 from domain.VideoFile import VideoFile
@@ -13,21 +15,26 @@ class Bangumi(Base):
 
     id = Column(postgresql.UUID(as_uuid=True), primary_key=True, default=uuid4)
     bgm_id = Column(Integer, nullable=False, unique=True)
-    name = Column(TEXT , nullable=False)
+    name = Column(TEXT, nullable=False)
     name_cn = Column(TEXT, nullable=False)
     type = Column(Integer, nullable=False)
     eps = Column(Integer, nullable=False)
     summary = Column(TEXT, nullable=False)
+    # The bangumi cover url from the bgm.tv
     image = Column(TEXT, nullable=False)
     air_date = Column(DATE, nullable=False)
     air_weekday = Column(Integer, nullable=False)
     # @deprecated
     rss = Column(TEXT, nullable=True)
-    dmhy = Column(TEXT, nullable=True) # dmhy search criteria
+    # dmhy search criteria
+    dmhy = Column(TEXT, nullable=True)
     eps_no_offset = Column(Integer, nullable=True)
-    acg_rip = Column(TEXT, nullable=True) #acg.rip search criteria
-    libyk_so = Column(TEXT, nullable=True) # libyk.so search criteria, this field should be an JSON string contains two fields: {t: string, q: string}
-    bangumi_moe = Column(TEXT, nullable=True) #bangumi.moe tag id array, this field should be an serialized JSON array contains strings
+    # acg.rip search criteria
+    acg_rip = Column(TEXT, nullable=True)
+    # libyk.so search criteria, this field should be an JSON string contains two fields: {t: string, q: string}
+    libyk_so = Column(TEXT, nullable=True)
+    # bangumi.moe tag id array, this field should be an serialized JSON array contains strings
+    bangumi_moe = Column(TEXT, nullable=True)
     # @deprecated
     eps_regex = Column(TEXT, nullable=True)
     status = Column(Integer, nullable=False)
@@ -35,8 +42,22 @@ class Bangumi(Base):
     update_time = Column(TIMESTAMP, default=datetime.now, nullable=False)
 
     # dominant color extracted from current bangumi cover image
+    # @deprecated
     cover_color = Column(String, nullable=True)
 
+    cover_image_id = Column(postgresql.UUID(as_uuid=True), nullable=True)
+
+    # this mark is used by DeleteScanner to start a task for deleting certain bangumi and all data associated.
+    # it is a date time when bangumi is schedule to delete
+    delete_mark = Column(TIMESTAMP, nullable=True)
+
+    created_by_uid = Column(postgresql.UUID(as_uuid=True), nullable=True)
+    maintained_by_uid = Column(postgresql.UUID(as_uuid=True), nullable=True)
+
+    # how many days exceed the airdate of its episode will make an alert to maintainer.
+    alert_timeout = Column(Integer, default=2, nullable=False)
+
+    # relationships
     episodes = relationship('Episode', order_by=Episode.episode_no, back_populates='bangumi',
                             cascade='all, delete, delete-orphan')
 
@@ -47,9 +68,17 @@ class Bangumi(Base):
     video_files = relationship('VideoFile', order_by=VideoFile.bangumi_id, back_populates='bangumi',
                                cascade='all, delete, delete-orphan')
 
-    # this mark is used by DeleteScanner to start a task for deleting certain bangumi and all data associated.
-    # it is a date time when bangumi is schedule to delete
-    delete_mark = Column(TIMESTAMP, nullable=True)
+    cover_image = relationship(Image,
+                               foreign_keys=[cover_image_id],
+                               primaryjoin='Bangumi.cover_image_id==Image.id')
+
+    created_by = relationship(User,
+                              foreign_keys=[created_by_uid],
+                              primaryjoin='Bangumi.created_by_uid==User.id')
+
+    maintained_by = relationship(User,
+                                 foreign_keys=[maintained_by_uid],
+                                 primaryjoin='Bangumi.maintained_by_uid==User.id')
 
     # constant of bangumi status
     # A pending bangumi is not started to show on tv yet

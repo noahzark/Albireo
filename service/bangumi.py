@@ -59,6 +59,8 @@ class BangumiService:
         try:
             (episode, bangumi) = session.query(Episode, Bangumi).\
                 join(Bangumi).\
+                options(joinedload(Bangumi.cover_image)).\
+                options(joinedload(Episode.thumbnail_image)).\
                 filter(Episode.delete_mark == None).\
                 filter(Episode.id == episode_id).\
                 one()
@@ -70,7 +72,9 @@ class BangumiService:
             episode_dict = row2dict(episode)
             episode_dict['bangumi'] = row2dict(bangumi)
             episode_dict['bangumi']['cover'] = utils.generate_cover_link(bangumi)
+            utils.process_bangumi_dict(bangumi, episode_dict['bangumi'])
             episode_dict['thumbnail'] = utils.generate_thumbnail_link(episode, bangumi)
+            utils.process_episode_dict(episode, episode_dict)
 
             if watch_progress is not None:
                 episode_dict['watch_progress'] = row2dict(watch_progress)
@@ -104,6 +108,7 @@ class BangumiService:
         try:
             result = session.query(distinct(Episode.bangumi_id), Bangumi).\
                 join(Bangumi). \
+                options(joinedload(Bangumi.cover_image)).\
                 filter(Bangumi.delete_mark == None). \
                 filter(Bangumi.type == type).\
                 filter(Episode.airdate >= start_time).\
@@ -123,6 +128,7 @@ class BangumiService:
             for bangumi_id, bangumi in result:
                 bangumi_dict = row2dict(bangumi)
                 bangumi_dict['cover'] = utils.generate_cover_link(bangumi)
+                utils.process_bangumi_dict(bangumi, bangumi_dict)
                 for fav in favorites:
                     if fav.bangumi_id == bangumi_id:
                         bangumi_dict['favorite_status'] = fav.status
@@ -138,6 +144,7 @@ class BangumiService:
 
             session = SessionManager.Session()
             query_object = session.query(Bangumi).\
+                options(joinedload(Bangumi.cover_image)).\
                 filter(Bangumi.delete_mark == None)
 
             if name is not None:
@@ -177,6 +184,7 @@ class BangumiService:
             for bgm in bangumi_list:
                 bangumi = row2dict(bgm)
                 bangumi['cover'] = utils.generate_cover_link(bgm)
+                utils.process_bangumi_dict(bgm, bangumi)
                 for fav in favorites:
                     if fav.bangumi_id == bgm.id:
                         bangumi['favorite_status'] = fav.status
@@ -191,7 +199,8 @@ class BangumiService:
             session = SessionManager.Session()
 
             bangumi = session.query(Bangumi).\
-                options(joinedload(Bangumi.episodes)).\
+                options(joinedload(Bangumi.episodes).joinedload(Episode.thumbnail_image)).\
+                options(joinedload(Bangumi.cover_image)).\
                 filter(Bangumi.delete_mark == None).\
                 filter(Bangumi.id == id).\
                 one()
@@ -218,6 +227,7 @@ class BangumiService:
                     continue
                 eps = row2dict(episode)
                 eps['thumbnail'] = utils.generate_thumbnail_link(episode, bangumi)
+                utils.process_episode_dict(episode, eps)
                 if episode.id in watch_progress_hash_table:
                     eps['watch_progress'] = watch_progress_hash_table[episode.id]
                 episodes.append(eps)
@@ -230,6 +240,7 @@ class BangumiService:
             bangumi_dict['episodes'] = episodes
 
             bangumi_dict['cover'] = utils.generate_cover_link(bangumi)
+            utils.process_bangumi_dict(bangumi, bangumi_dict)
 
             return json_resp({'data': bangumi_dict})
         except NoResultFound:

@@ -1,3 +1,4 @@
+from domain.Image import Image
 from domain.base import Base
 from domain.TorrentFile import TorrentFile
 from domain.VideoFile import VideoFile
@@ -26,7 +27,10 @@ class Episode(Base):
     delete_mark = Column(TIMESTAMP, nullable=True)
 
     # dominant color extracted from thumbnail image
+    # @deprecated
     thumbnail_color = Column(String, nullable=True)
+
+    thumbnail_image_id = Column(postgresql.UUID(as_uuid=True), nullable=True)
 
     bangumi = relationship('Bangumi', back_populates='episodes')
 
@@ -37,6 +41,10 @@ class Episode(Base):
                                cascade='all, delete, delete-orphan')
 
     watch_progress = relationship('WatchProgress', uselist=False, back_populates='episode')
+
+    thumbnail_image = relationship(Image,
+                                   foreign_keys=[thumbnail_image_id],
+                                   primaryjoin='Episode.thumbnail_image_id==Image.id')
 
     STATUS_NOT_DOWNLOADED = 0
     STATUS_DOWNLOADING = 1

@@ -1,6 +1,8 @@
 import logging
 import os, errno
 
+from taskrunner.DownloadStatusScanner import download_status_scanner
+
 FORMAT = '%(asctime)-15s %(module)s:%(lineno)d %(message)s'
 
 logging.basicConfig(format=FORMAT, datefmt='%Y/%m/%d %H:%M:%S')
@@ -38,6 +40,7 @@ from taskrunner.BangumiMoeScanner import BangumiMoeScanner
 from taskrunner.AcgripScanner import AcgripScanner
 from taskrunner.LibyksoScanner import LibyksoScanner
 from taskrunner.DeleteScanner import DeleteScanner
+
 
 class Scheduler:
 
@@ -109,10 +112,12 @@ scheduler = Scheduler()
 
 video_manager.set_base_path(scheduler.base_path)
 
+
 def on_connected(result):
     logger.info(result)
     scheduler.start()
     info_scanner.start()
+    download_status_scanner.start()
     scheduler.start_scan_feed()
     scheduler.start_scan_delete()
 

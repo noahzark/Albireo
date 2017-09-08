@@ -22,10 +22,11 @@ class UserManage:
         (email_name, email_domain) = email.split('@')
         return '{0}**@{1}'.format(email_name[0:2], email_domain)
 
-    def list_user(self, name, count, offset):
+    def list_user(self, name, count, offset, minlevel):
         session = SessionManager.Session()
         try:
-            query_object = session.query(User)
+            query_object = session.query(User).\
+                filter(User.level >= minlevel)
             if name is not None:
                 name_pattern = '%{0}%'.format(name.encode('utf-8'), )
                 logger.debug(name_pattern)

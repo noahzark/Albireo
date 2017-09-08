@@ -14,6 +14,7 @@ import traceback
 
 logger = logging.getLogger(__name__)
 
+
 class InfoScanner:
 
     def __init__(self):
@@ -40,7 +41,7 @@ class InfoScanner:
     def check_time(self):
         if self.scanner_running:
             return
-        current_time = datetime.now()
+        current_time = datetime.utcnow()
         if self.last_scan_date is not None and self.last_scan_date == current_time.date():
             return
         if (not self.scanner_running) and (self.scan_time.hour == current_time.hour):
@@ -55,14 +56,13 @@ class InfoScanner:
         bangumi_tv_url = bangumi_tv_url_base + str(bgm_id) + bangumi_tv_url_param
         r = bangumi_request.get(bangumi_tv_url)
         if r.status_code < 400:
-            return (r.status_code, r.json())
+            return r.status_code, r.json()
         else:
-            return (r.status_code, {})
-
+            return r.status_code, {}
 
     def __scan_episode_in_thread(self):
         logger.info('start scan info of episode')
-        session = SessionManager.Session
+        session = SessionManager.Session()
         try:
             # we don't scan the episode those name_cn is missing
             # because many of them don't have name_cn
@@ -108,6 +108,8 @@ class InfoScanner:
         except Exception as error:
             logger.error(error)
             traceback.print_exc()
+        finally:
+            SessionManager.Session.remove()
 
     def scan_episode(self):
         threads.deferToThread(self.__scan_episode_in_thread)

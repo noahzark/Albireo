@@ -19,6 +19,9 @@ task:
   delete_delay: # delay for delete any resources. 0 represents immediately
     bangumi: 10 # unit minute
     episode: 0 # unit minute
+  download_status_scanner:
+    scan_time: # A download status scanner will scheduled for once a day at this particular time. it is not an accurate time, default is 23:00
+    scan_time_format: # default is '%H:%M' see https://docs.python.org/2/library/datetime.html#strftime-strptime-behavior
 
 download:
   location: /  # change this location

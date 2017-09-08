@@ -3,6 +3,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from domain.Episode import Episode
 from domain.Bangumi import Bangumi
+from domain.Image import Image
 from domain.TorrentFile import TorrentFile
 from domain.VideoFile import VideoFile
 from datetime import datetime
@@ -15,11 +16,12 @@ from sqlalchemy.sql import select, func
 from sqlalchemy.orm import joinedload
 import yaml
 import json
-import os, errno
+import os
+import errno
 from urlparse import urlparse
 from utils.VideoManager import video_manager
 from service.common import utils
-from utils.color import get_dominant_color
+from utils.image import get_dominant_color, get_dimension
 # from werkzeug.utils import secure_filename
 
 import logging
@@ -88,9 +90,20 @@ class AdminService:
 
         path = urlparse(bangumi.image).path
         extname = os.path.splitext(path)[1]
-        cover_path = bangumi_path + '/cover' + extname
-        self.file_downloader.download_file(bangumi.image, cover_path)
-        return cover_path
+        cover_path = '{0}/cover{1}'.format(str(bangumi.id), extname)
+        file_path = '{0}/{1}'.format(self.base_path, cover_path)
+        self.file_downloader.download_file(bangumi.image, file_path)
+        return file_path, cover_path
+
+    def __process_user_obj_in_bangumi(self, bangumi, bangumi_dict):
+        if bangumi.created_by is not None:
+            bangumi_dict['created_by'] = row2dict(bangumi.created_by)
+            bangumi_dict['created_by'].pop('password', None)
+        if bangumi.maintained_by is not None:
+            bangumi_dict['maintained_by'] = row2dict(bangumi.maintained_by)
+            bangumi_dict['maintained_by'].pop('password', None)
+        bangumi_dict.pop('created_by_uid', None)
+        bangumi_dict.pop('maintained_by_uid', None)
 
     def search_bangumi(self, type, term, offset, count):
         """
@@ -160,6 +173,9 @@ class AdminService:
         try:
             session = SessionManager.Session()
             query_object = session.query(Bangumi).\
+                options(joinedload(Bangumi.cover_image)).\
+                options(joinedload(Bangumi.created_by)).\
+                options(joinedload(Bangumi.maintained_by)).\
                 filter(Bangumi.delete_mark == None)
 
             if name is not None:
@@ -192,6 +208,8 @@ class AdminService:
             for bgm in bangumi_list:
                 bangumi = row2dict(bgm)
                 bangumi['cover'] = utils.generate_cover_link(bgm)
+                utils.process_bangumi_dict(bgm, bangumi)
+                self.__process_user_obj_in_bangumi(bgm, bangumi)
                 bangumi_dict_list.append(bangumi)
 
             return json_resp({'data': bangumi_dict_list, 'total': total})
@@ -199,7 +217,7 @@ class AdminService:
         finally:
             SessionManager.Session.remove()
 
-    def add_bangumi(self, content):
+    def add_bangumi(self, content, uid):
         try:
             bangumi_data = json.loads(content)
 
@@ -212,7 +230,9 @@ class AdminService:
                               image=bangumi_data.get('image'),
                               air_date=bangumi_data.get('air_date'),
                               air_weekday=bangumi_data.get('air_weekday'),
-                              status=self.__get_bangumi_status(bangumi_data.get('air_date')))
+                              status=self.__get_bangumi_status(bangumi_data.get('air_date')),
+                              created_by_uid=uid,
+                              maintained_by_uid=uid)
 
 
             # bangumi.dmhy = bangumi_data.get('dmhy')
@@ -244,9 +264,14 @@ class AdminService:
 
             bangumi_id = str(bangumi.id)
             try:
-                cover_path = self.__save_bangumi_cover(bangumi)
+                (cover_file_path, cover_path) = self.__save_bangumi_cover(bangumi)
                 # get dominant color
-                bangumi.cover_color = get_dominant_color(cover_path)
+                bangumi.cover_color = get_dominant_color(cover_file_path)
+                (width, height) = get_dimension(cover_file_path)
+                bangumi.cover_image = Image(file_path=cover_path,
+                                            dominant_color=bangumi.cover_color,
+                                            width=width,
+                                            height=height)
                 session.commit()
             except Exception as error:
                 logger.warn(error)
@@ -283,13 +308,14 @@ class AdminService:
             if not bangumi.eps_no_offset:
                 # in case the eps_no_offset is empty string
                 bangumi.eps_no_offset = None
-
-
+            bangumi.maintained_by_uid = bangumi_dict.get('maintained_by_uid')
+            if not bangumi.maintained_by_uid:
+                bangumi.maintained_by_uid = None
             bangumi.update_time = datetime.now()
 
             session.commit()
 
-            return json_resp({'msg': 'ok'})
+            return json_resp({'message': 'ok'})
         except NoResultFound:
             raise ClientError(ClientError.NOT_FOUND)
         finally:
@@ -299,7 +325,11 @@ class AdminService:
         try:
             session = SessionManager.Session()
 
-            bangumi = session.query(Bangumi).options(joinedload(Bangumi.episodes)).\
+            bangumi = session.query(Bangumi).\
+                options(joinedload(Bangumi.episodes).joinedload(Episode.thumbnail_image)).\
+                options(joinedload(Bangumi.cover_image)). \
+                options(joinedload(Bangumi.created_by)). \
+                options(joinedload(Bangumi.maintained_by)). \
                 filter(Bangumi.id == id).\
                 filter(Bangumi.delete_mark == None).\
                 one()
@@ -311,12 +341,14 @@ class AdminService:
                     continue
                 eps = row2dict(episode)
                 eps['thumbnail'] = utils.generate_thumbnail_link(episode, bangumi)
+                utils.process_episode_dict(episode, eps)
                 episodes.append(eps)
 
             bangumi_dict = row2dict(bangumi)
 
             bangumi_dict['episodes'] = episodes
-
+            utils.process_bangumi_dict(bangumi, bangumi_dict)
+            self.__process_user_obj_in_bangumi(bangumi, bangumi_dict)
             bangumi_dict['cover'] = utils.generate_cover_link(bangumi)
 
             return json_resp({'data': bangumi_dict})
@@ -391,11 +423,13 @@ class AdminService:
         try:
             session = SessionManager.Session()
             episode = session.query(Episode).\
+                options(joinedload(Episode.thumbnail_image)).\
                 filter(Episode.id == episode_id).\
                 filter(Episode.delete_mark == None).\
                 all()
 
             episode_dict = row2dict(episode)
+            utils.process_episode_dict(episode, episode_dict)
 
             return json_resp({'data': episode_dict})
         except NoResultFound:

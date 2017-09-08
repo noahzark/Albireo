@@ -16,10 +16,12 @@ logger = logging.getLogger(__name__)
 
 user_agent = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0'
 
+
 def encode_datetime(obj):
     if isinstance(obj, date):
         return obj.strftime('%Y-%m-%d')
     raise TypeError(repr(obj) + ' is not JSON serializable')
+
 
 class DateTimeEncoder(json.JSONEncoder):
     def default(self, o):
@@ -32,10 +34,12 @@ class DateTimeEncoder(json.JSONEncoder):
         else:
             return json.JSONEncoder.default(self, o)
 
+
 def json_resp(obj, status=200):
     resp = make_response(json.dumps(obj, cls=DateTimeEncoder), status)
     resp.headers['Content-Type'] = 'application/json'
     return resp
+
 
 class FileDownloader:
 
@@ -55,6 +59,7 @@ class FileDownloader:
             for chunk in r.iter_content(chunk_size=1024):
                 if chunk:
                     f.write(chunk)
+
 
 class BangumiRequest:
 
