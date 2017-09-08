@@ -12,11 +12,13 @@ For compatibility reason. the old fields will remain there.
 scanner which daily check the download status of all episode make sure they are up to date. if any of the episode is behind schedule
  of over the `alert_timeout` day. an email will be sent to the `maintained_by` user. If `maintained_by` is not set, all admin
  will receive an alert mail.
-   
+- Add minlevel to user management API.
+
 
 ## Bug fix
 
 - fix #64
+- fix video thumbnail capture return path, should return the output capture path instead of video path. PLEASE RUN `python tools.py --cover` TO FIX THIS.
 
 # 2.3.0-beta
 Enhance my_bangumi api, now it accept a search parameter `status` which is an integer represents the status of favorite.
