@@ -1,4 +1,9 @@
 # 2.4.0-beta
+
+## Bug fix
+- fix eps property of bangumi doesn't change when add/remove an episode.
+
+# 2.4.0-beta
 Redesign Image information storage. locally stored image will have their information stored in a specify table.
 
 ## Database Changes
