@@ -382,6 +382,7 @@ class AdminService:
     def add_episode(self, episode_dict):
         try:
             session = SessionManager.Session()
+            bangumi = session.query(Bangumi).filter(Bangumi.id == episode_dict['bangumi_id']).one()
             episode = Episode(bangumi_id=episode_dict['bangumi_id'],
                               bgm_eps_id=episode_dict.get('bgm_eps_id', -1),
                               episode_no=episode_dict['episode_no'],
@@ -391,6 +392,7 @@ class AdminService:
                               airdate=episode_dict.get('airdate'),
                               status=Episode.STATUS_NOT_DOWNLOADED)
             session.add(episode)
+            bangumi.eps = bangumi.eps + 1
             session.commit()
             episode_id = str(episode.id)
             return json_resp({'data': {'id': episode_id}})
@@ -440,8 +442,11 @@ class AdminService:
     def delete_episode(self, episode_id):
         try:
             session = SessionManager.Session()
-            episode = session.query(Episode).filter(Episode.id == episode_id).one()
+            episode = session.query(Episode).\
+                options(joinedload(Episode.bangumi)).\
+                filter(Episode.id == episode_id).one()
             episode.delete_mark = datetime.now()
+            episode.bangumi.eps = episode.bangumi.eps - 1
             session.commit()
             return json_resp({'data': {'delete_delay': self.delete_delay['episode']}})
         finally:
