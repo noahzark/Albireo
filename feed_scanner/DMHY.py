@@ -38,6 +38,7 @@ class DMHY(AbstractScanner):
         '''
         # eps no list
         logger.debug('start scan %s (%s)', self.bangumi.name, self.bangumi.id)
+        logger.debug(self.feed_url)
         eps_no_list = [eps.episode_no for eps in self.episode_list]
 
         timeout = socket.getdefaulttimeout()

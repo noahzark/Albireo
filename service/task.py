@@ -1,4 +1,6 @@
 import yaml
+from sqlalchemy.orm import joinedload
+
 from utils.SessionManager import SessionManager
 from utils.http import json_resp
 from utils.db import row2dict
@@ -12,6 +14,7 @@ from datetime import datetime, timedelta
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 class TaskService:
 
@@ -94,11 +97,15 @@ class TaskService:
     def restore_episode(self, episode_id):
         try:
             session = SessionManager.Session()
-            episode = session.query(Episode).filter(Episode.id == episode_id).one()
+            episode = session.query(Episode).\
+                options(joinedload(Episode.bangumi)).\
+                filter(Episode.id == episode_id).one()
             episode.delete_mark = None
+            episode.bangumi.eps = episode.bangumi.eps + 1
             session.commit()
             return json_resp({'msg': 'ok'})
         finally:
             SessionManager.Session.remove()
+
 
 task_service = TaskService()
