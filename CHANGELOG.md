@@ -1,3 +1,7 @@
+# 2.4.2-beta
+-fix issue in DMHY scanner, sometimes DMHY return items which its enclosure entry has a url="" made the feedparser enclosure object doesn't have
+ an href attribute and crash.
+
 # 2.4.1-beta
 
 ## Bug fix
