@@ -123,7 +123,7 @@ class DownloadStatusScanner:
                             'bangumi': episode.bangumi,
                             'episodes': []
                         }
-                    admin_map[maintainer_uid]['bangumi_map'][bangumi_id].append(episode)
+                    admin_map[maintainer_uid]['bangumi_map'][bangumi_id]['episodes'].append(episode)
 
             msg_list = []
             for uid in admin_map:
