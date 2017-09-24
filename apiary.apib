@@ -903,7 +903,7 @@ Invite code related operations
 ### Create A New Invite Code [POST]
 
 + Parameters
-    + `num`: 1 (number, optional) - how many invite codes to be generated.
+    + `num`: `1` (number, optional) - how many invite codes to be generated.
         + Default: `1`
 
 + Response 200 (application/json)
@@ -919,6 +919,69 @@ List all unused invite code
 
     + Attributes
         + `data` (array[string]) - invite code list
+
+
+# Group Announce Management
+
+A set of API which is used to management announce.
+
+## List All Announce [/api/announce{offset,count}]
+
+List all announce including those already out of date.
+
+### Get [GET]
+
+List all by page
+
++ Parameters
+    + `offset`: `0` (number, optional) - offset of pagination.
+        + Default: `0`
+    + `count`: `10` (number, optional) - item number per page.
+        + Default: `10`
+
++ Response 200 (application/json)
+
+    + Attributes
+        + `data` (array[Announce]) - announce list.
+        + `total` (number) - total count.
+
+### Add [POST]
+
+Add an announce
+
++ Request  (application/json)
+
+    + Attributes (Announce)
+
++ Response 200 (application/json)
+
+        {'message': 'ok'}
+
+### Update [PUT /api/announce/{announce_id}]
+
+Update an announce
+
++ Parameters
+    + `announce_id`: `fe4150ee-4b11-46e3-b0ef-31aa6bce1095` (string) - id of announce
+
++ Request  (application/json)
+
+    + Attributes (Announce)
+
++ Response 200 (application/json)
+
+        {'message': 'ok'}
+
+### Delete [DELETE /api/announce/{announce_id}]
+
+Delete an announce
+
++ Parameters
+    + `announce_id`: `fe4150ee-4b11-46e3-b0ef-31aa6bce1095` (string) - id of announce
+
++ Response 200 (application/json)
+
+        {'message': 'ok'}
 
 
 # Data Structures
@@ -1116,3 +1179,12 @@ List all unused invite code
 - `last_watch_time`: `1497574966172.0` (number) - a timestamp of last record time
 - `percentage`: `1.0` (number) - watched percentage of video duration. from 0 ~ 1
 - `is_finished` (boolean) - whether this watch history is finished watching. when this field is true, watch_status of watch_progress will be 2 (WATCHED).
+
+## Announce
+- `id` : 02981eec-c817-47e5-baed-56d466afbb20 (string)
+- `url`: `http://somesite.com/somepath` (string) - the target url of announcement content.
+- `image_url`: `http://someimagesite.com/image.jpg` (string) - the image for banner
+- `position`: `1` (number) - position of the announcement. currently can only be 1 (banner)
+- `sort_order`: `0` (number) - when multiple announce in the same position, this is a reference order can be used to make a slide show. but currently not used.
+- `start_time`: `1497574966172` (number) - a timestamp for the start time of the announce.
+- `end_time`:  `1497574966172` (number) - a timestamp for the end time of the announce.
