@@ -22,6 +22,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class BangumiService:
 
     def recent_update(self, days):

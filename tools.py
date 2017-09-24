@@ -14,6 +14,7 @@ from domain.WatchProgress import WatchProgress
 from domain.Task import Task
 from domain.VideoFile import VideoFile
 from domain.Image import Image
+from domain.Announce import Announce
 
 from utils.http import FileDownloader
 from utils.image import get_dominant_color, get_dimension

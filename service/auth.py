@@ -2,6 +2,7 @@ from functools import wraps
 from flask_login import current_user
 from utils.exceptions import ClientError
 
+
 def auth_user(mini_level):
     def auth_decorator(func):
         @wraps(func)

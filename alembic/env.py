@@ -16,6 +16,7 @@ from domain.Favorites import Favorites
 from domain.Task import Task
 from domain.VideoFile import VideoFile
 from domain.Image import Image
+from domain.Announce import Announce
 #----------------------
 
 from domain.base import Base

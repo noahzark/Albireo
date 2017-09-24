@@ -33,6 +33,7 @@ from routes.feed import feed_api
 from routes.watch import watch_api
 from routes.task import task_api
 from routes.user_manage import user_manage_api
+from routes.announce import announce_api
 
 import yaml
 import os
@@ -91,6 +92,7 @@ app.register_blueprint(feed_api, url_prefix='/api/feed')
 app.register_blueprint(watch_api, url_prefix='/api/watch')
 app.register_blueprint(task_api, url_prefix='/api/task')
 app.register_blueprint(user_manage_api, url_prefix='/api/user-manage')
+app.register_blueprint(announce_api, url_prefix='/api/announce')
 
 mail = Mail(app)
 

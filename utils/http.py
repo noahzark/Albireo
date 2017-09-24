@@ -26,7 +26,7 @@ def encode_datetime(obj):
 class DateTimeEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, datetime):
-            return time.mktime(o.timetuple()) * 1000  + o.microsecond/1000
+            return time.mktime(o.timetuple()) * 1000 + o.microsecond/1000
         elif isinstance(o, date):
             return o.strftime('%Y-%m-%d')
         elif isinstance(o, uuid.UUID):
