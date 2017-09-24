@@ -17,6 +17,9 @@ logger = logging.getLogger(__name__)
 user_agent = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0'
 
 
+epoch = datetime.utcfromtimestamp(0)
+
+
 def encode_datetime(obj):
     if isinstance(obj, date):
         return obj.strftime('%Y-%m-%d')
@@ -26,7 +29,7 @@ def encode_datetime(obj):
 class DateTimeEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, datetime):
-            return time.mktime(o.timetuple()) * 1000 + o.microsecond/1000
+            return (o - epoch).total_seconds() * 1000
         elif isinstance(o, date):
             return o.strftime('%Y-%m-%d')
         elif isinstance(o, uuid.UUID):
