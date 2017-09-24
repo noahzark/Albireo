@@ -1,12 +1,15 @@
 import yaml
 import os, errno
 from urlparse import urlparse
-
+from datetime import datetime
 import logging
 
 from utils.db import row2dict
 
 logger = logging.getLogger(__name__)
+
+
+epoch = datetime.utcfromtimestamp(0)
 
 
 class CommonUtils:
@@ -68,5 +71,6 @@ class CommonUtils:
         if episode.thumbnail_image is not None:
             episode_dict['thumbnail_image'] = self.convert_image_dict(row2dict(episode.thumbnail_image))
         episode_dict.pop('thumbnail_image_id')
+
 
 utils = CommonUtils()
