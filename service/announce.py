@@ -61,7 +61,7 @@ class AnnounceService:
         session = SessionManager.Session()
         try:
             announce = Announce(url=announce_dict.get('url'),
-                                image_url=announce_dict.get('url'),
+                                image_url=announce_dict.get('image_url'),
                                 position=int(announce_dict.get('position', Announce.POSITION_BANNER)),
                                 sort_order=(announce_dict.get('sort_order', 0)),
                                 start_time=datetime.utcfromtimestamp(announce_dict.get('start_time', 0) / 1000),
