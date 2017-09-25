@@ -1,3 +1,11 @@
+# 2.5.2
+
+## Bug fix
+
+- the timestamp of all response use an incorrect timezone.
+- the timestamp of response should be long type.
+
+
 # 2.5.0
 
 ## feature add
