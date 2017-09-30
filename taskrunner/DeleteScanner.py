@@ -1,22 +1,22 @@
-import logging
 import json
-import shutil
+import logging
 import os
-from twisted.internet.task import LoopingCall
-from twisted.internet import threads, reactor
-from twisted.internet.defer import inlineCallbacks
+import shutil
 from datetime import datetime, timedelta
+from twisted.internet import threads, reactor
+from twisted.internet.task import LoopingCall
 
+from domain.Bangumi import Bangumi
+from domain.Episode import Episode
+from domain.Favorites import Favorites
+from domain.Image import Image
+from domain.Task import Task
+from domain.VideoFile import VideoFile
+from domain.WatchProgress import WatchProgress
+from utils.DownloadManager import download_manager
 from utils.SessionManager import SessionManager
 from utils.db import row2dict
-from utils.DownloadManager import download_manager
-from domain.Bangumi import Bangumi
-from domain.Task import Task
-from domain.Episode import Episode
-from domain.WatchProgress import WatchProgress
-from domain.Favorites import Favorites
-from domain.VideoFile import VideoFile
-from domain.Image import Image
+from utils.http import DateTimeEncoder
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +52,7 @@ class DeleteScanner:
             task_content['torrent_id_list'] = list(set([video_file.torrent_id for video_file in video_file_list]))
             task_content['task_step'] = ['db', 'torrent', 'file_system']
 
-            task = Task(type = Task.TYPE_BANGUMI_DELETE, content = json.dumps(task_content), status = Task.STATUS_IN_PROGRESS)
+            task = Task(type=Task.TYPE_BANGUMI_DELETE, content=json.dumps(task_content, cls=DateTimeEncoder), status=Task.STATUS_IN_PROGRESS)
             session.add(task)
             session.commit()
 
@@ -106,7 +106,7 @@ class DeleteScanner:
     def delete_episode(self, episode):
         session = SessionManager.Session()
         try:
-            task_content= {'episode_id': str(episode.id)}
+            task_content = {'episode_id': str(episode.id)}
             video_file_list = session.query(VideoFile).\
                 filter(VideoFile.episode_id == episode.id).\
                 all()
@@ -118,7 +118,7 @@ class DeleteScanner:
 
             task_content['task_step'] = ['db', 'torrent',  'file_system']
 
-            task = Task(type = Task.TYPE_EPISODE_DELETE, content = json.dumps(task_content), status = Task.STATUS_IN_PROGRESS)
+            task = Task(type=Task.TYPE_EPISODE_DELETE, content=json.dumps(task_content, cls=DateTimeEncoder), status=Task.STATUS_IN_PROGRESS)
             session.add(task)
             session.commit()
 
