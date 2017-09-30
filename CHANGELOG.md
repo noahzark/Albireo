@@ -1,3 +1,9 @@
+# 2.5.3
+
+## Bug fix
+
+- fix a bug in DeleteScanner which make it unable to delete episodes because of json.dumps cannot handle UUID
+
 # 2.5.2
 
 ## Bug fix
