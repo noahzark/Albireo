@@ -21,7 +21,7 @@ class BangumiMoeScanner(BangumiScanner):
                 filter(Bangumi.status != Bangumi.STATUS_FINISHED).\
                 filter(Bangumi.bangumi_moe != None).all()
         except Exception as error:
-            logger.warn(error)
+            logger.error(error, exc_info=True)
             return []
         finally:
             SessionManager.Session.remove()
@@ -31,5 +31,5 @@ class BangumiMoeScanner(BangumiScanner):
             dmhy = BANGUMI_MOE(bangumi, episode_list)
             return dmhy.parse_feed()
         except Exception as error:
-            logger.warn(traceback.format_exc(error))
+            logger.error(error, exc_info=True)
             return None

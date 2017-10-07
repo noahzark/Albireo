@@ -137,7 +137,7 @@ class DownloadStatusScanner:
             self.mail.send(msg_list)
 
         except exc.DBAPIError as db_error:
-            logger.error(db_error)
+            logger.error(db_error, exc_info=True)
             # if connection is invalid rollback the session
             if db_error.connection_invalidated:
                 session.rollback()

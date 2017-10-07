@@ -23,6 +23,8 @@ from utils.VideoManager import video_manager
 from service.common import utils
 from utils.image import get_dominant_color, get_dimension
 # from werkzeug.utils import secure_filename
+from utils.sentry import sentry_wrapper
+# import traceback
 
 import logging
 
@@ -86,6 +88,7 @@ class AdminService:
                 # permission denied
                 raise exception
             else:
+                sentry_wrapper.sentry_middleware.captureException()
                 print exception
 
         path = urlparse(bangumi.image).path
@@ -274,6 +277,7 @@ class AdminService:
                                             height=height)
                 session.commit()
             except Exception as error:
+                sentry_wrapper.sentry_middleware.captureException()
                 logger.warn(error)
 
             return json_resp({'data': {'id': bangumi_id}})
@@ -483,8 +487,6 @@ class AdminService:
             episode_dict_list = [row2dict(episode) for episode in episode_list]
 
             return json_resp({'data': episode_dict_list, 'total': total})
-        except Exception as exception:
-            raise exception
         finally:
             SessionManager.Session.remove()
 

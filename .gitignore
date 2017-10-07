@@ -1,4 +1,5 @@
 config/config.yml
+config/sentry.yml
 logfile
 db-start.sh
 db-shutdown.sh

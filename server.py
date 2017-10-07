@@ -38,6 +38,9 @@ from routes.announce import announce_api
 import yaml
 import os
 
+# import sentry
+from utils.sentry import sentry_wrapper
+
 isDebug = os.getenv('DEBUG', False)
 
 
@@ -98,6 +101,8 @@ mail = Mail(app)
 
 login_manager.init_app(app)
 
+# init sentry
+sentry_wrapper.app_sentry(app)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -107,6 +112,7 @@ def load_user(user_id):
 @login_manager.unauthorized_handler
 def unauthorized():
     return json_resp({'message': 'unauthorized access'}, 401)
+
 
 if __name__ == '__main__':
     app.debug = isDebug

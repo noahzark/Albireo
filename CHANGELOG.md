@@ -1,3 +1,9 @@
+# 2.6.0
+
+## Feature add
+
+- Add sentry error collector SDK for better error trace. To enable this you need to add a new config file in `config` directory.
+
 # 2.5.3
 
 ## Bug fix

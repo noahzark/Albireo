@@ -28,7 +28,7 @@ class VideoManager:
                                    output_path])
             return output_path
         except subprocess.CalledProcessError as error:
-            logger.warn(error)
+            logger.error(error, exc_info=True)
             return output_path
 
     def create_episode_thumbnail(self, episode, relative_path, time):
@@ -84,7 +84,7 @@ class VideoManager:
                 result['height'] = meta['streams'][0]['height']
             return result
         except subprocess.CalledProcessError as error:
-            logger.warn(error)
+            logger.error(error)
             return None
 
 
