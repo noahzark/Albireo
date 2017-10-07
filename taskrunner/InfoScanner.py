@@ -68,7 +68,7 @@ class InfoScanner:
             # because many of them don't have name_cn
             result = session.query(Episode, Bangumi).\
                 join(Bangumi).\
-                filter(or_(Episode.name == '', Episode.duration == ''))
+                filter(or_(Episode.name == '', Episode.airdate == None))
 
             bgm_episode_dict = {}
 
@@ -101,17 +101,18 @@ class InfoScanner:
             session.commit()
             logger.info('scan finished, will scan at next day')
         except exc.DBAPIError as db_error:
-            logger.error(db_error)
+            logger.error(db_error, exc_info=True)
             # if connection is invalid rollback the session
             if db_error.connection_invalidated:
                 session.rollback()
         except Exception as error:
-            logger.error(error)
+            logger.error(error, exc_info=True)
             traceback.print_exc()
         finally:
             SessionManager.Session.remove()
 
     def scan_episode(self):
         threads.deferToThread(self.__scan_episode_in_thread)
+
 
 info_scanner = InfoScanner()

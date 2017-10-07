@@ -177,10 +177,10 @@ class DeleteScanner:
         logger.debug('delete task id#{0} added'.format(id,))
 
     def __on_delete_errCallback(self, err):
-        logger.warn(err)
+        logger.error(err, exc_info=True)
 
     def __query_error(self, err):
-        logger.warn(err)
+        logger.error(err, exc_info=True)
 
     def scan_bangumi(self):
         session = SessionManager.Session()

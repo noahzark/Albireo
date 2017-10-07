@@ -1,5 +1,7 @@
 import logging
-import os, errno
+import os
+import errno
+from utils.sentry import sentry_wrapper
 
 from taskrunner.DownloadStatusScanner import download_status_scanner
 
@@ -112,6 +114,8 @@ scheduler = Scheduler()
 
 video_manager.set_base_path(scheduler.base_path)
 
+sentry_wrapper.scheduler_sentry()
+
 
 def on_connected(result):
     logger.info(result)
@@ -124,7 +128,9 @@ def on_connected(result):
 
 def on_connect_fail(result):
     logger.error(result)
+    sentry_wrapper.client.captureMessage(result)
     reactor.stop()
+
 
 d = download_manager.connect()
 d.addCallback(on_connected)

@@ -42,6 +42,7 @@ requirements: python 2.7, deluge ( > 1.3.12 ), postgresql 9.3 and above, ffmpeg,
 - cfscrape
 - Flask-Mail
 - colorthief
+- raven
 
 NOTE: ffmpeg is presume accessible with `ffmpeg` command
 
@@ -169,3 +170,11 @@ Web App + Admin Console: https://github.com/lordfriend/Deneb
 
 [![Get On Google Play](https://play.google.com/intl/en_us/badges/images/badge_new.png)](https://play.google.com/store/apps/details?id=com.sqrtf.megumin)
 
+
+## Sentry
+
+If you are developer, you may want to receive and collect crash log. This function is already integrated. We use [Sentry](https://sentry.io) to collect crash log
+ and make an alert to developer.
+ 
+To enable Sentry, you need copy and rename `config/sentry-sample.yml` to `config/sentry.yml` and then modify the `web_api` and `scheduler`
+ to your own DSN. It is suggested using different dsn for each one, but use the same is ok.

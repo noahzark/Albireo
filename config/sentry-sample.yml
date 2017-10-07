@@ -1,0 +1,3 @@
+sentry_dsn:
+  web_api: # sentry dsn key for web api
+  scheduler:  # sentry dsn key for scheduler
