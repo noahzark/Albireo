@@ -59,8 +59,7 @@ class BangumiScanner(object):
                 self.save_video_file(video_file, episode, session)
                 logger.info('%s save to video_file', str(episode.id))
         except Exception as error:
-            logger.warn(error)
-
+            logger.error(error, exc_info=True)
         finally:
             SessionManager.Session.remove()
 
@@ -85,7 +84,7 @@ class BangumiScanner(object):
                 bangumi.status = Bangumi.STATUS_FINISHED
                 session.commit()
         except Exception as error:
-            logger.warn(error)
+            logger.error(error, exc_info=True)
         finally:
             SessionManager.Session.remove()
 
@@ -104,7 +103,7 @@ class BangumiScanner(object):
                 filter(Episode.status == Episode.STATUS_NOT_DOWNLOADED). \
                 all()
         except Exception as error:
-            logger.warn(error)
+            logger.error(error, exc_info=True)
             return []
         finally:
             SessionManager.Session.remove()

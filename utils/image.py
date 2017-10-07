@@ -23,5 +23,5 @@ def get_dimension(path):
         im = Image.open(path)
         return im.size
     except Exception as error:
-        logger.warn(error)
+        logger.error(error)
         return None, None

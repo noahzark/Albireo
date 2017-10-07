@@ -49,7 +49,7 @@ class DownloadManager:
                                                 height=height)
                 episode.thumbnail_color = color
             except Exception as error:
-                logger.warn(error)
+                logger.error(error, exc_info=True)
 
         def update_video_meta(video_file):
             meta = video_manager.get_video_meta(u'{0}/{1}/{2}'.format(self.base_path, str(video_file.bangumi_id), video_file.file_path))

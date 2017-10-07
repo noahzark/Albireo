@@ -102,7 +102,7 @@ class FeedScanner:
             video_file_id = str(video_file.id)
             return video_file_id
         except Exception as error:
-            logger.warn(error)
+            logger.error(error, exc_info=True)
         finally:
             SessionManager.Session.remove()
 
@@ -126,8 +126,8 @@ class FeedScanner:
                 else:
                     yield threads.deferToThread(self.__update_video_file, same_torrent_video_file_list, torrent_id)
             except Exception as error:
-                logger.warn(error)
-                logger.warn('episode %s download failed', str(first_video_file.episode_id))
+                logger.error(error, exc_info=True)
+                logger.error('episode %s download failed', str(first_video_file.episode_id))
 
     @inlineCallbacks
     def __fix_video_file(self, video_file_list):
@@ -178,7 +178,7 @@ class FeedScanner:
 
 
     def __on_query_error(self, err):
-        logger.warn(err)
+        logger.error(err, exc_info=True)
 
     def scan_feed(self):
         logger.info('scan feed')

@@ -1,3 +1,23 @@
+# 2.6.0
+
+## Feature add
+
+- Add sentry error collector SDK for better error trace. To enable this you need to add a new config file in `config` directory.
+
+# 2.5.3
+
+## Bug fix
+
+- fix a bug in DeleteScanner which make it unable to delete episodes because of json.dumps cannot handle UUID
+
+# 2.5.2
+
+## Bug fix
+
+- the timestamp of all response use an incorrect timezone.
+- the timestamp of response should be long type.
+
+
 # 2.5.0
 
 ## feature add
