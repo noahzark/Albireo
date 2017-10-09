@@ -172,7 +172,7 @@ class AdminService:
 
         return r.text
 
-    def list_bangumi(self, page, count, sort_field, sort_order, name, type):
+    def list_bangumi(self, page, count, sort_field, sort_order, name, bangumi_type):
         try:
             session = SessionManager.Session()
             query_object = session.query(Bangumi).\
@@ -181,8 +181,8 @@ class AdminService:
                 options(joinedload(Bangumi.maintained_by)).\
                 filter(Bangumi.delete_mark == None)
 
-            if type != -1:
-                query_object = query_object.filter(Bangumi.type == type)
+            if bangumi_type != -1:
+                query_object = query_object.filter(Bangumi.type == bangumi_type)
 
             if name is not None:
                 name_pattern = '%{0}%'.format(name.encode('utf-8'),)
