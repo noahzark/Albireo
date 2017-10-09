@@ -1,3 +1,7 @@
+# 2.6.1
+
+Add type parameter in admin/list-bangumi api and home/list-bangumi API
+
 # 2.6.0
 
 ## Feature add
