@@ -46,7 +46,7 @@ def list_bangumi():
     count = int(request.args.get('count', 10))
     sort_field = request.args.get('order_by', 'air_date')
     sort_order = request.args.get('sort', 'desc')
-    name = request.args.get('name', None),
+    name = request.args.get('name')
     bangumi_type = int(request.args.get('type', -1))
     return bangumi_service.list_bangumi(page=page,
                                         count=count,
