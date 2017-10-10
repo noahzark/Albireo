@@ -1,3 +1,7 @@
+# 2.6.2
+
+Change bangumi.moe scanner, now will emit torrent url for matched items instead magnet uri. 
+
 # 2.6.1
 
 Add type parameter in admin/list-bangumi api and home/list-bangumi API
