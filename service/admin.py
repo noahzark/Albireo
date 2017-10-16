@@ -8,7 +8,7 @@ from domain.TorrentFile import TorrentFile
 from domain.VideoFile import VideoFile
 from datetime import datetime
 from utils.SessionManager import SessionManager
-from utils.exceptions import ClientError
+from utils.exceptions import ClientError, ServerError
 from utils.http import json_resp, FileDownloader, bangumi_request
 from utils.db import row2dict
 from sqlalchemy.sql.expression import or_, desc, asc
@@ -246,6 +246,18 @@ class AdminService:
             # bangumi.libyk_so = bangumi_data.get('libyk_so')
 
             bangumi.eps_no_offset = bangumi_data.get('eps_no_offset')
+            try:
+                (cover_file_path, cover_path) = self.__save_bangumi_cover(bangumi)
+                # get dominant color
+                bangumi.cover_color = get_dominant_color(cover_file_path)
+                (width, height) = get_dimension(cover_file_path)
+                bangumi.cover_image = Image(file_path=cover_path,
+                                            dominant_color=bangumi.cover_color,
+                                            width=width,
+                                            height=height)
+            except Exception:
+                sentry_wrapper.sentry_middleware.captureException()
+                raise ServerError('Fail to download cover image')
 
             session = SessionManager.Session()
 
@@ -269,19 +281,6 @@ class AdminService:
             session.commit()
 
             bangumi_id = str(bangumi.id)
-            try:
-                (cover_file_path, cover_path) = self.__save_bangumi_cover(bangumi)
-                # get dominant color
-                bangumi.cover_color = get_dominant_color(cover_file_path)
-                (width, height) = get_dimension(cover_file_path)
-                bangumi.cover_image = Image(file_path=cover_path,
-                                            dominant_color=bangumi.cover_color,
-                                            width=width,
-                                            height=height)
-                session.commit()
-            except Exception as error:
-                sentry_wrapper.sentry_middleware.captureException()
-                logger.warn(error)
 
             return json_resp({'data': {'id': bangumi_id}})
         finally:
@@ -318,7 +317,9 @@ class AdminService:
             bangumi.maintained_by_uid = bangumi_dict.get('maintained_by_uid')
             if not bangumi.maintained_by_uid:
                 bangumi.maintained_by_uid = None
-            bangumi.update_time = datetime.now()
+                # add this try to trace the mysterious bug on maintained_by_uid changing.
+                logger.error('maintained_by_uid is setting to None', exc_info=True)
+            bangumi.update_time = datetime.utcnow()
 
             session.commit()
 
