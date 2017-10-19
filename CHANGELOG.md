@@ -1,5 +1,9 @@
 #Changelog
 
+## 2.6.3
+
+Fix bug on add bangumi, which results in a None bangumi folder
+
 ## 2.6.3-RC
 
 Change the add bangumi service to ensure cover image is downloaded before save to database.

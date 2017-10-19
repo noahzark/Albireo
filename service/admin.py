@@ -246,18 +246,6 @@ class AdminService:
             # bangumi.libyk_so = bangumi_data.get('libyk_so')
 
             bangumi.eps_no_offset = bangumi_data.get('eps_no_offset')
-            try:
-                (cover_file_path, cover_path) = self.__save_bangumi_cover(bangumi)
-                # get dominant color
-                bangumi.cover_color = get_dominant_color(cover_file_path)
-                (width, height) = get_dimension(cover_file_path)
-                bangumi.cover_image = Image(file_path=cover_path,
-                                            dominant_color=bangumi.cover_color,
-                                            width=width,
-                                            height=height)
-            except Exception:
-                sentry_wrapper.sentry_middleware.captureException()
-                raise ServerError('Fail to download cover image')
 
             session = SessionManager.Session()
 
@@ -281,6 +269,23 @@ class AdminService:
             session.commit()
 
             bangumi_id = str(bangumi.id)
+            try:
+                (cover_file_path, cover_path) = self.__save_bangumi_cover(bangumi)
+                # get dominant color
+                bangumi.cover_color = get_dominant_color(cover_file_path)
+                (width, height) = get_dimension(cover_file_path)
+                bangumi.cover_image = Image(file_path=cover_path,
+                                            dominant_color=bangumi.cover_color,
+                                            width=width,
+                                            height=height)
+                session.commit()
+            except Exception as error:
+                sentry_wrapper.sentry_middleware.captureException()
+                logger.warn(error)
+                # delete bangumi for download error
+                session.delete(bangumi)
+                session.commit()
+                raise ServerError('Fail to Download Image')
 
             return json_resp({'data': {'id': bangumi_id}})
         finally:
