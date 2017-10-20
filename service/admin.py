@@ -319,11 +319,13 @@ class AdminService:
             if not bangumi.eps_no_offset:
                 # in case the eps_no_offset is empty string
                 bangumi.eps_no_offset = None
-            bangumi.maintained_by_uid = bangumi_dict.get('maintained_by_uid')
-            if not bangumi.maintained_by_uid:
+            maintained_by = bangumi_dict.get('maintained_by')
+            if maintained_by is None:
                 bangumi.maintained_by_uid = None
                 # add this try to trace the mysterious bug on maintained_by_uid changing.
                 logger.error('maintained_by_uid is setting to None', exc_info=True)
+            else:
+                bangumi.maintained_by_uid = maintained_by['id']
             bangumi.update_time = datetime.utcnow()
 
             session.commit()
