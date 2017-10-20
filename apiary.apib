@@ -477,7 +477,9 @@ Add a bangumi
 ### Update Bangumi [PUT /api/admin/bangumi/{bangumi_id}]
 
 Update a bangumi, this operation will not update all fields which client post. To learn which field is allowed to update,
-see the source code
+see the source code.
+
+Special Notice: when you try to update maintained_by, you should give a `user` object. if you want to reset to System, you should give a null value.
 
 + Parameters
     + `bangumi_id` (string, required)
