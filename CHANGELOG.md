@@ -1,5 +1,12 @@
 #Changelog
 
+## 2.7.0
+
+### Feature Add:
+
+#### Web Hook
+
+
 ## 2.6.3
 
 Fix bug on add bangumi, which results in a None bangumi folder

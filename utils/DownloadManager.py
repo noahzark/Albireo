@@ -147,4 +147,5 @@ class DownloadManager:
         torrent_dict = yield self.downloader.get_complete_torrents()
         returnValue(torrent_dict)
 
+
 download_manager = DownloadManager(DelugeDownloader)

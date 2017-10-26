@@ -42,6 +42,7 @@ from taskrunner.BangumiMoeScanner import BangumiMoeScanner
 from taskrunner.AcgripScanner import AcgripScanner
 from taskrunner.LibyksoScanner import LibyksoScanner
 from taskrunner.DeleteScanner import DeleteScanner
+from rpc.rpc_interface import setup_server
 
 
 class Scheduler:
@@ -135,5 +136,7 @@ def on_connect_fail(result):
 d = download_manager.connect()
 d.addCallback(on_connected)
 d.addErrback(on_connect_fail)
+
+setup_server()
 
 reactor.run()
