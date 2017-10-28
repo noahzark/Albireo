@@ -1,7 +1,20 @@
 # from functools import wraps
 from twisted.web import server, resource
-from twisted.internet import reactor, endpoints
-import json
+from twisted.internet import reactor, endpoints, threads
+from utils.SessionManager import SessionManager
+from utils.db import row2dict
+from domain.Favorites import Favorites
+from domain.WebHookToken import WebHookToken
+from domain.WebHook import WebHook
+from domain.Episode import Episode
+from domain.Bangumi import Bangumi
+from service.common import utils
+from sqlalchemy.orm import joinedload
+from web_hook.events import UserFavoriteEvent, EpisodeEvent, KeepAliveEvent
+from web_hook.dispatcher import dispatcher
+import logging
+
+logger = logging.getLogger(__name__)
 
 rpc_exported_dict = {}
 
@@ -22,7 +35,9 @@ class RPCInterface(resource.Resource):
 
     def render_GET(self, request):
         rpc_method = request.path[1:]
-        rpc_method_args = request.args
+        rpc_method_args = {}
+        for key in request.args:
+            rpc_method_args[key] = request.args[key][0]
         if rpc_method in rpc_exported_dict:
             rpc_exported_dict[rpc_method](**rpc_method_args)
         else:
@@ -38,4 +53,88 @@ def setup_server():
 
 @rpc_export
 def user_favorite_update(user_id):
-    print user_id
+
+    def query_user_favorite():
+        session = SessionManager.Session()
+        try:
+            result = session.query(Favorites).\
+                join(WebHookToken).\
+                filter(Favorites.user_id == user_id).\
+                filter(WebHookToken.user_id == user_id).\
+                all()
+
+            token_fav_dict = {}
+
+            for (favorite, token) in result:
+                fav_dict = row2dict(favorite)
+                fav_dict.pop('user_id', None)
+                fav_dict['token_id'] = token.token_id
+                if token.token_id not in token_fav_dict:
+                    token_fav_dict[token.token_id] = []
+                token_fav_dict[token.token_id].append(fav_dict)
+
+            return token_fav_dict
+        finally:
+            SessionManager.Session.remove()
+
+    def on_success(token_fav_dict):
+        for token in token_fav_dict:
+            user_favorite_event = UserFavoriteEvent(token=token,
+                                                    favorites=token_fav_dict[token])
+            dispatcher.new_event(user_favorite_event)
+
+    def on_fail(error):
+        logger.error(error, exc_info=True)
+
+    d = threads.deferToThread(query_user_favorite)
+    d.addCallback(on_success)
+    d.addErrback(on_fail)
+
+
+def episode_downloaded(episode_id):
+
+    def query_episode():
+        session = SessionManager.Session()
+        try:
+            (episode, bangumi) = session.query(Episode, Bangumi). \
+                join(Bangumi). \
+                options(joinedload(Bangumi.cover_image)). \
+                options(joinedload(Episode.thumbnail_image)). \
+                filter(Episode.delete_mark == None). \
+                filter(Episode.id == episode_id).\
+                one()
+            episode_dict = row2dict(episode)
+            episode_dict['bangumi'] = row2dict(bangumi)
+            utils.process_bangumi_dict(bangumi, episode_dict['bangumi'])
+            utils.process_episode_dict(episode, episode_dict)
+            return episode_dict
+        finally:
+            SessionManager.Session.remove()
+
+    def on_success(episode):
+        episode_event = EpisodeEvent(episode=episode)
+        dispatcher.new_event(episode_event)
+
+    def on_fail(error):
+        logger.error(error, exc_info=True)
+
+    d = threads.deferToThread(query_episode)
+    d.addCallback(on_success)
+    d.addErrback(on_fail)
+
+
+@rpc_export
+def initialize_web_hook(web_hook_id, web_hook_url):
+    """
+    when a web hook receive this event, it should invoke the revive API with empty token list
+     to update its status to alive.
+    :param web_hook_id:
+    :param web_hook_url:
+    :return:
+    """
+
+    event = KeepAliveEvent(web_hook_id=web_hook_id,
+                           status=WebHook.STATUS_INITIAL,
+                           url=web_hook_url)
+
+    dispatcher.new_event(event)

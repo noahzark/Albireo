@@ -15,7 +15,6 @@ class ServerError(BasicError):
     pass
 
 
-
 class ClientError(BasicError):
 
     LOGIN_FAIL = 'invalid name or password'
@@ -48,3 +47,13 @@ class SchedulerError(Exception):
     def __init__(self, payload):
         Exception.__init__(self, payload)
         self.payload = payload
+
+
+class WebHookError(Exception):
+    def __init__(self, payload, code):
+        Exception.__init__(self, payload)
+        self.payload = payload
+        self.code = code
+
+    CODE_REQUEST_FAIL = 1
+    CODE_INVALID_ID = 2

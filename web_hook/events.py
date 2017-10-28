@@ -49,8 +49,7 @@ class EpisodeEvent(Event):
     """
     def __init__(self, **kwargs):
         super(EpisodeEvent, self).__init__({
-            'episode': kwargs.get('episode'),
-            'bangumi': kwargs.get('bangumi')
+            'episode': kwargs.get('episode')
         })
 
 
@@ -62,7 +61,6 @@ class UserFavoriteEvent(Event):
     def __init__(self, **kwargs):
         super(UserFavoriteEvent, self).__init__({
             'favorites': kwargs.get('favorites'),
-            'token': kwargs.get('token')
         })
         self.token = kwargs.get('token')
 
@@ -88,3 +86,20 @@ class UserFavoriteEvent(Event):
             return web_hooks
         finally:
             SessionManager.Session.remove()
+
+
+class KeepAliveEvent(Event):
+    """
+    As the name indicates, this is a event to ensure the web hook is alive.
+    """
+    def __init__(self, **kwargs):
+        super(KeepAliveEvent, self).__init__({
+            'web_hook_id': kwargs.get('web_hook_id'),
+            'url': kwargs.get('url'),
+            'status': kwargs.get('status')
+        })
+        self.web_hook_id = kwargs.get('web_hook_id')
+        self.url = kwargs.get('url')
+
+    def get_web_hooks(self):
+        return [(self.web_hook_id, self.url)]
