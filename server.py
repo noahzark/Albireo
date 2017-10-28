@@ -34,6 +34,7 @@ from routes.watch import watch_api
 from routes.task import task_api
 from routes.user_manage import user_manage_api
 from routes.announce import announce_api
+from routes.web_hook import web_hook_api
 
 import yaml
 import os
@@ -96,6 +97,7 @@ app.register_blueprint(watch_api, url_prefix='/api/watch')
 app.register_blueprint(task_api, url_prefix='/api/task')
 app.register_blueprint(user_manage_api, url_prefix='/api/user-manage')
 app.register_blueprint(announce_api, url_prefix='/api/announce')
+app.register_blueprint(web_hook_api, url_prefix='/api/web_hook')
 
 mail = Mail(app)
 
@@ -103,6 +105,7 @@ login_manager.init_app(app)
 
 # init sentry
 sentry_wrapper.app_sentry(app)
+
 
 @login_manager.user_loader
 def load_user(user_id):

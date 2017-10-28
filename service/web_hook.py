@@ -1,10 +1,12 @@
 from utils.SessionManager import SessionManager
 from utils.db import row2dict
 from utils.http import json_resp
+from utils.exceptions import ClientError
 from domain.WebHook import WebHook
 from domain.WebHookToken import WebHookToken
 from domain.Favorites import Favorites
 from sqlalchemy.sql.expression import desc
+from sqlalchemy.orm.exc import NoResultFound
 from rpc.rpc_interface import initialize_web_hook
 
 
@@ -51,25 +53,25 @@ class WebHookService:
     def revive(self, web_hook_id, token_id_list):
         session = SessionManager.Session()
         try:
-            web_hook_token_list = session.query(WebHookToken).\
-                filter(WebHookToken.web_hook_id == web_hook_id).\
-                filter(WebHookToken.token_id.in_(token_id_list)).\
-                all()
-
-            user_id_list = [web_hook.user_id for web_hook in web_hook_token_list]
-            favorites_list = session.query(Favorites).\
-                filter(Favorites.user_id.in_(user_id_list)).\
-                group_by(Favorites.user_id)
-
             fav_dict_list = []
+            if len(token_id_list) > 0:
+                web_hook_token_list = session.query(WebHookToken).\
+                    filter(WebHookToken.web_hook_id == web_hook_id).\
+                    filter(WebHookToken.token_id.in_(token_id_list)).\
+                    all()
 
-            for favorite in favorites_list:
-                fav_dict = row2dict(favorite)
-                for web_hook in web_hook_token_list:
-                    if fav_dict['user_id'] == web_hook.user_id:
-                        fav_dict['token_id'] = web_hook.token_id
-                        break
-                fav_dict.pop('user_id', None)
+                user_id_list = [web_hook.user_id for web_hook in web_hook_token_list]
+                favorites_list = session.query(Favorites).\
+                    filter(Favorites.user_id.in_(user_id_list)).\
+                    group_by(Favorites.user_id)
+
+                for favorite in favorites_list:
+                    fav_dict = row2dict(favorite)
+                    for web_hook in web_hook_token_list:
+                        if fav_dict['user_id'] == web_hook.user_id:
+                            fav_dict['token_id'] = web_hook.token_id
+                            break
+                    fav_dict.pop('user_id', None)
 
             # reset its status
             web_hook = session.query(WebHook).\
@@ -79,6 +81,8 @@ class WebHookService:
             web_hook.status = WebHook.STATUS_IS_ALIVE
             session.commit()
             return json_resp({'data': fav_dict_list})
+        except NoResultFound:
+            raise ClientError(ClientError.NOT_FOUND, 404)
         finally:
             SessionManager.Session()
 
