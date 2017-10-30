@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 # noinspection PyMethodMayBeStatic
-class Event:
+class Event(object):
     """
     Base class for event
     """
@@ -48,7 +48,7 @@ class EpisodeEvent(Event):
     When an episode is downloaded
     """
     def __init__(self, **kwargs):
-        super(EpisodeEvent, self).__init__({
+        super(self.__class__, self).__init__({
             'episode': kwargs.get('episode')
         })
 
@@ -59,7 +59,7 @@ class UserFavoriteEvent(Event):
     When a user favorite changes
     """
     def __init__(self, **kwargs):
-        super(UserFavoriteEvent, self).__init__({
+        super(self.__class__, self).__init__({
             'favorites': kwargs.get('favorites'),
         })
         self.token = kwargs.get('token')
@@ -93,7 +93,7 @@ class KeepAliveEvent(Event):
     As the name indicates, this is a event to ensure the web hook is alive.
     """
     def __init__(self, **kwargs):
-        super(KeepAliveEvent, self).__init__({
+        super(self.__class__, self).__init__({
             'web_hook_id': kwargs.get('web_hook_id'),
             'url': kwargs.get('url'),
             'status': kwargs.get('status')

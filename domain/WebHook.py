@@ -5,6 +5,7 @@ from datetime import datetime
 from sqlalchemy.orm import relationship
 
 from domain.base import Base
+from domain.User import User
 
 
 class WebHook(Base):
@@ -17,8 +18,13 @@ class WebHook(Base):
     status = Column(Integer, nullable=False, default=4)
     consecutive_failure_count = Column(Integer, nullable=False, default=0)
     register_time = Column(TIMESTAMP, nullable=False, default=datetime.now)
+    created_by_uid = Column(postgresql.UUID(as_uuid=True), nullable=True)
 
     web_hook_tokens = relationship('WebHookToken', back_populates='web_hook')
+
+    created_by = relationship(User,
+                              foreign_keys=[created_by_uid],
+                              primaryjoin='WebHook.created_by_uid==User.id')
 
     STATUS_IS_ALIVE = 1
     STATUS_HAS_ERROR = 2

@@ -17,6 +17,8 @@ from domain.Task import Task
 from domain.VideoFile import VideoFile
 from domain.Image import Image
 from domain.Announce import Announce
+from domain.WebHook import WebHook
+from domain.WebHookToken import WebHookToken
 #----------------------
 
 from domain.base import Base

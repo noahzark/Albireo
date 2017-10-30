@@ -154,5 +154,15 @@ class BangumiMoeRequest:
         return r
 
 
+class RPCRequest:
+
+    def __init__(self):
+        pass
+
+    def send(self, method, args):
+        requests.get('http://localhost:8080/{0}'.format(method), params=args)
+
+
 bangumi_request = BangumiRequest()
 bangumi_moe_request = BangumiMoeRequest()
+rpc_request = RPCRequest()

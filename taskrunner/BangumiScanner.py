@@ -15,7 +15,9 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 
 logger = logging.getLogger(__name__)
 
+
 class BangumiScanner(object):
+
     def __init__(self, base_path, interval):
         self.base_path = base_path
         self.interval = interval

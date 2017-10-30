@@ -1,6 +1,8 @@
 import argparse
 from utils.SessionManager import SessionManager
 from werkzeug.security import generate_password_hash
+
+# Unused domain is also necessary for initializing table
 from domain.Bangumi import Bangumi
 from domain.Episode import Episode
 from domain.InviteCode import InviteCode
@@ -15,6 +17,8 @@ from domain.Task import Task
 from domain.VideoFile import VideoFile
 from domain.Image import Image
 from domain.Announce import Announce
+from domain.WebHook import WebHook
+from domain.WebHookToken import WebHookToken
 
 from utils.http import FileDownloader
 from utils.image import get_dominant_color, get_dimension

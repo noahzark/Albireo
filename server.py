@@ -97,7 +97,7 @@ app.register_blueprint(watch_api, url_prefix='/api/watch')
 app.register_blueprint(task_api, url_prefix='/api/task')
 app.register_blueprint(user_manage_api, url_prefix='/api/user-manage')
 app.register_blueprint(announce_api, url_prefix='/api/announce')
-app.register_blueprint(web_hook_api, url_prefix='/api/web_hook')
+app.register_blueprint(web_hook_api, url_prefix='/api/web-hook')
 
 mail = Mail(app)
 
