@@ -99,16 +99,15 @@ class WebHookService:
         """
         session = SessionManager.Session()
         try:
-            result = session.query(WebHook).\
-                join(WebHookToken).\
-                filter(WebHook.id == web_hook_id).\
-                filter(WebHookToken.web_hook_id == web_hook_id)
-            the_web_hook = None
-            for (web_hook, web_hook_token) in result:
+            token_list = session.query(WebHookToken).\
+                filter(WebHookToken.web_hook_id == web_hook_id).\
+                all()
+            for web_hook_token in token_list:
                 session.delete(web_hook_token)
-                the_web_hook = web_hook
-
-            session.delete(the_web_hook)
+            web_hook = session.query(WebHook).\
+                filter(WebHook.id == web_hook_id).\
+                one()
+            session.delete(web_hook)
             session.commit()
             return json_resp({'message': 'ok'})
         finally:
@@ -125,9 +124,11 @@ class WebHookService:
                     all()
 
                 user_id_list = [web_hook.user_id for web_hook in web_hook_token_list]
+
                 favorites_list = session.query(Favorites).\
                     filter(Favorites.user_id.in_(user_id_list)).\
-                    group_by(Favorites.user_id)
+                    group_by(Favorites.user_id, Favorites.id).\
+                    all()
 
                 for favorite in favorites_list:
                     fav_dict = row2dict(favorite)
@@ -136,6 +137,10 @@ class WebHookService:
                             fav_dict['token_id'] = web_hook.token_id
                             break
                     fav_dict.pop('user_id', None)
+                    fav_dict_list.append(fav_dict)
+
+            # somehow sqlalchemy change the dict after commit, so we need dump the data before commit
+            resp_data = json_resp({'data': fav_dict_list})
 
             # reset its status
             web_hook = session.query(WebHook).\
@@ -144,7 +149,8 @@ class WebHookService:
 
             web_hook.status = WebHook.STATUS_IS_ALIVE
             session.commit()
-            return json_resp({'data': fav_dict_list})
+
+            return resp_data
         except NoResultFound:
             raise ClientError(ClientError.NOT_FOUND, 404)
         finally:
@@ -195,5 +201,6 @@ class WebHookService:
             raise ClientError(ClientError.NOT_FOUND, 404)
         finally:
             SessionManager.Session.remove()
+
 
 web_hook_service = WebHookService()

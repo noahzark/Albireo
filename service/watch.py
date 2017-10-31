@@ -34,7 +34,7 @@ class WatchService:
 
             session.commit()
 
-            rpc_request.send('user_favorite_update', {'user_id', user_id})
+            rpc_request.send('user_favorite_update', {'user_id': str(user_id)})
 
             return json_resp({'message': 'ok', 'status': 0})
         finally:

@@ -9,6 +9,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class EventType:
+
+    def __init__(self):
+        pass
+
+    TYPE_EPISODE_DOWNLOADED = 'EPISODE_DOWNLOADED'
+    TYPE_USER_FAVORITE = 'USER_FAVORITE_CHANGED'
+    TYPE_KEEP_ALIVE = 'KEEP_ALIVE'
+
+
 # noinspection PyMethodMayBeStatic
 class Event(object):
     """
@@ -49,7 +59,8 @@ class EpisodeEvent(Event):
     """
     def __init__(self, **kwargs):
         super(self.__class__, self).__init__({
-            'episode': kwargs.get('episode')
+            'episode': kwargs.get('episode'),
+            'event_type': EventType.TYPE_EPISODE_DOWNLOADED
         })
 
 
@@ -57,10 +68,13 @@ class EpisodeEvent(Event):
 class UserFavoriteEvent(Event):
     """
     When a user favorite changes
+    payload content;
+    favorites: the same structure with Favorite except that user_id is replaced with token_id
     """
     def __init__(self, **kwargs):
         super(self.__class__, self).__init__({
             'favorites': kwargs.get('favorites'),
+            'event_type': EventType.TYPE_USER_FAVORITE
         })
         self.token = kwargs.get('token')
 
@@ -71,12 +85,13 @@ class UserFavoriteEvent(Event):
         """
         session = SessionManager.Session()
         try:
-            result = session.query(WebHookToken).\
+            result = session.query(WebHookToken, WebHook).\
                 join(WebHook).\
                 filter(WebHookToken.token_id == self.token).\
                 filter(WebHookToken.web_hook_id == WebHook.id).\
                 filter(WebHook.status != WebHook.STATUS_IS_DEAD).\
                 all()
+            print result
             if len(result) == 0:
                 logger.error('no web hook found for this token', exc_info=True)
                 return []
@@ -96,7 +111,8 @@ class KeepAliveEvent(Event):
         super(self.__class__, self).__init__({
             'web_hook_id': kwargs.get('web_hook_id'),
             'url': kwargs.get('url'),
-            'status': kwargs.get('status')
+            'status': kwargs.get('status'),
+            'event_type': EventType.TYPE_KEEP_ALIVE
         })
         self.web_hook_id = kwargs.get('web_hook_id')
         self.url = kwargs.get('url')

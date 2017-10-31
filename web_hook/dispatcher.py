@@ -7,6 +7,8 @@ from domain.WebHook import WebHook
 import requests
 import logging
 
+from web_hook.events import EventType
+
 logger = logging.getLogger(__name__)
 
 MAX_FAILURE_COUNT = 10
@@ -30,16 +32,19 @@ class Dispatcher:
                 elif status == WebHook.STATUS_HAS_ERROR and web_hook.consecutive_failure_count < MAX_FAILURE_COUNT - 1:
                     web_hook.consecutive_failure_count = web_hook.consecutive_failure_count + 1
                     web_hook.status = status
-                else:
+                elif status == WebHook.STATUS_IS_ALIVE:
                     # we only reset the consecutive failure count but not status.
                     # A web hook must reset its status to alive by invoking {revive} API
                     web_hook.consecutive_failure_count = 0
+                else:
+                    web_hook.status = status
                 session.commit()
             finally:
                 SessionManager.Session.remove()
 
-        def on_success():
-            logger.info('web hook#{0} status updated', web_hook_id)
+        def on_success(result):
+            logger.debug(result)
+            logger.info('web hook {0} status updated'.format(web_hook_id))
 
         def on_fail(error):
             logger.error(error, exc_info=True)
@@ -61,21 +66,28 @@ class Dispatcher:
         :param web_hook:
         """
         def make_request(url, payload):
-            headers = {'Content-Type': 'application/json;utf-8'}
+            print payload
+            headers = {'Content-Type': 'application/json'}
             r = requests.post(url, data=payload, headers=headers, timeout=self.timeout_for_request)
             if r.status_code > 399:
                 raise WebHookError('Request failed', WebHookError.CODE_REQUEST_FAIL)
             # web hook must response an id which is registered in web_hook table
-            if r.content != web_hook[0]:
+            if r.text != web_hook[0]:
                 raise WebHookError('web hook id not match', WebHookError.CODE_INVALID_ID)
 
-        def on_success():
+        def on_success(result):
+            logger.debug(result)
             self.__update_web_hook_status(web_hook_id=web_hook[0], status=WebHook.STATUS_IS_ALIVE)
             logger.debug('event sent')
 
         def on_fail(error):
+            logger.warn(error.value.code)
+            # we don't update status for the failure request of initial status
+            if event.payload['event_type'] == EventType.TYPE_KEEP_ALIVE and \
+                    event.payload['status'] == WebHook.STATUS_INITIAL:
+                return
             status = WebHook.STATUS_HAS_ERROR
-            if isinstance(error, WebHookError) and error.code == WebHookError.CODE_INVALID_ID:
+            if error.type == WebHookError and error.value.code == WebHookError.CODE_INVALID_ID:
                 status = WebHook.STATUS_IS_DEAD
             self.__update_web_hook_status(web_hook_id=web_hook[0], status=status)
 
@@ -89,7 +101,7 @@ class Dispatcher:
         according to the event type, dispatch event to all registered and alive web hook
         """
         event = self.event_queue.get()
-        web_hooks = yield threads.deferToThread(event.get_web_hooks, event)
+        web_hooks = yield threads.deferToThread(event.get_web_hooks)
         for web_hook in web_hooks:
             self._send_event(event, web_hook)
 

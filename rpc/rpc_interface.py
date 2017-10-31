@@ -57,21 +57,23 @@ def user_favorite_update(user_id):
     def query_user_favorite():
         session = SessionManager.Session()
         try:
-            result = session.query(Favorites).\
-                join(WebHookToken).\
-                filter(Favorites.user_id == user_id).\
+            web_hook_token_list = session.query(WebHookToken).\
                 filter(WebHookToken.user_id == user_id).\
                 all()
 
-            token_fav_dict = {}
+            favorite_list = session.query(Favorites).\
+                filter(Favorites.user_id == user_id).\
+                all()
 
-            for (favorite, token) in result:
-                fav_dict = row2dict(favorite)
-                fav_dict.pop('user_id', None)
-                fav_dict['token_id'] = token.token_id
-                if token.token_id not in token_fav_dict:
-                    token_fav_dict[token.token_id] = []
-                token_fav_dict[token.token_id].append(fav_dict)
+            token_fav_dict = {}
+            for web_hook_token in web_hook_token_list:
+                token_id = web_hook_token.token_id
+                token_fav_dict[token_id] = []
+                for favorite in favorite_list:
+                    fav_dict = row2dict(favorite)
+                    fav_dict['token_id'] = token_id
+                    fav_dict.pop('user_id', None)
+                    token_fav_dict[token_id].append(fav_dict)
 
             return token_fav_dict
         finally:
