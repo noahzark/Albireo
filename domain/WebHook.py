@@ -12,7 +12,7 @@ class WebHook(Base):
     __tablename__ = 'web_hook'
 
     id = Column(postgresql.UUID(as_uuid=True), primary_key=True, default=uuid4)
-    name = Column(TEXT, nullable=False)
+    name = Column(TEXT, nullable=False, unique=True)
     description = Column(TEXT, nullable=True)
     url = Column(TEXT, nullable=False)
     status = Column(Integer, nullable=False, default=4)
