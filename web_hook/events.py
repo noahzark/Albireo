@@ -4,10 +4,18 @@ from utils.SessionManager import SessionManager
 from domain.WebHook import WebHook
 from domain.WebHookToken import WebHookToken
 import json
+import yaml
 import logging
 
 logger = logging.getLogger(__name__)
 
+
+def get_config(key):
+    __fr = open('./config/config.yml', 'r')
+    __config = yaml.load(__fr)
+    return __config[key] if key in __config else None
+
+site_obj = get_config('site')
 
 class EventType:
 
@@ -58,8 +66,34 @@ class EpisodeEvent(Event):
     When an episode is downloaded
     """
     def __init__(self, **kwargs):
+        episode_dict = kwargs.get('episode')
+        episode_dict_tiny = {
+            'id': episode_dict['id'],
+            'url': '{0}://{1}/play/{2}'.format(site_obj['host'], site_obj['host'], episode_dict['id']),
+            'bgm_eps_id': episode_dict['bgm_eps_id'],
+            'name': episode_dict['name'],
+            'name_cn': episode_dict['name_cn'],
+            'episode_no': episode_dict['episode_no'],
+            'status': episode_dict['status'],
+            'airdate': episode_dict['airdate'],
+            'thumbnail_image': episode_dict['thumbnail_image'],
+            'bangumi': {
+                'id': episode_dict['bangumi']['id'],
+                'bgm_id': episode_dict['bangumi']['bgm_id'],
+                'name': episode_dict['bangumi']['name'],
+                'name_cn': episode_dict['bangumi']['name_cn'],
+                'summary': episode_dict['bangumi']['summary'],
+                'image': episode_dict['bangumi']['image'],
+                'cover_image': episode_dict['bangumi']['cover'],
+                'status': episode_dict['bangumi']['status'],
+                'air_date': episode_dict['bangumi']['air_date'],
+                'air_weekday': episode_dict['bangumi']['air_weekday'],
+                'eps': episode_dict['bangumi']['eps'],
+                'type': episode_dict['bangumi']['type']
+            }
+        }
         super(self.__class__, self).__init__({
-            'episode': kwargs.get('episode'),
+            'episode': episode_dict_tiny,
             'event_type': EventType.TYPE_EPISODE_DOWNLOADED
         })
 
