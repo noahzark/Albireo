@@ -49,9 +49,12 @@ def revive():
     request_payload = json.loads(request.get_data(as_text=True))
     web_hook_id = request_payload.get('web_hook_id', None)
     token_id_list = request_payload.get('token_id_list', [])
+    signature = request_payload.get('signature', None)
     if web_hook_id is None:
         raise ClientError('Bad Request, web_hook_id not exists', 400)
-    return web_hook_service.revive(web_hook_id=web_hook_id, token_id_list=token_id_list)
+    if signature is None:
+        raise ClientError('Authenticate Failed, no signature found', 400)
+    return web_hook_service.revive(web_hook_id=web_hook_id, token_id_list=token_id_list, signature=signature)
 
 
 @web_hook_api.route('/token', methods=['GET'])

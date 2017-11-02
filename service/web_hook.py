@@ -9,12 +9,22 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import desc
 from sqlalchemy.orm.exc import NoResultFound
 
+import hmac
+import hashlib
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 # noinspection PyMethodMayBeStatic
 class WebHookService:
 
     def __init__(self):
         pass
+
+    def __get_hmac_hash(self, shared_secret, web_hook_id):
+        digest_maker = hmac.new(str(shared_secret), str(web_hook_id), hashlib.sha256)
+        return digest_maker.hexdigest()
 
     def __process_user_obj_in_web_hook(self, web_hook, web_hook_dict):
         if web_hook.created_by is not None:
@@ -33,6 +43,7 @@ class WebHookService:
 
             for web_hook in web_hook_list:
                 web_hook_dict = row2dict(web_hook)
+                web_hook_dict.pop('shared_secret', None)
                 self.__process_user_obj_in_web_hook(web_hook, web_hook_dict)
                 web_hook_dict_list.append(web_hook_dict)
 
@@ -55,13 +66,18 @@ class WebHookService:
             web_hook = WebHook(name=web_hook_dict.get('name'),
                                description=web_hook_dict.get('description'),
                                url=web_hook_dict.get('url'),
+                               shared_secret=web_hook_dict.get('shared_secret'),
                                created_by_uid=add_by_uid)
             session.add(web_hook)
             session.commit()
             web_hook_id = str(web_hook.id)
 
             # send event via rpc
-            rpc_request.send('initialize_web_hook', {'web_hook_id': web_hook_id, 'web_hook_url': web_hook.url})
+            rpc_request.send('initialize_web_hook', {
+                'web_hook_id': web_hook_id,
+                'web_hook_url': web_hook.url,
+                'shared_secret': web_hook.shared_secret
+            })
 
             return json_resp({'data': web_hook_id})
         finally:
@@ -113,9 +129,20 @@ class WebHookService:
         finally:
             SessionManager.Session.remove()
 
-    def revive(self, web_hook_id, token_id_list):
+    def revive(self, web_hook_id, token_id_list, signature):
         session = SessionManager.Session()
         try:
+            # reset its status
+            web_hook = session.query(WebHook).\
+                filter(WebHook.id == web_hook_id).\
+                one()
+
+            if signature != self.__get_hmac_hash(web_hook.shared_secret, web_hook_id):
+                raise ClientError('Authenticate Failed', 401)
+
+            web_hook.status = WebHook.STATUS_IS_ALIVE
+            session.commit()
+
             fav_dict_list = []
             if len(token_id_list) > 0:
                 web_hook_token_list = session.query(WebHookToken).\
@@ -139,19 +166,9 @@ class WebHookService:
                     fav_dict.pop('user_id', None)
                     fav_dict_list.append(fav_dict)
 
-            # somehow sqlalchemy change the dict after commit, so we need dump the data before commit
-            resp_data = json_resp({'data': fav_dict_list})
-
-            # reset its status
-            web_hook = session.query(WebHook).\
-                filter(WebHook.id == web_hook_id).\
-                one()
-
-            web_hook.status = WebHook.STATUS_IS_ALIVE
-            session.commit()
-
-            return resp_data
-        except NoResultFound:
+            return json_resp({'data': fav_dict_list})
+        except NoResultFound as error:
+            logger.warn(error, exc_info=True)
             raise ClientError(ClientError.NOT_FOUND, 404)
         finally:
             SessionManager.Session()
@@ -164,8 +181,14 @@ class WebHookService:
                 filter(WebHookToken.user_id == user_id).\
                 all()
 
+            web_hook_dict_list = []
+            for web_hook_token in web_hook_token_list:
+                web_hook_dict = row2dict(web_hook_token.web_hook)
+                web_hook_dict.pop('shared_secret', None)
+                web_hook_dict_list.append(web_hook_dict)
+
             return json_resp({
-                'data': [row2dict(web_hook_token.web_hook) for web_hook_token in web_hook_token_list],
+                'data': web_hook_dict_list,
                 'total': len(web_hook_token_list)
             })
         finally:
@@ -180,6 +203,13 @@ class WebHookService:
                                           token_id=token_id)
             session.add(web_hook_token)
             session.commit()
+
+            rpc_request.send('token_add', {
+                'web_hook_id': web_hook_id,
+                'token_id': token_id,
+                'user_id': user_id
+            })
+
             return json_resp({'message': 'ok'})
         except NoResultFound:
             raise ClientError('web hook not existed')

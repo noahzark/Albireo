@@ -5,12 +5,11 @@ from utils.SessionManager import SessionManager
 from utils.db import row2dict
 from domain.Favorites import Favorites
 from domain.WebHookToken import WebHookToken
-from domain.WebHook import WebHook
 from domain.Episode import Episode
 from domain.Bangumi import Bangumi
 from service.common import utils
 from sqlalchemy.orm import joinedload
-from web_hook.events import UserFavoriteEvent, EpisodeEvent, KeepAliveEvent
+from web_hook.events import UserFavoriteEvent, EpisodeEvent, InitialEvent, TokenAddedEvent
 from web_hook.dispatcher import dispatcher
 import logging
 
@@ -118,7 +117,7 @@ def episode_downloaded(episode_id):
         dispatcher.new_event(episode_event)
 
     def on_fail(error):
-        logger.error(error, exc_info=True)
+        logger.error(error)
 
     d = threads.deferToThread(query_episode)
     d.addCallback(on_success)
@@ -126,17 +125,57 @@ def episode_downloaded(episode_id):
 
 
 @rpc_export
-def initialize_web_hook(web_hook_id, web_hook_url):
+def initialize_web_hook(web_hook_id, web_hook_url, shared_secret):
     """
     when a web hook receive this event, it should invoke the revive API with empty token list
      to update its status to alive.
     :param web_hook_id:
     :param web_hook_url:
+    :param shared_secret:
     :return:
     """
-
-    event = KeepAliveEvent(web_hook_id=web_hook_id,
-                           status=WebHook.STATUS_INITIAL,
-                           url=web_hook_url)
+    event = InitialEvent(web_hook_id=web_hook_id,
+                         url=web_hook_url,
+                         shared_secret=shared_secret)
 
     dispatcher.new_event(event)
+
+
+@rpc_export
+def token_add(web_hook_id, token_id, user_id):
+    """
+    When user add a token of web hook
+    :param web_hook_id:
+    :param token_id:
+    :param user_id:
+    :return:
+    """
+    def query_user_favorite():
+        session = SessionManager.Session()
+        try:
+            favorite_list = session.query(Favorites). \
+                filter(Favorites.user_id == user_id). \
+                all()
+
+            fav_dict_list = []
+
+            for favorite in favorite_list:
+                fav_dict = row2dict(favorite)
+                fav_dict['token_id'] = token_id
+                fav_dict.pop('user_id', None)
+                fav_dict_list.append(fav_dict)
+
+            return fav_dict_list
+        finally:
+            SessionManager.Session.remove()
+
+    def on_success(fav_dict_list):
+        token_add_event = TokenAddedEvent(web_hook_id=web_hook_id, favorites=fav_dict_list)
+        dispatcher.new_event(token_add_event)
+
+    def on_fail(error):
+        logger.error(error)
+
+    d = threads.deferToThread(query_user_favorite)
+    d.addCallback(on_success)
+    d.addErrback(on_fail)

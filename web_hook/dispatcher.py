@@ -6,6 +6,8 @@ from utils.SessionManager import SessionManager
 from domain.WebHook import WebHook
 import requests
 import logging
+import hmac
+import hashlib
 
 from web_hook.events import EventType
 
@@ -20,6 +22,10 @@ class Dispatcher:
     def __init__(self):
         self.event_queue = Queue()
         self.timeout_for_request = 30  # seconds
+
+    def __get_hmac_hash(self, shared_secret, web_hook_id):
+        digest_maker = hmac.new(shared_secret, web_hook_id, hashlib.sha256)
+        return digest_maker.hexdigest()
 
     def __update_web_hook_status(self, web_hook_id, status):
 
@@ -63,12 +69,15 @@ class Dispatcher:
         send the request to web hook, if the request failed or web hook doesn't return a correct response.
         An error status will be set to the web_hook's status.
         :param event:
-        :param web_hook:
+        :param web_hook: a tuple (web_hook_id, web_hook_url)
         """
-        def make_request(url, payload):
-            print payload
-            headers = {'Content-Type': 'application/json'}
-            r = requests.post(url, data=payload, headers=headers, timeout=self.timeout_for_request)
+        def make_request():
+            headers = {
+                'Content-Type': 'application/json',
+                'X-Web-Hook-Event-Type': event.event_type,
+                'X-Web-Hook-Signature': self.__get_hmac_hash(web_hook[2], web_hook[0])
+            }
+            r = requests.post(web_hook[1], data=event.to_json(), headers=headers, timeout=self.timeout_for_request)
             if r.status_code > 399:
                 raise WebHookError('Request failed', WebHookError.CODE_REQUEST_FAIL)
             # web hook must response an id which is registered in web_hook table
@@ -81,17 +90,16 @@ class Dispatcher:
             logger.debug('event sent')
 
         def on_fail(error):
-            logger.warn(error.value.code)
+            logger.warn(error)
             # we don't update status for the failure request of initial status
-            if event.payload['event_type'] == EventType.TYPE_KEEP_ALIVE and \
-                    event.payload['status'] == WebHook.STATUS_INITIAL:
+            if event.event_type == EventType.TYPE_INITIAL:
                 return
             status = WebHook.STATUS_HAS_ERROR
             if error.type == WebHookError and error.value.code == WebHookError.CODE_INVALID_ID:
                 status = WebHook.STATUS_IS_DEAD
             self.__update_web_hook_status(web_hook_id=web_hook[0], status=status)
 
-        d = threads.deferToThread(make_request, web_hook[1], event.to_json())
+        d = threads.deferToThread(make_request)
         d.addCallback(on_success)
         d.addErrback(on_fail)
 

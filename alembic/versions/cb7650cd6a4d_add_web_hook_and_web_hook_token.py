@@ -23,6 +23,7 @@ def upgrade():
     sa.Column('name', sa.TEXT(), nullable=False, unique=True),
     sa.Column('description', sa.TEXT(), nullable=True),
     sa.Column('url', sa.TEXT(), nullable=False),
+    sa.Column('shared_secret', sa.TEXT(), nullable=False),
     sa.Column('status', sa.Integer(), nullable=False),
     sa.Column('consecutive_failure_count', sa.Integer(), nullable=False),
     sa.Column('register_time', sa.TIMESTAMP(), nullable=False),

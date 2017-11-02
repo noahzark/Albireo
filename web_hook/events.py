@@ -15,7 +15,9 @@ def get_config(key):
     __config = yaml.load(__fr)
     return __config[key] if key in __config else None
 
+
 site_obj = get_config('site')
+
 
 class EventType:
 
@@ -25,6 +27,8 @@ class EventType:
     TYPE_EPISODE_DOWNLOADED = 'EPISODE_DOWNLOADED'
     TYPE_USER_FAVORITE = 'USER_FAVORITE_CHANGED'
     TYPE_KEEP_ALIVE = 'KEEP_ALIVE'
+    TYPE_INITIAL = 'INITIAL'
+    TYPE_TOKEN_ADDED = 'TOKEN_ADDED'
 
 
 # noinspection PyMethodMayBeStatic
@@ -32,21 +36,22 @@ class Event(object):
     """
     Base class for event
     """
-    def __init__(self, payload):
+    def __init__(self, event_type, payload):
+        self.event_type = event_type
         self.payload = payload
         self.payload.update(event_time=datetime.utcnow())
 
     def _get_all_web_hook(self):
         """
         Get all web_hook that is not dead.
-        :return: an list of tuples which are (web_hook_id, web_hook_url)
+        :return: an list of tuples which are (web_hook_id, web_hook_url, shared_secret)
         """
         session = SessionManager.Session()
         try:
             web_hook_list = session.query(WebHook). \
                 filter(WebHook.status != WebHook.STATUS_IS_DEAD). \
                 all()
-            return [(str(web_hook.id), web_hook.url) for web_hook in web_hook_list]
+            return [(str(web_hook.id), web_hook.url, web_hook.shared_secret) for web_hook in web_hook_list]
         finally:
             SessionManager.Session.remove()
 
@@ -55,7 +60,7 @@ class Event(object):
 
     def get_web_hooks(self):
         """
-        :return: an list of tuples which are (web_hook_id, web_hook_url)
+        :return: an list of tuples which are (web_hook_id, web_hook_url, shared_secret)
         """
         return self._get_all_web_hook()
 
@@ -92,9 +97,8 @@ class EpisodeEvent(Event):
                 'type': episode_dict['bangumi']['type']
             }
         }
-        super(self.__class__, self).__init__({
-            'episode': episode_dict_tiny,
-            'event_type': EventType.TYPE_EPISODE_DOWNLOADED
+        super(self.__class__, self).__init__(EventType.TYPE_EPISODE_DOWNLOADED, {
+            'episode': episode_dict_tiny
         })
 
 
@@ -106,10 +110,8 @@ class UserFavoriteEvent(Event):
     favorites: the same structure with Favorite except that user_id is replaced with token_id
     """
     def __init__(self, **kwargs):
-        super(self.__class__, self).__init__({
-            'favorites': kwargs.get('favorites'),
-            'event_type': EventType.TYPE_USER_FAVORITE
-        })
+        super(self.__class__, self).__init__(EventType.TYPE_USER_FAVORITE, {
+            'favorites': kwargs.get('favorites')})
         self.token = kwargs.get('token')
 
     def get_web_hooks(self):
@@ -131,7 +133,7 @@ class UserFavoriteEvent(Event):
                 return []
             web_hooks = []
             for (web_hook_token, web_hook) in result:
-                web_hooks.append((str(web_hook.id), web_hook.url))
+                web_hooks.append((str(web_hook.id), web_hook.url, web_hook.shared_secret))
             return web_hooks
         finally:
             SessionManager.Session.remove()
@@ -142,14 +144,51 @@ class KeepAliveEvent(Event):
     As the name indicates, this is a event to ensure the web hook is alive.
     """
     def __init__(self, **kwargs):
-        super(self.__class__, self).__init__({
-            'web_hook_id': kwargs.get('web_hook_id'),
-            'url': kwargs.get('url'),
-            'status': kwargs.get('status'),
-            'event_type': EventType.TYPE_KEEP_ALIVE
+        super(self.__class__, self).__init__(EventType.TYPE_KEEP_ALIVE, {
+            'status': kwargs.get('status')
         })
         self.web_hook_id = kwargs.get('web_hook_id')
         self.url = kwargs.get('url')
+        self.shared_secret = kwargs.get('shared_secret')
 
     def get_web_hooks(self):
-        return [(self.web_hook_id, self.url)]
+        return [(self.web_hook_id, self.url, self.shared_secret)]
+
+
+class TokenAddedEvent(Event):
+    """
+    When user add a token of web hook. The payload is very similar to UserFavoriteEvent
+    """
+    def __init__(self, **kwargs):
+        super(self.__class__, self).__init__(EventType.TYPE_TOKEN_ADDED, {
+            'favorites': kwargs.get('favorites')
+        })
+        self.web_hook_id = kwargs.get('web_hook_id')
+
+    def get_web_hooks(self):
+        session = SessionManager.Session()
+        try:
+            web_hook = session.query(WebHook).\
+                filter(WebHook.id == self.web_hook_id).\
+                one()
+            return [(self.web_hook_id, web_hook.url, web_hook.shared_secret)]
+        finally:
+            SessionManager.Session.remove()
+
+
+class InitialEvent(Event):
+    """
+    When register a web hook, this event will emit once
+    """
+    def __init__(self, **kwargs):
+        super(self.__class__, self).__init__(EventType.TYPE_INITIAL, {
+            'web_hook_id': kwargs.get('web_hook_id'),
+            'url': kwargs.get('url')
+        })
+        self.web_hook_id = kwargs.get('web_hook_id')
+        self.url = kwargs.get('url')
+        self.shared_secret = kwargs.get('shared_secret')
+
+    def get_web_hooks(self):
+        return [(self.web_hook_id, self.url, self.shared_secret)]
+

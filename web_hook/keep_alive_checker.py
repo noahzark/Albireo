@@ -33,7 +33,8 @@ class KeepAliveChecker:
         for web_hook in web_hook_list:
             event = KeepAliveEvent(web_hook_id=str(web_hook.id),
                                    status=web_hook.status,
-                                   url=web_hook.url)
+                                   url=web_hook.url,
+                                   shared_secret=web_hook.shared_secret)
             dispatcher.new_event(event)
 
     def start(self):

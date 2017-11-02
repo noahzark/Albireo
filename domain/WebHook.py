@@ -19,6 +19,7 @@ class WebHook(Base):
     consecutive_failure_count = Column(Integer, nullable=False, default=0)
     register_time = Column(TIMESTAMP, nullable=False, default=datetime.now)
     created_by_uid = Column(postgresql.UUID(as_uuid=True), nullable=True)
+    shared_secret = Column(TEXT, nullable=False)
 
     web_hook_tokens = relationship('WebHookToken', back_populates='web_hook')
 
