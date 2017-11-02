@@ -24,7 +24,7 @@ class Dispatcher:
         self.timeout_for_request = 30  # seconds
 
     def __get_hmac_hash(self, shared_secret, web_hook_id):
-        digest_maker = hmac.new(shared_secret, web_hook_id, hashlib.sha256)
+        digest_maker = hmac.new(str(shared_secret), str(web_hook_id), hashlib.sha256)
         return digest_maker.hexdigest()
 
     def __update_web_hook_status(self, web_hook_id, status):
