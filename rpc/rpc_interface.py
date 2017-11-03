@@ -12,6 +12,7 @@ from sqlalchemy.orm import joinedload
 from web_hook.events import UserFavoriteEvent, EpisodeEvent, InitialEvent, TokenAddedEvent
 from web_hook.dispatcher import dispatcher
 import logging
+import yaml
 
 logger = logging.getLogger(__name__)
 
@@ -45,8 +46,13 @@ class RPCInterface(resource.Resource):
 
 
 def setup_server():
+    config = yaml.load(open('./config/config.yml', 'r'))
+    server_port = 8080
+    if 'rpc' in config:
+        server_port = config['rpc']['server_port']
+
     site = server.Site(RPCInterface())
-    endpoint = endpoints.TCP4ServerEndpoint(reactor, 8080)
+    endpoint = endpoints.TCP4ServerEndpoint(reactor, server_port)
     endpoint.listen(site)
 
 

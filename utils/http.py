@@ -9,6 +9,7 @@ import errno
 import logging
 import traceback
 import pickle
+import yaml
 
 from requests import Request
 
@@ -159,11 +160,14 @@ class BangumiMoeRequest:
 class RPCRequest:
 
     def __init__(self):
-        pass
+        config = yaml.load(open('./config/config.yml', 'r'))
+        if 'rpc' in config:
+            self.server_host = config['rpc']['server_host']
+            self.server_port = config['rpc']['server_port']
 
     def send(self, method, method_args):
         try:
-            requests.get('http://localhost:8080/{0}'.format(method), params=method_args)
+            requests.get('http://{0}:{1}/{2}'.format(self.server_host, self.server_port, method), params=method_args)
         except Exception as error:
             logger.error(error)
             sentry_wrapper.sentry_middleware.captureException()
