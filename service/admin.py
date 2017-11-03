@@ -8,7 +8,7 @@ from domain.TorrentFile import TorrentFile
 from domain.VideoFile import VideoFile
 from datetime import datetime
 from utils.SessionManager import SessionManager
-from utils.exceptions import ClientError
+from utils.exceptions import ClientError, ServerError
 from utils.http import json_resp, FileDownloader, bangumi_request
 from utils.db import row2dict
 from sqlalchemy.sql.expression import or_, desc, asc
@@ -172,7 +172,7 @@ class AdminService:
 
         return r.text
 
-    def list_bangumi(self, page, count, sort_field, sort_order, name):
+    def list_bangumi(self, page, count, sort_field, sort_order, name, bangumi_type):
         try:
             session = SessionManager.Session()
             query_object = session.query(Bangumi).\
@@ -180,6 +180,9 @@ class AdminService:
                 options(joinedload(Bangumi.created_by)).\
                 options(joinedload(Bangumi.maintained_by)).\
                 filter(Bangumi.delete_mark == None)
+
+            if bangumi_type != -1:
+                query_object = query_object.filter(Bangumi.type == bangumi_type)
 
             if name is not None:
                 name_pattern = '%{0}%'.format(name.encode('utf-8'),)
@@ -279,6 +282,10 @@ class AdminService:
             except Exception as error:
                 sentry_wrapper.sentry_middleware.captureException()
                 logger.warn(error)
+                # delete bangumi for download error
+                session.delete(bangumi)
+                session.commit()
+                raise ServerError('Fail to Download Image')
 
             return json_resp({'data': {'id': bangumi_id}})
         finally:
@@ -312,10 +319,14 @@ class AdminService:
             if not bangumi.eps_no_offset:
                 # in case the eps_no_offset is empty string
                 bangumi.eps_no_offset = None
-            bangumi.maintained_by_uid = bangumi_dict.get('maintained_by_uid')
-            if not bangumi.maintained_by_uid:
+            maintained_by = bangumi_dict.get('maintained_by')
+            if maintained_by is None:
                 bangumi.maintained_by_uid = None
-            bangumi.update_time = datetime.now()
+                # add this try to trace the mysterious bug on maintained_by_uid changing.
+                logger.error('maintained_by_uid is setting to None', exc_info=True)
+            else:
+                bangumi.maintained_by_uid = maintained_by['id']
+            bangumi.update_time = datetime.utcnow()
 
             session.commit()
 

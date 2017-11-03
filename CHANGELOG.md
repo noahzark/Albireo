@@ -1,16 +1,41 @@
-# 2.6.0
+#Changelog
+
+## 2.7.0
+
+### Feature Add:
+
+#### Web Hook
+
+
+## 2.6.3
+
+Fix bug on add bangumi, which results in a None bangumi folder
+
+## 2.6.3-RC
+
+Change the add bangumi service to ensure cover image is downloaded before save to database.
+ 
+##2.6.2
+
+Change bangumi.moe scanner, now will emit torrent url for matched items instead magnet uri. 
+
+##2.6.1
+
+Add type parameter in admin/list-bangumi api and home/list-bangumi API
+
+##2.6.0
 
 ## Feature add
 
 - Add sentry error collector SDK for better error trace. To enable this you need to add a new config file in `config` directory.
 
-# 2.5.3
+##2.5.3
 
 ## Bug fix
 
 - fix a bug in DeleteScanner which make it unable to delete episodes because of json.dumps cannot handle UUID
 
-# 2.5.2
+##2.5.2
 
 ## Bug fix
 
@@ -18,24 +43,24 @@
 - the timestamp of response should be long type.
 
 
-# 2.5.0
+##2.5.0
 
 ## feature add
 
 - announcement feature can be used to add announcement for client which is aim to let the operator or admin communicates with their user. A database upgrade is needed. 
 
 
-# 2.4.2-beta
+##2.4.2-beta
 - fix issue in DMHY scanner, sometimes DMHY return items which its enclosure entry has a url="" made the feedparser enclosure object doesn't have
  an href attribute and crash.
 
-# 2.4.1-beta
+##2.4.1-beta
 
 ## Bug fix
 - fix eps property of bangumi doesn't change when add/remove an episode.
 - fix download status scanner bug
 
-# 2.4.0-beta
+##2.4.0-beta
 Redesign Image information storage. locally stored image will have their information stored in a specify table.
 
 ## Database Changes
@@ -57,16 +82,16 @@ scanner which daily check the download status of all episode make sure they are 
 - fix #64
 - fix video thumbnail capture return path, should return the output capture path instead of video path. PLEASE RUN `python tools.py --cover` TO FIX THIS.
 
-# 2.3.0-beta
+##2.3.0-beta
 Enhance my_bangumi api, now it accept a search parameter `status` which is an integer represents the status of favorite.
 default status is 3 (Watching) which will maintain the backward compatibility.
 
-# 2.2.1-beta
+##2.2.1-beta
 
 Add case-insensitive support for search bangumi API (include /api/admin/bangumi)
 Add missing field `cover` in my_bangumi API.
 
-# 2.2.0-beta
+##2.2.0-beta
 
 Add new API for client synchronizing watch history with server with multiple items, this API provide ability for client 
 reducing API call for synchronizing history.
@@ -74,11 +99,11 @@ reducing API call for synchronizing history.
 No database changes
 
 
-# 2.1.1-beta
+##2.1.1-beta
 
 Fix a bug when get_dominant_color raise an error, the update scripts will interrupted.
 
-# 2.1.0-beta
+##2.1.0-beta
 
 Add dominant color extraction for bangumi cover image and episode thumbnail image.
 
@@ -109,7 +134,7 @@ cover image.
 3. update your client to the latest version which will support this feature.
 
 
-# 2.0.0-beta
+##2.0.0-beta
 
 From this version. There are a lot of changes brought to User API. reset password by invite code is no longer supported. a email is required for
 each registered user. A user center is added to home page for user to update email and password. Any future user related configuration can be placed
@@ -150,15 +175,15 @@ each registered user. A user center is added to home page for user to update ema
 3. Upgrade database using [alembic script](https://github.com/lordfriend/Albireo/blob/master/alembic/README.md)
 4. Upgrade your client to the latest release.
 
-# 1.1.0-beta
+##1.1.0-beta
 
 Add Video Files CRUD api
 
-# 1.0.1-beta
+##1.0.1-beta
 
 Change the default order_by value in list_bangumi of home api
 
-# 1.0.0-beta
+##1.0.0-beta
 Add delete bangumi and episode ability to admin API. these delete operation is managed by task. A task is a database record contains progress, status and type information. It can be resume
  from a interruption.
  
@@ -182,7 +207,7 @@ before upgrade, those files will not be migrated.
 get bangumi of admin api add a special parameter value to count that is -1. when count = -1, this api will return all data
 
 
-# 0.9.0-alpha
+##0.9.0-alpha
 
 ## Database changes:
 
@@ -201,7 +226,7 @@ Adds some favorites and watch progress APIs. For detail, see routes.watch.
 also modified some old APIs, add watch_progress to each episode returned by episdoe_detail and bangumi_detail API.
 
 
-# 0.8.0-alpha
+##0.8.0-alpha
 
 ## Database changes:
 
@@ -212,7 +237,7 @@ TO UPDATE TABLE, read the [update document](https://github.com/lordfriend/Albire
 
 - fix the always empty issues when add new bangumi caused by bgm.tv anti-bot mechanism
 
-# 0.7.0-alpha
+##0.7.0-alpha
 
 ## Database changes:
 
@@ -220,16 +245,16 @@ Add a new table `feed` is added for the new scheduler, besides, rss, regex in `b
 
 TO UPDATE TABLE, read the [update document](https://github.com/lordfriend/Albireo/blob/master/alembic/README.md).
 
-# NEW API:
+##NEW API:
 
 Add two api for add dmhy and acg.rip keywords.
 
-# New Scheduler
+##New Scheduler
 
 The new scheduler will individual task for each site, each task takes the feed periodically and save its find into feed table. A scanner will scan the feed table every 30 seconds.
 
 
-# 0.6.0-alpha
+##0.6.0-alpha
 
 ## Features Add
 
@@ -241,7 +266,7 @@ The new scheduler will individual task for each site, each task takes the feed p
 
 NOTE: this release require use to update their config.yml.
 
-# 0.4.0-alpha
+##0.4.0-alpha
 
 ## Features Add
 
@@ -252,7 +277,7 @@ NOTE: this release require use to update their config.yml.
 - Now, all client bangumi image will use bangumi.cover to get the cover image. if your see a broken image, using `tools.py --cover` to download missing bangumi cover.
 
 
-# 0.3.0-alpha
+##0.3.0-alpha
 
 ## Features Add
 
@@ -269,7 +294,7 @@ NOTE: this release require use to update their config.yml.
 - default auto generated thumbnail is set to 00:00:01.000 frame
 
 
-# 0.2.0-alpha
+##0.2.0-alpha
 
 ## Features Add
 

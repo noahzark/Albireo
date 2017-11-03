@@ -34,16 +34,36 @@ class BANGUMI_MOE(AbstractScanner):
         result_list = []
 
         for torrent in resp_body['torrents']:
-            for file in torrent['content']:
-                file_path = file[0]
+            eps_list = []
+            for content_file in torrent['content']:
+                file_path = content_file[0]
                 file_name = os.path.basename(file_path)
                 if not file_name.endswith('.mp4'):
                     continue
                 eps_no = self.parse_episode_number(file_name)
                 if eps_no in eps_no_list:
-                    result_list.append((torrent['magnet'], eps_no, file_path, file_name))
+                    eps_list.append({
+                        'eps_no': eps_no,
+                        'file_path': file_path,
+                        'file_name': file_name
+                    })
+            if len(eps_list) == 0:
+                continue
+            torrent_url = self.generate_torrent_url(torrent['_id'], eps_list)
+            for eps in eps_list:
+                result_list.append((torrent_url, eps['eps_no'], eps['file_path'], eps['file_name']))
+
+        logger.debug(result_list)
 
         return result_list
+
+    def generate_torrent_url(self, torrent_id, eps_list):
+        if len(eps_list) > 1:
+            eps_no_format = '{0}-{1}'.format(str(eps_list[0]['eps_no']), str(eps_list[-1]['eps_no']))
+        else:
+            eps_no_format = str(eps_list[0]['eps_no'])
+        return 'https://bangumi.moe/download/torrent/{0}/{1}-{2}.torrent'.format(
+            torrent_id, str(self.bangumi.id), eps_no_format)
 
 
     @classmethod

@@ -36,7 +36,7 @@ List all bangumi which is currently on air, on air means current date is between
 
         + `data` (array[BangumiFavorite]) - a list of bangumi which is on air
 
-## List bangumi [/api/home/bangumi{?page,count,sort_field,sort_order,name}]
+## List bangumi [/api/home/bangumi{?page,count,sort_field,sort_order,name,type}]
 
 + Parameters
     + `page` (number, optional) - the page number start from 1.
@@ -48,7 +48,8 @@ List all bangumi which is currently on air, on air means current date is between
     + `sort_order` (string, optional) - the sort order which can be only two value: desc and asc.
         + Default: `desc`
     + `name` (string, optional) - the search term for filtering result. this string will be matched by name_cn, name and summary.
-
+    + `type` (number, optional) - type of bangumi ,can be -1 (all), 2 (anime), 6 (tv drama).
+        + Default: `-1`
 
 ## List All [GET]
 
@@ -413,7 +414,7 @@ Reset a user password with new password and token. token can be acquired by usin
 
 A set of API for managing bangumi and episode, NOTE: ALL these api require user.level >= 2
 
-## Bangumi [/api/admin/bangumi{?page,count,order_by,sort,name}]
+## Bangumi [/api/admin/bangumi{?page,count,order_by,sort,name,type}]
 
 Bangumi resource, include CRUD operations
 
@@ -431,6 +432,8 @@ List bangumi by filter criteria. support return all bangumi by passing count = -
     + `sort`: `desc` (string, optional) - sort order, can be `desc` or `asc`
         + Default: `desc`
     + `name` (string, optional) - search term for name, name_cn, summary field contain specific string.
+    + `type` (number, optional) - type of bangumi, can be -1 (all), 2 (anime), 6 (tv drama).
+        + Default: `-1`
 
 + Response 200 (application/json)
 
@@ -474,7 +477,9 @@ Add a bangumi
 ### Update Bangumi [PUT /api/admin/bangumi/{bangumi_id}]
 
 Update a bangumi, this operation will not update all fields which client post. To learn which field is allowed to update,
-see the source code
+see the source code.
+
+Special Notice: when you try to update maintained_by, you should give a `user` object. if you want to reset to System, you should give a null value.
 
 + Parameters
     + `bangumi_id` (string, required)
@@ -925,7 +930,7 @@ List all unused invite code
 
 A set of API which is used to management announce.
 
-## List All Announce [/api/announce{offset,count}]
+## List All Announce [/api/announce{?offset,count}]
 
 List all announce including those already out of date.
 
@@ -978,6 +983,131 @@ Delete an announce
 
 + Parameters
     + `announce_id`: `fe4150ee-4b11-46e3-b0ef-31aa6bce1095` (string) - id of announce
+
++ Response 200 (application/json)
+
+        {'message': 'ok'}
+
+
+# Group Web Hook Management
+
+A set of API management web hook registeration and lifecyle.
+
+## Web Hooks [/api/web-hook/]
+
+List all web hook registered. THIS API doesn't require an Admin permission.
+
+Notice: the tailing slash is required for this API.
+
+### GET ALL [GET]
+
+List all
+
++ Response 200 (application/json)
+
+    + Attributes
+        + `data` (WebHook) - list of web hook
+        + `total` (number) - total count
+
+### Register [POST /api/web-hook/register]
+
+Register a web hook. Make sure your web hook is ready to respond the KEEP_ALIVE event and handle the event correctly. Once the web hook is registered a KEEP_ALIVE
+event will be emitted. If your web hook does not respond correctly. Its status will always be INITIAL and will not emit any other event.
+
++ Request  (application/json)
+
+    + Attributes
+        + `name`: `Awesome Web Hook` (string) - name of web hook, must be unique.
+        + `description` (string) - a plaint text.
+        + `url`: `http://localhost:9800/` (string) - the url of web hook ,must be http/https scheme.
+        + `shared_secret`: `abc` (string) - a shared_secret which is used to make signature in both event and API.
+
++ Response 200 (application/json)
+
+    + Attributes
+        + `data`: `d92db89d-54f2-43aa-82d9-205aad99b96e` (string) - id of web hook
+
+## Update Web Hook [PUT /api/web-hook/{web_hook_id}]
+
+update some property of a certain web hook
+
++ Parameters
+    + `web_hook_id`: `d92db89d-54f2-43aa-82d9-205aad99b96e` (string) - id of a web hook
+
++ Request  (application/json)
+
+    + Attributes (WebHook)
+
++ Response 200 (application/json)
+
+        {'message': 'ok'}
+
+## DELETE Web HooK [DELETE /api/web-hook/{web_hook_id}]
+
+Delete a certain web hook and delete all web hook token associated with this web hook.
+
++ Parameters
+    + `web_hook_id`: `d92db89d-54f2-43aa-82d9-205aad99b96e` (string) - id of a web hook
+
++ Response 200 (application/json)
+
+        {'message': 'ok'}
+
+# Group Web Hook Life Cycle
+
+API for the web hook to invoke by itself. affect the status of the web hook
+
+## Revive [POST /api/web-hook/revive]
+
+Revive a HAS ERROR or DEAD status web hook. Besides, can be also used to initialize a web hook with an empty token_id_list.
+
++ Request  (application/json)
+
+    + Attributes
+        + `web_hook_id`: `d92db89d-54f2-43aa-82d9-205aad99b96e` (string, required) - the id of web hook
+        + `token_id_list` (array[string], optional) - a token id list which indicates which user's favorite info is need for the web hook.
+        + `signature` (string) - a signature generated by web hook which is a hash using hmac with sha256 combine shared_secret and message, message format is `web_hook_id=<web_hook_id>&token_id_list=<token id list>`
+
++ Response 200 (application/json)
+
+    + Attributes
+        + `data` (array[TokenFavoriteList]) - a list of favorite object with user_id replaced by token_id
+
+# Group Web Hook Token For User
+
+## Web Hook Tokens [/api/web-hook/token{?web_hook_id,token_id}]
+
+token related APIs
+
+### GET ALL [GET]
+
+List web hook by user_id, actually this API will return all web_hook which user has a token associated with.
+
++ Response 200 (application/json)
+
+    + Attributes
+        + `data` (array[WebHook])
+        + `total` (number)
+
+
+### Add Web Hook Token [POST]
+
+Add a web hook token and associate with current user.
+
++ Parameters
+    + `web_hook_id`: `d92db89d-54f2-43aa-82d9-205aad99b96e` (string) - id of the web hook to be added.
+    + `token_id`: `` (string) - the token id
+
++ Response 200 (application/json)
+
+        {'message': 'ok'}
+
+### Delete Web Hook Token [DELETE]
+
+delete a web hook token
+
++ Parameters
+    + `web_hook_id`: `d92db89d-54f2-43aa-82d9-205aad99b96e` (string) - id of the web hook to be added.
 
 + Response 200 (application/json)
 
@@ -1181,10 +1311,26 @@ Delete an announce
 - `is_finished` (boolean) - whether this watch history is finished watching. when this field is true, watch_status of watch_progress will be 2 (WATCHED).
 
 ## Announce
-- `id` : 02981eec-c817-47e5-baed-56d466afbb20 (string)
+- `id` : `02981eec-c817-47e5-baed-56d466afbb20` (string)
 - `url`: `http://somesite.com/somepath` (string) - the target url of announcement content.
 - `image_url`: `http://someimagesite.com/image.jpg` (string) - the image for banner
 - `position`: `1` (number) - position of the announcement. currently can only be 1 (banner)
 - `sort_order`: `0` (number) - when multiple announce in the same position, this is a reference order can be used to make a slide show. but currently not used.
 - `start_time`: `1497574966172` (number) - a timestamp for the start time of the announce.
 - `end_time`:  `1497574966172` (number) - a timestamp for the end time of the announce.
+
+## WebHook
+- `id`: `d92db89d-54f2-43aa-82d9-205aad99b96e` (string)
+- `name`: `Awesome Webhook` (string) - the name of web hook, must be unique
+- `description`: `A Web hook description` (string) - the description of web hook, this is plain text.
+- `url`: `http://localhost:9800/` (string) - the url of web hook
+- `status`: `1` (string) - the status of a web hook, can be 1 (ALIVE), 2 (HAS ERROR), 3 (DEAD), 4 (INTIAL)
+- `register_time`: `1497574966172` (number) - the web hook register time (UTC +0)
+- `consecutive_failure_count`: `1` (number) - indicates how many times this web hook has failed to responded event. when a max count exceeds this web hook status will be DEAD.
+- `shared_secret`: `abc` (string) - a shared secret string to make signature.
+
+## TokenFavoriteList
+- `id`:`808a7d09-629f-41a3-a1bc-0924a95c5cc6` (string) - id of favorite
+- `token_id`: `afb23de8d` (string) - token of a web hook
+- `bangumi_id`: `46a469ee-5041-4f7c-8bf3-43ea6166a728` (string) - id of the favorite bangumi
+- `status`: `3` (number) - favroite status, can be 1 (WISH), 2 (WATCHED), 3 (WATCHING), 4 (PAUSE), 5 (ABANDONED)

@@ -22,9 +22,11 @@ further more, the information can be used for more user friendly function.
 
 [Client Apps](#client-apps)
 
+[Sentry](#sentry)
+
 ## Installation
 
-requirements: python 2.7, deluge ( > 1.3.12 ), postgresql 9.3 and above, ffmpeg, nodejs, python-imaging
+requirements: python 2.7, deluge ( >= 1.3.13 ), postgresql 9.3 and above, ffmpeg, nodejs, python-imaging
 
 ### dependencies:
 

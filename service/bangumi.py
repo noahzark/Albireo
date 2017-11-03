@@ -140,13 +140,16 @@ class BangumiService:
         finally:
             SessionManager.Session.remove()
 
-    def list_bangumi(self, page, count, sort_field, sort_order, name, user_id):
+    def list_bangumi(self, page, count, sort_field, sort_order, name, user_id, bangumi_type):
         try:
 
             session = SessionManager.Session()
             query_object = session.query(Bangumi).\
                 options(joinedload(Bangumi.cover_image)).\
                 filter(Bangumi.delete_mark == None)
+
+            if bangumi_type != -1:
+                query_object = query_object.filter(Bangumi.type == bangumi_type)
 
             if name is not None:
                 name_pattern = '%{0}%'.format(name.encode('utf-8'),)

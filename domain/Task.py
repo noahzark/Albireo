@@ -4,6 +4,7 @@ from uuid import uuid4
 
 from domain.base import Base
 
+
 class Task(Base):
     __tablename__ = 'task'
 

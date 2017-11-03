@@ -12,6 +12,8 @@ import pickle
 
 from requests import Request
 
+from utils.sentry import sentry_wrapper
+
 logger = logging.getLogger(__name__)
 
 user_agent = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0'
@@ -154,5 +156,19 @@ class BangumiMoeRequest:
         return r
 
 
+class RPCRequest:
+
+    def __init__(self):
+        pass
+
+    def send(self, method, method_args):
+        try:
+            requests.get('http://localhost:8080/{0}'.format(method), params=method_args)
+        except Exception as error:
+            logger.error(error)
+            sentry_wrapper.sentry_middleware.captureException()
+
+
 bangumi_request = BangumiRequest()
 bangumi_moe_request = BangumiMoeRequest()
+rpc_request = RPCRequest()
