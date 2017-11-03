@@ -9,6 +9,7 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import desc
 from sqlalchemy.orm.exc import NoResultFound
 
+import json
 import hmac
 import hashlib
 import logging
@@ -22,8 +23,9 @@ class WebHookService:
     def __init__(self):
         pass
 
-    def __get_hmac_hash(self, shared_secret, web_hook_id):
-        digest_maker = hmac.new(str(shared_secret), str(web_hook_id), hashlib.sha256)
+    def __get_hmac_hash(self, shared_secret, web_hook_id, token_id_list):
+        msg = 'web_hook_id={0}&token_id_list={1}'.format(str(web_hook_id), json.dumps(token_id_list))
+        digest_maker = hmac.new(str(shared_secret), str(msg), hashlib.sha256)
         return digest_maker.hexdigest()
 
     def __process_user_obj_in_web_hook(self, web_hook, web_hook_dict):
@@ -137,7 +139,7 @@ class WebHookService:
                 filter(WebHook.id == web_hook_id).\
                 one()
 
-            if signature != self.__get_hmac_hash(web_hook.shared_secret, web_hook_id):
+            if signature != self.__get_hmac_hash(web_hook.shared_secret, web_hook_id, token_id_list):
                 raise ClientError('Authenticate Failed', 401)
 
             web_hook.status = WebHook.STATUS_IS_ALIVE

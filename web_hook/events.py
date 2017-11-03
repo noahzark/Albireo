@@ -39,7 +39,7 @@ class Event(object):
     def __init__(self, event_type, payload):
         self.event_type = event_type
         self.payload = payload
-        self.payload.update(event_time=datetime.utcnow())
+        self.event_time = datetime.utcnow()
 
     def _get_all_web_hook(self):
         """

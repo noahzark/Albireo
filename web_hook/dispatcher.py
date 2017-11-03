@@ -3,11 +3,13 @@ from twisted.internet import threads
 from twisted.internet.defer import inlineCallbacks
 from utils.exceptions import WebHookError
 from utils.SessionManager import SessionManager
+from utils.http import DateTimeEncoder
 from domain.WebHook import WebHook
 import requests
 import logging
 import hmac
 import hashlib
+import json
 
 from web_hook.events import EventType
 
@@ -23,8 +25,13 @@ class Dispatcher:
         self.event_queue = Queue()
         self.timeout_for_request = 30  # seconds
 
-    def __get_hmac_hash(self, shared_secret, web_hook_id):
-        digest_maker = hmac.new(str(shared_secret), str(web_hook_id), hashlib.sha256)
+    def __datetime_to_timestamp(self, t):
+        return json.dumps(t, cls=DateTimeEncoder)
+
+    def __get_hmac_hash(self, shared_secret, web_hook_id, event_time):
+        event_time_str = self.__datetime_to_timestamp(event_time)
+        msg = 'web_hook_id={0}&event_time={1}'.format(str(web_hook_id), event_time_str)
+        digest_maker = hmac.new(str(shared_secret), str(msg), hashlib.sha256)
         return digest_maker.hexdigest()
 
     def __update_web_hook_status(self, web_hook_id, status):
@@ -74,8 +81,9 @@ class Dispatcher:
         def make_request():
             headers = {
                 'Content-Type': 'application/json',
+                'X-Web-Hook-Event-Time': self.__datetime_to_timestamp(event.event_time),
                 'X-Web-Hook-Event-Type': event.event_type,
-                'X-Web-Hook-Signature': self.__get_hmac_hash(web_hook[2], web_hook[0])
+                'X-Web-Hook-Signature': self.__get_hmac_hash(web_hook[2], web_hook[0], event.event_time)
             }
             r = requests.post(web_hook[1], data=event.to_json(), headers=headers, timeout=self.timeout_for_request)
             if r.status_code > 399:
