@@ -418,6 +418,7 @@ class AdminService:
         try:
             session = SessionManager.Session()
             episode = session.query(Episode).filter(Episode.id == episode_id).one()
+            episode.episode_no = episode_dict['episode_no']
             episode.name = episode_dict['name']
             episode.name_cn = episode_dict['name_cn']
             episode.airdate = datetime.strptime(episode_dict['airdate'], '%Y-%m-%d')
