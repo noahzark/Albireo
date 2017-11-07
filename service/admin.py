@@ -326,6 +326,7 @@ class AdminService:
                 logger.error('maintained_by_uid is setting to None', exc_info=True)
             else:
                 bangumi.maintained_by_uid = maintained_by['id']
+            bangumi.alert_timeout = bangumi_dict.get('alert_timeout')
             bangumi.update_time = datetime.utcnow()
 
             session.commit()
