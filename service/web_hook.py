@@ -173,7 +173,7 @@ class WebHookService:
             logger.warn(error, exc_info=True)
             raise ClientError(ClientError.NOT_FOUND, 404)
         finally:
-            SessionManager.Session()
+            SessionManager.Session.remove()
 
     def list_web_hook_by_user(self, user_id):
         session = SessionManager.Session()
