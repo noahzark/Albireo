@@ -1,5 +1,5 @@
 from datetime import datetime
-from utils.http import DateTimeEncoder
+from utils.http import DateTimeEncoder, is_absolute_url
 from utils.SessionManager import SessionManager
 from domain.WebHook import WebHook
 from domain.WebHookToken import WebHookToken
@@ -29,6 +29,7 @@ class EventType:
     TYPE_KEEP_ALIVE = 'KEEP_ALIVE'
     TYPE_INITIAL = 'INITIAL'
     TYPE_TOKEN_ADDED = 'TOKEN_ADDED'
+    TYPE_USER_EMAIL = 'USER_EMAIL_CHANGED'
 
 
 # noinspection PyMethodMayBeStatic
@@ -74,7 +75,7 @@ class EpisodeEvent(Event):
         episode_dict = kwargs.get('episode')
         episode_dict_tiny = {
             'id': episode_dict['id'],
-            'url': '{0}://{1}/play/{2}'.format(site_obj['host'], site_obj['host'], episode_dict['id']),
+            'url': '{0}://{1}/play/{2}'.format(site_obj['protocol'], site_obj['host'], episode_dict['id']),
             'bgm_eps_id': episode_dict['bgm_eps_id'],
             'name': episode_dict['name'],
             'name_cn': episode_dict['name_cn'],
@@ -89,7 +90,7 @@ class EpisodeEvent(Event):
                 'name_cn': episode_dict['bangumi']['name_cn'],
                 'summary': episode_dict['bangumi']['summary'],
                 'image': episode_dict['bangumi']['image'],
-                'cover_image': episode_dict['bangumi']['cover'],
+                'cover_image': episode_dict['bangumi']['cover_image'],
                 'status': episode_dict['bangumi']['status'],
                 'air_date': episode_dict['bangumi']['air_date'],
                 'air_weekday': episode_dict['bangumi']['air_weekday'],
@@ -97,6 +98,19 @@ class EpisodeEvent(Event):
                 'type': episode_dict['bangumi']['type']
             }
         }
+
+        try:
+            host_part = '{0}://{1}'.format(site_obj['protocol'], site_obj['host'])
+            thumbnail_url = episode_dict_tiny['thumbnail_image']['url']
+            bangumi_cover_url = episode_dict_tiny['bangumi']['cover_image']['url']
+            if not is_absolute_url(thumbnail_url):
+                # relative url stars with slash
+                episode_dict_tiny['thumbnail_image']['url'] = '{0}{1}'.format(host_part, thumbnail_url)
+            if not is_absolute_url(bangumi_cover_url):
+                episode_dict_tiny['bangumi']['cover_image']['url'] = '{0}{1}'.format(host_part, bangumi_cover_url)
+        except Exception as error:
+            logger.error(error)
+
         super(self.__class__, self).__init__(EventType.TYPE_EPISODE_DOWNLOADED, {
             'episode': episode_dict_tiny
         })
@@ -161,7 +175,9 @@ class TokenAddedEvent(Event):
     """
     def __init__(self, **kwargs):
         super(self.__class__, self).__init__(EventType.TYPE_TOKEN_ADDED, {
-            'favorites': kwargs.get('favorites')
+            'favorites': kwargs.get('favorites'),
+            'email': kwargs.get('email'),
+            'token_id': kwargs.get('token_id')
         })
         self.web_hook_id = kwargs.get('web_hook_id')
 
@@ -192,3 +208,19 @@ class InitialEvent(Event):
     def get_web_hooks(self):
         return [(self.web_hook_id, self.url, self.shared_secret)]
 
+
+class UserEmailChangeEvent(Event):
+    """
+    When a user's registered email is changed.
+    """
+    def __init__(self, **kwargs):
+        super(self.__class__, self).__init__(EventType.TYPE_USER_EMAIL, {
+            'email': kwargs.get('email'),
+            'token': kwargs.get('token_id')
+        })
+        self.web_hook_id = kwargs.get('web_hook_id')
+        self.web_hook_url = kwargs.get('web_hook_url')
+        self.shared_secret = kwargs.get('shared_secret')
+
+    def get_web_hooks(self):
+        return [(self.web_hook_id, self.web_hook_url, self.shared_secret)]

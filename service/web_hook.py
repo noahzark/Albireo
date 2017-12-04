@@ -56,6 +56,22 @@ class WebHookService:
         finally:
             SessionManager.Session.remove()
 
+    def get_web_hook_by_id(self, web_hook_id):
+        session = SessionManager.Session()
+        try:
+            web_hook = session.query(WebHook).\
+                filter(WebHook.id == web_hook_id).\
+                one()
+            web_hook_dict = row2dict(web_hook)
+            web_hook_dict.pop('shared_secret', None)
+            web_hook_dict.pop('created_by_uid', None)
+
+            return json_resp({
+                'data': web_hook_dict
+            })
+        finally:
+            SessionManager.Session.remove()
+
     def register_web_hook(self, web_hook_dict, add_by_uid):
         """
         register an web hook and send an initial keep alive event
@@ -69,7 +85,8 @@ class WebHookService:
                                description=web_hook_dict.get('description'),
                                url=web_hook_dict.get('url'),
                                shared_secret=web_hook_dict.get('shared_secret'),
-                               created_by_uid=add_by_uid)
+                               created_by_uid=add_by_uid,
+                               permissions=web_hook_dict.get('permissions'))
             session.add(web_hook)
             session.commit()
             web_hook_id = str(web_hook.id)
@@ -102,6 +119,9 @@ class WebHookService:
             web_hook.url = web_hook_dict.get('url')
             web_hook.status = web_hook_dict.get('status')
             web_hook.consecutive_failure_count = web_hook_dict.get('consecutive_failure_count')
+            web_hook.permissions = web_hook_dict.get('permissions')
+            if 'shared_secret' in web_hook_dict and 'shared_secret' is not None:
+                web_hook.shared_secret = web_hook_dict.get('shared_secret')
 
             session.commit()
 
@@ -196,21 +216,25 @@ class WebHookService:
         finally:
             SessionManager.Session.remove()
 
-    def add_web_hook_token(self, token_id, web_hook_id, user_id):
+    def add_web_hook_token(self, token_id, web_hook_id, user):
         session = SessionManager.Session()
         try:
             web_hook = session.query(WebHook).filter(WebHook.id == web_hook_id).one()
             web_hook_token = WebHookToken(web_hook_id=web_hook_id,
-                                          user_id=user_id,
+                                          user_id=user.id,
                                           token_id=token_id)
             session.add(web_hook_token)
             session.commit()
-
-            rpc_request.send('token_add', {
+            method_args = {
                 'web_hook_id': web_hook_id,
                 'token_id': token_id,
-                'user_id': user_id
-            })
+                'user_id': user.id,
+                'email': None
+            }
+            if web_hook.has_permission(WebHook.PERMISSION_EMAIL) and user.email is not None and user.email_confirmed:
+                method_args['email'] = user.email
+
+            rpc_request.send('token_add', method_args)
 
             return json_resp({'message': 'ok'})
         except NoResultFound:

@@ -9,7 +9,7 @@ from domain.Favorites import Favorites
 from domain.WatchProgress import WatchProgress
 from domain.Bangumi import Bangumi
 from domain.Episode import Episode
-from service.common import utils
+from utils.common import utils
 
 import traceback
 import logging

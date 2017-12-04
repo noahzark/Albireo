@@ -29,6 +29,12 @@ def register_web_hook():
     return web_hook_service.register_web_hook(web_hook_dict=web_hook_dict, add_by_uid=current_user_id)
 
 
+@web_hook_api.route('/<web_hook_id>', methods=['GET'])
+@login_required
+def get_web_hook_by_id(web_hook_id):
+    return web_hook_service.get_web_hook_by_id(web_hook_id)
+
+
 @web_hook_api.route('/<web_hook_id>', methods=['PUT'])
 @login_required
 @auth_user(User.LEVEL_SUPER_USER)
@@ -70,7 +76,7 @@ def add_web_hook_token():
     web_hook_id = request.args.get('web_hook_id', None)
     if token_id is None or web_hook_id is None:
         raise ClientError('Bad Request, web_hook_id and token_id are required')
-    return web_hook_service.add_web_hook_token(token_id, web_hook_id, current_user.id)
+    return web_hook_service.add_web_hook_token(token_id, web_hook_id, current_user)
 
 
 @web_hook_api.route('/token', methods=['DELETE'])
