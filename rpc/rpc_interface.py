@@ -1,15 +1,17 @@
 # from functools import wraps
 from twisted.web import server, resource
 from twisted.internet import reactor, endpoints, threads
+
 from utils.SessionManager import SessionManager
 from utils.db import row2dict
 from domain.Favorites import Favorites
 from domain.WebHookToken import WebHookToken
+from domain.WebHook import WebHook
 from domain.Episode import Episode
 from domain.Bangumi import Bangumi
-from service.common import utils
+from utils.common import utils
 from sqlalchemy.orm import joinedload
-from web_hook.events import UserFavoriteEvent, EpisodeEvent, InitialEvent, TokenAddedEvent
+from web_hook.events import UserFavoriteEvent, EpisodeEvent, InitialEvent, TokenAddedEvent, UserEmailChangeEvent
 from web_hook.dispatcher import dispatcher
 import logging
 import yaml
@@ -148,12 +150,14 @@ def initialize_web_hook(web_hook_id, web_hook_url, shared_secret):
 
 
 @rpc_export
-def token_add(web_hook_id, token_id, user_id):
+def token_add(web_hook_id, token_id, user_id, email):
     """
     When user add a token of web hook
     :param web_hook_id:
     :param token_id:
     :param user_id:
+    :param email:
+    :param email_confirmed:
     :return:
     """
     def query_user_favorite():
@@ -176,7 +180,10 @@ def token_add(web_hook_id, token_id, user_id):
             SessionManager.Session.remove()
 
     def on_success(fav_dict_list):
-        token_add_event = TokenAddedEvent(web_hook_id=web_hook_id, favorites=fav_dict_list)
+        token_add_event = TokenAddedEvent(web_hook_id=web_hook_id,
+                                          favorites=fav_dict_list,
+                                          email=email,
+                                          token_id=token_id)
         dispatcher.new_event(token_add_event)
 
     def on_fail(error):
@@ -185,3 +192,65 @@ def token_add(web_hook_id, token_id, user_id):
     d = threads.deferToThread(query_user_favorite)
     d.addCallback(on_success)
     d.addErrback(on_fail)
+
+
+@rpc_export
+def email_changed(email, user_id):
+    """
+    When a user changed its email or registered, this is only triggered after the email is confirmed.
+    :param email:
+    :param user_id:
+    :return:
+    """
+    def query_token():
+        session = SessionManager.Session()
+        try:
+            token_list = session.query(WebHookToken).\
+                options(joinedload(WebHookToken.web_hook)).\
+                filter(WebHookToken.user_id == user_id).\
+                all()
+            token_dict_list = []
+            for token in token_list:
+                if token.web_hook.status == WebHook.STATUS_IS_DEAD:
+                    continue
+                if not token.web_hook.has_permission(WebHook.PERMISSION_EMAIL):
+                    continue
+                token_dict = row2dict(token)
+                token_dict['web_hook'] = row2dict(token.web_hook)
+                token_dict_list.append(token_dict)
+            return token_dict_list
+        finally:
+            SessionManager.Session.remove()
+
+    def on_success(token_dict_list):
+        for token_dict in token_dict_list:
+            email_changed_event = UserEmailChangeEvent(token_id=token_dict['token_id'],
+                                                       email=email,
+                                                       web_hook_id=token_dict['web_hook']['id'],
+                                                       web_hook_url=token_dict['web_hook']['url'],
+                                                       shared_secret=token_dict['web_hook']['shared_secret'])
+            dispatcher.new_event(email_changed_event)
+
+    def on_fail(error):
+        logger.error(error)
+
+    d = threads.deferToThread(query_token)
+    d.addCallback(on_success)
+    d.addErrback(on_fail)
+
+
+@rpc_export
+def delete_deluge_torrent(torrent_id):
+    from utils.DownloadManager import download_manager
+
+    def on_success(info):
+        logger.debug(info)
+        logger.info('{0} deleted'.format(torrent_id,))
+
+    def on_fail(err):
+        logger.error('fail to delete torrent of {0}')
+        logger.error(err, exc_info=True)
+    d = download_manager.remove_torrents((torrent_id,), True)
+    d.addCallback(on_success)
+    d.addErrback(on_fail)
+

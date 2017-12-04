@@ -5,7 +5,6 @@ from utils.db import row2dict
 from utils.http import json_resp
 from domain.Announce import Announce
 from datetime import datetime
-from service.common import CommonUtils
 from sqlalchemy.sql import func
 
 
