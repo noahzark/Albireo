@@ -1,3 +1,5 @@
+import urlparse
+
 from flask import jsonify, make_response
 from datetime import date, datetime
 import time
@@ -45,6 +47,10 @@ def json_resp(obj, status=200):
     resp = make_response(json.dumps(obj, cls=DateTimeEncoder), status)
     resp.headers['Content-Type'] = 'application/json'
     return resp
+
+
+def is_absolute_url(test_url):
+    return bool(urlparse.urlparse(test_url).netloc)
 
 
 class FileDownloader:

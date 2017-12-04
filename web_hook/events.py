@@ -1,7 +1,6 @@
 from datetime import datetime
-from utils.http import DateTimeEncoder
+from utils.http import DateTimeEncoder, is_absolute_url
 from utils.SessionManager import SessionManager
-from utils.common import utils
 from domain.WebHook import WebHook
 from domain.WebHookToken import WebHookToken
 import json
@@ -100,10 +99,17 @@ class EpisodeEvent(Event):
             }
         }
 
-        episode_dict_tiny['thumbnail_image'] = utils.convert_image_dict(episode_dict_tiny['thumbnail_image'])
-        episode_dict_tiny['bangumi']['cover_image'] = utils.convert_image_dict(
-            episode_dict_tiny['bangumi']['cover_image']
-        )
+        try:
+            host_part = '{0}://{1}'.format(site_obj['protocol'], site_obj['host'])
+            thumbnail_url = episode_dict_tiny['thumbnail_image']['url']
+            bangumi_cover_url = episode_dict_tiny['bangumi']['cover_image']['url']
+            if not is_absolute_url(thumbnail_url):
+                # relative url stars with slash
+                episode_dict_tiny['thumbnail_image']['url'] = '{0}{1}'.format(host_part, thumbnail_url)
+            if not is_absolute_url(bangumi_cover_url):
+                episode_dict_tiny['bangumi']['cover_image']['url'] = '{0}{1}'.format(host_part, bangumi_cover_url)
+        except Exception as error:
+            logger.error(error)
 
         super(self.__class__, self).__init__(EventType.TYPE_EPISODE_DOWNLOADED, {
             'episode': episode_dict_tiny
