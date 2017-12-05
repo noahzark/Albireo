@@ -13,6 +13,7 @@ import json
 import hmac
 import hashlib
 import logging
+import bleach
 
 logger = logging.getLogger(__name__)
 
@@ -21,10 +22,12 @@ logger = logging.getLogger(__name__)
 class WebHookService:
 
     def __init__(self):
-        pass
+        self.ALLOWED_TAGS = [u'p'] + bleach.sanitizer.ALLOWED_TAGS
 
     def __get_hmac_hash(self, shared_secret, web_hook_id, token_id_list):
-        msg = 'web_hook_id={0}&token_id_list={1}'.format(str(web_hook_id), json.dumps(token_id_list))
+        serialized_token_id_list = ','.join(map(str, token_id_list))
+        logger.debug(serialized_token_id_list)
+        msg = 'web_hook_id={0}&token_id_list={1}'.format(str(web_hook_id), serialized_token_id_list)
         digest_maker = hmac.new(str(shared_secret), str(msg), hashlib.sha256)
         return digest_maker.hexdigest()
 
@@ -82,7 +85,7 @@ class WebHookService:
         session = SessionManager.Session()
         try:
             web_hook = WebHook(name=web_hook_dict.get('name'),
-                               description=web_hook_dict.get('description'),
+                               description=bleach.clean(web_hook_dict.get('description'), tags=self.ALLOWED_TAGS),
                                url=web_hook_dict.get('url'),
                                shared_secret=web_hook_dict.get('shared_secret'),
                                created_by_uid=add_by_uid,
@@ -115,7 +118,7 @@ class WebHookService:
                 filter(WebHook.id == web_hook_id).\
                 one()
             web_hook.name = web_hook_dict.get('name')
-            web_hook.description = web_hook_dict.get('description')
+            web_hook.description = bleach.clean(web_hook_dict.get('description'), tags=self.ALLOWED_TAGS)
             web_hook.url = web_hook_dict.get('url')
             web_hook.status = web_hook_dict.get('status')
             web_hook.consecutive_failure_count = web_hook_dict.get('consecutive_failure_count')

@@ -45,6 +45,7 @@ requirements: python 2.7, deluge ( >= 1.3.13 ), postgresql 9.3 and above, ffmpeg
 - Flask-Mail
 - colorthief
 - raven
+- bleach
 
 NOTE: ffmpeg is presume accessible with `ffmpeg` command
 

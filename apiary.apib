@@ -1061,6 +1061,8 @@ API for the web hook to invoke by itself. affect the status of the web hook
 
 Revive a HAS ERROR or DEAD status web hook. Besides, can be also used to initialize a web hook with an empty token_id_list.
 
+About the signature: token_id_list is a comma-separated string of token ids.
+
 + Request  (application/json)
 
     + Attributes
@@ -1219,7 +1221,7 @@ delete a web hook token
 
 ## BangumiExtended (Bangumi)
 - `episodes` (array[EpisodeWithWatchProgress]) - episode list of the bangumi
-- `created_by` (User, optional) - user object, who is the creator of the bangumi item. 
+- `created_by` (User, optional) - user object, who is the creator of the bangumi item.
 - `maintained_by` (User, optional) - user object, who is the maintainer of the bangumi item.
 
 ## BangumiFavorite (Bangumi)
