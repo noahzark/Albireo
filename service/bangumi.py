@@ -16,7 +16,7 @@ from sqlalchemy.sql.expression import or_, desc, asc
 from sqlalchemy.sql import select, func, distinct
 from sqlalchemy.orm import joinedload, subqueryload
 import json
-from service.common import utils
+from utils.common import utils
 
 import logging
 

@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 watch_api = Blueprint('watch', __name__)
 
+
 @watch_api.route('/favorite/bangumi/<bangumi_id>', methods=['POST'])
 @login_required
 def favorite_bangumi(bangumi_id):

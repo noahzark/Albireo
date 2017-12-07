@@ -3,13 +3,13 @@ from datetime import datetime
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import func
 from utils.SessionManager import SessionManager
-from utils.http import json_resp
+from utils.http import json_resp, rpc_request
 from utils.db import row2dict
 from domain.Favorites import Favorites
 from domain.WatchProgress import WatchProgress
 from domain.Bangumi import Bangumi
 from domain.Episode import Episode
-from service.common import utils
+from utils.common import utils
 
 import traceback
 import logging
@@ -33,6 +33,9 @@ class WatchService:
                 favorite.status = status
 
             session.commit()
+
+            rpc_request.send('user_favorite_update', {'user_id': str(user_id)})
+
             return json_resp({'message': 'ok', 'status': 0})
         finally:
             SessionManager.Session.remove()

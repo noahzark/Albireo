@@ -42,6 +42,8 @@ from taskrunner.BangumiMoeScanner import BangumiMoeScanner
 from taskrunner.AcgripScanner import AcgripScanner
 from taskrunner.LibyksoScanner import LibyksoScanner
 from taskrunner.DeleteScanner import DeleteScanner
+from rpc.rpc_interface import setup_server
+from web_hook.keep_alive_checker import keep_alive_checker
 
 
 class Scheduler:
@@ -122,6 +124,7 @@ def on_connected(result):
     scheduler.start()
     info_scanner.start()
     download_status_scanner.start()
+    keep_alive_checker.start()
     scheduler.start_scan_feed()
     scheduler.start_scan_delete()
 
@@ -135,5 +138,7 @@ def on_connect_fail(result):
 d = download_manager.connect()
 d.addCallback(on_connected)
 d.addErrback(on_connect_fail)
+
+setup_server()
 
 reactor.run()

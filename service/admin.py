@@ -9,7 +9,7 @@ from domain.VideoFile import VideoFile
 from datetime import datetime
 from utils.SessionManager import SessionManager
 from utils.exceptions import ClientError, ServerError
-from utils.http import json_resp, FileDownloader, bangumi_request
+from utils.http import json_resp, FileDownloader, bangumi_request, rpc_request
 from utils.db import row2dict
 from sqlalchemy.sql.expression import or_, desc, asc
 from sqlalchemy.sql import select, func
@@ -20,7 +20,7 @@ import os
 import errno
 from urlparse import urlparse
 from utils.VideoManager import video_manager
-from service.common import utils
+from utils.common import utils
 from utils.image import get_dominant_color, get_dimension
 # from werkzeug.utils import secure_filename
 from utils.sentry import sentry_wrapper
@@ -584,7 +584,9 @@ class AdminService:
                 except Exception as error:
                     logger.warn(error)
 
+            rpc_request.send('delete_deluge_torrent', {'torrent_id': video_file.torrent_id})
             session.delete(video_file)
+
             session.commit()
             return json_resp({'msg': 'ok'})
         except NoResultFound:
