@@ -4,8 +4,14 @@
 
 ### Feature Add:
 
-#### Web Hook
+- Web hook, this is new feature for third party developers to make some awesome tools with push notification. it is inspired by Github web hook.
+ for more detail, see the Wiki.
+ 
+- rpc interface for commmunication between flask server and scheduler.
 
+### Database Changes
+
+- add two table, web hook and web hook token.
 
 ## 2.6.3
 
