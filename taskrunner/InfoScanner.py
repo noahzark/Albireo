@@ -60,15 +60,24 @@ class InfoScanner:
         else:
             return r.status_code, {}
 
-    def __scan_episode_in_thread(self):
+    def __scan_current_on_air_bangumi(self):
         logger.info('start scan info of episode')
+        current_day = datetime.today()
+        start_time = datetime(current_day.year, current_day.month, 1)
+        if current_day.month == 12:
+            next_year = current_day.year + 1
+            next_month = 1
+        else:
+            next_year = current_day.year
+            next_month = current_day.month + 1
+        end_time = datetime(next_year, next_month, 1)
         session = SessionManager.Session()
         try:
-            # we don't scan the episode those name_cn is missing
-            # because many of them don't have name_cn
-            result = session.query(Episode, Bangumi).\
-                join(Bangumi).\
-                filter(or_(Episode.name == '', Episode.airdate == None))
+            result = session.query(Episode, Bangumi). \
+                join(Bangumi). \
+                filter(Bangumi.delete_mark == None). \
+                filter(Episode.airdate >= start_time). \
+                filter(Episode.airdate <= end_time)
 
             bgm_episode_dict = {}
 
@@ -96,6 +105,8 @@ class InfoScanner:
                             episode.name_cn = eps['name_cn']
                         if episode.duration == '':
                             episode.duration = eps['duration']
+                        # always update airdate because it can be changed.
+                        episode.airdate = eps['airdate']
                         break
 
             session.commit()
@@ -112,7 +123,7 @@ class InfoScanner:
             SessionManager.Session.remove()
 
     def scan_episode(self):
-        threads.deferToThread(self.__scan_episode_in_thread)
+        threads.deferToThread(self.__scan_current_on_air_bangumi)
 
 
 info_scanner = InfoScanner()

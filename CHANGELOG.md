@@ -1,11 +1,25 @@
 #Changelog
 
+## 2.7.1
+
+- InfoScanner will only scan currently on-air bangumi. It will also update all airdate from bangumi.tv regard of its absence.
+
+- Change the procedure for deleting an episode. Now delete is immediately effecting. 
+    DeleteScanner will no longer scan episode which is in pending delete status.
+    If you have episode which is in pending delete status. please restore this episode and delete it again.
+
 ## 2.7.0
 
 ### Feature Add:
 
-#### Web Hook
+- Web hook, this is new feature for third party developers to make some awesome tools with push notification. it is inspired by Github web hook.
+ for more detail, see the Wiki.
+ 
+- rpc interface for commmunication between flask server and scheduler.
 
+### Database Changes
+
+- add two table, web hook and web hook token.
 
 ## 2.6.3
 
