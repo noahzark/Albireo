@@ -2,8 +2,9 @@
 
 ## 2.7.1
 
-- InfoScanner will only scan currently on-air bangumi. It will also update all airdate from bangumi.tv regard of its absence.
-
+- InfoScanner will check bangumi status and fix it before perform a scan.
+- Auto change bangumi status to FINISHED when imported.
+- Fix #39
 - Change the procedure for deleting an episode. Now delete is immediately effecting. 
     DeleteScanner will no longer scan episode which is in pending delete status.
     If you have episode which is in pending delete status. please restore this episode and delete it again.
