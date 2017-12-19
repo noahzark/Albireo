@@ -1,9 +1,8 @@
 from twisted.internet.defer import inlineCallbacks
 from utils.SessionManager import SessionManager
-from utils.http import bangumi_request
+from utils.http import bangumi_request, is_valid_date
 from domain.Bangumi import Bangumi
 from domain.Episode import Episode
-from sqlalchemy.sql.expression import or_
 from sqlalchemy import exc, func
 from twisted.internet import threads
 from twisted.internet.task import LoopingCall
@@ -149,7 +148,8 @@ class InfoScanner:
                         if episode.duration == '':
                             episode.duration = eps['duration']
                         # always update airdate because it can be changed.
-                        episode.airdate = eps['airdate']
+                        if is_valid_date(eps['airdate']):
+                            episode.airdate = eps['airdate']
                         break
 
             session.commit()
