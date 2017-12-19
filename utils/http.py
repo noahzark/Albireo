@@ -2,7 +2,6 @@ import urlparse
 
 from flask import jsonify, make_response
 from datetime import date, datetime
-import time
 import json
 import uuid
 import requests
@@ -12,8 +11,7 @@ import logging
 import traceback
 import pickle
 import yaml
-
-from requests import Request
+import re
 
 from utils.sentry import sentry_wrapper
 
@@ -47,6 +45,10 @@ def json_resp(obj, status=200):
     resp = make_response(json.dumps(obj, cls=DateTimeEncoder), status)
     resp.headers['Content-Type'] = 'application/json'
     return resp
+
+
+def is_valid_date(date_str):
+    return re.match('^\d{4}-\d{2}-\d{2}$', date_str) is not None
 
 
 def is_absolute_url(test_url):

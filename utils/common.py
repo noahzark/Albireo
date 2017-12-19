@@ -1,5 +1,6 @@
 import yaml
-import os, errno
+import os
+import errno
 from urlparse import urlparse
 from datetime import datetime
 import logging
