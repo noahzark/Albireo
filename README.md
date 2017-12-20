@@ -173,7 +173,7 @@ Web App + Admin Console: https://github.com/lordfriend/Deneb
 
 [![Get On Google Play](https://play.google.com/intl/en_us/badges/images/badge_new.png)](https://play.google.com/store/apps/details?id=com.sqrtf.megumin)
 
-[Mana] (https://github.com/WindFi/mana) Android client for Albireo.Use todo-mvp pattern
+[Mana](https://github.com/WindFi/mana) Android client for Albireo.Use todo-mvp pattern
 
 [![Get On Google Play](https://play.google.com/intl/en_us/badges/images/badge_new.png)](https://play.google.com/store/apps/details?id=me.sunzheng.mana)
 
