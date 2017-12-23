@@ -1,5 +1,9 @@
 #Changelog
 
+## 2.7.4
+
+Update bangumi.moe proxy API to support GET method.
+
 ## 2.7.2
 
 Fix encode issue when user name contains non-ascii characters. This issue may cause user fail to reset password.
