@@ -1,5 +1,10 @@
 #Changelog
 
+## 2.7.5
+
+- Fix the issue of InfoScanner when trying to get attribute from a failed request which is actually a None object. #107
+- Fix the issue of an uncaught exception return a html document. Now any exception will return json response. #105
+
 ## 2.7.4
 
 Update bangumi.moe proxy API to support GET method.
