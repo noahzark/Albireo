@@ -89,6 +89,11 @@ def handle_server_exception(error):
     return json_resp(error.to_dict(), error.status)
 
 
+@app.errorhandler(Exception)
+def handle_uncaught_exception(error):
+    return json_resp({'message': 'Internal Server Error'}, 500)
+
+
 app.register_blueprint(admin_api, url_prefix='/api/admin')
 app.register_blueprint(user_api, url_prefix='/api/user')
 app.register_blueprint(home_api, url_prefix='/api/home')
