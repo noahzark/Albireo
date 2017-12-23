@@ -1,5 +1,9 @@
 #Changelog
 
+## 2.7.2
+
+Fix encode issue when user name contains non-ascii characters. This issue may cause user fail to reset password.
+
 ## 2.7.1
 
 - InfoScanner will check bangumi status and fix it before perform a scan.
