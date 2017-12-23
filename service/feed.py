@@ -134,10 +134,10 @@ class FeedService(object):
 
         return json_resp({'data': title_list, 'status': 0})
 
-    def bangumi_moe_proxy(self, url, payload):
+    def bangumi_moe_proxy(self, url, method, payload):
         result = {}
 
-        r = bangumi_moe_request.post(url, payload)
+        r = bangumi_moe_request.send(url, method, payload)
         if r.status_code > 399:
             r.raise_for_status()
 

@@ -13,6 +13,8 @@ import pickle
 import yaml
 import re
 
+from requests import Request
+
 from utils.sentry import sentry_wrapper
 
 logger = logging.getLogger(__name__)
@@ -161,6 +163,16 @@ class BangumiMoeRequest:
     def post(self, url, payload):
         self.__get_cookie_from_storage()
         r = self.session.post(url=url, json=payload)
+        self.__save_cookie_to_storage()
+        return r
+
+    def send(self, url, method, payload):
+        self.__get_cookie_from_storage()
+        req = Request(method, url)
+        prepped = self.session.prepare_request(req)
+        if payload is not None:
+            req.json = payload
+        r = self.session.send(prepped)
         self.__save_cookie_to_storage()
         return r
 
