@@ -48,7 +48,7 @@ class UserCredential(UserMixin):
                 session.commit()
                 if user.email is not None and user.email_confirmed:
                     # send notification mail
-                    subject = '[{0}] Password Update Notification'.format(app.config['SITE_NAME'])
+                    subject = u'[{0}] Password Update Notification'.format(app.config['SITE_NAME'])
                     email_content = render_template('update-pass-notification.html', info={
                         'title': subject,
                         'user_name': user.name,
@@ -74,7 +74,7 @@ class UserCredential(UserMixin):
             user = session.query(User).filter(User.id == self.id).one()
             if user.email is not None and user.email_confirmed:
                 # send notification mail
-                subject = '[{0}] Email Address Update Notification'.format(app.config['SITE_NAME'])
+                subject = u'[{0}] Email Address Update Notification'.format(app.config['SITE_NAME'])
                 email_content = render_template('email-change-notification.html', info={
                     'title': subject,
                     'user_name': user.name,
@@ -144,7 +144,7 @@ class UserCredential(UserMixin):
         confirm_url = '{0}://{1}/email-confirm?token={2}'.format(app.config['SITE_PROTOCOL'],
                                                                  app.config['SITE_HOST'],
                                                                  token)
-        subject = '[{0}] Email Address Confirmation'.format(app.config['SITE_NAME'])
+        subject = u'[{0}] Email Address Confirmation'.format(app.config['SITE_NAME'])
         email_content = render_template('email-confirm.html', info={
             'confirm_title': subject,
             'confirm_url': confirm_url,
@@ -201,7 +201,7 @@ class UserCredential(UserMixin):
             reset_url = '{0}://{1}/reset-pass?token={2}'.format(app.config['SITE_PROTOCOL'],
                                                                 app.config['SITE_HOST'],
                                                                 token)
-            subject = '[{0}] Password Request for {1}'.format(app.config['SITE_NAME'], user.name)
+            subject = u'[{0}] Password Request for {1}'.format(app.config['SITE_NAME'], user.name)
             reset_content = render_template('reset-pass.html', info={
                 'reset_title': subject,
                 'reset_url': reset_url,
