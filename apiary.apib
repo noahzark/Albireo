@@ -763,7 +763,7 @@ Get the feed result from libyk.com, This API is unstable because it is a proxy A
 
 ## Bangumi.moe Proxy [/api/feed/bangumi-moe]
 
-Proxy for bangumi.moe API which method is POST
+Proxy for bangumi.moe API
 
 ### Proxy [POST]
 
@@ -774,6 +774,8 @@ Return response of this method can be any
     + Attributes
         + url (string, required) - target bangumi.moe url to reach
         + payload (object, required) - bangumi.moe request payload
+        + method (string, optional) - bangumi.moe request method
+            + Default: `POST`
 
 + Response 200 (application/json)
 
