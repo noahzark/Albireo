@@ -2,7 +2,6 @@ import urlparse
 
 from flask import jsonify, make_response
 from datetime import date, datetime
-import time
 import json
 import uuid
 import requests
@@ -12,6 +11,7 @@ import logging
 import traceback
 import pickle
 import yaml
+import re
 
 from requests import Request
 
@@ -47,6 +47,10 @@ def json_resp(obj, status=200):
     resp = make_response(json.dumps(obj, cls=DateTimeEncoder), status)
     resp.headers['Content-Type'] = 'application/json'
     return resp
+
+
+def is_valid_date(date_str):
+    return re.match('^\d{4}-\d{2}-\d{2}$', date_str) is not None
 
 
 def is_absolute_url(test_url):
@@ -159,6 +163,16 @@ class BangumiMoeRequest:
     def post(self, url, payload):
         self.__get_cookie_from_storage()
         r = self.session.post(url=url, json=payload)
+        self.__save_cookie_to_storage()
+        return r
+
+    def send(self, url, method, payload):
+        self.__get_cookie_from_storage()
+        req = Request(method, url)
+        prepped = self.session.prepare_request(req)
+        if payload is not None:
+            req.json = payload
+        r = self.session.send(prepped)
         self.__save_cookie_to_storage()
         return r
 

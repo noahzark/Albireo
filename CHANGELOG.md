@@ -1,5 +1,18 @@
 #Changelog
 
+## 2.7.5
+
+- Fix the issue of InfoScanner when trying to get attribute from a failed request which is actually a None object. #107
+- Fix the issue of an uncaught exception return a html document. Now any exception will return json response. #105
+
+## 2.7.4
+
+Update bangumi.moe proxy API to support GET method.
+
+## 2.7.2
+
+Fix encode issue when user name contains non-ascii characters. This issue may cause user fail to reset password.
+
 ## 2.7.1
 
 - InfoScanner will check bangumi status and fix it before perform a scan.
