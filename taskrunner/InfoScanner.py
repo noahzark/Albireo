@@ -131,7 +131,7 @@ class InfoScanner:
                         time.sleep(20)
                     logger.info('try to get info for bangumi of %s' % str(bangumi.bgm_id))
                     (status_code, bangumi_info) = self.get_bgm_info(bangumi.bgm_id)
-                    if status_code < 400:
+                    if 0 < status_code < 400:
                         bgm_episode_dict[bangumi.bgm_id] = bangumi_info
 
                 if not (bangumi.bgm_id in bgm_episode_dict):
