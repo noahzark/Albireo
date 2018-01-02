@@ -1,5 +1,9 @@
 #Changelog
 
+## 2.7.6
+
+- Fix bug in update episode API
+
 ## 2.7.5
 
 - Fix the issue of InfoScanner when trying to get attribute from a failed request which is actually a None object. #107
