@@ -91,6 +91,7 @@ def handle_server_exception(error):
 
 @app.errorhandler(Exception)
 def handle_uncaught_exception(error):
+    logger.error(error, exc_info=True)
     return json_resp({'message': 'Internal Server Error'}, 500)
 
 

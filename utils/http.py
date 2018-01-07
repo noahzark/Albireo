@@ -169,9 +169,9 @@ class BangumiMoeRequest:
     def send(self, url, method, payload):
         self.__get_cookie_from_storage()
         req = Request(method, url)
-        prepped = self.session.prepare_request(req)
         if payload is not None:
-            req.json = payload
+            req = Request(method=method, url=url, json=payload)
+        prepped = self.session.prepare_request(req)
         r = self.session.send(prepped)
         self.__save_cookie_to_storage()
         return r
