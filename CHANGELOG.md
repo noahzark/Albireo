@@ -1,4 +1,9 @@
-#Changelog
+# Changelog
+
+## 2.7.7
+
+- Fix no server exception log printed from API exception.
+- Fix bangumi.moe search always return negative result.
 
 ## 2.7.6
 
