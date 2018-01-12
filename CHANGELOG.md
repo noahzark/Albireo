@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.7.8
+
+Filter out unfinished video_file at episode_detail API.
+
 ## 2.7.7
 
 - Fix no server exception log printed from API exception.
