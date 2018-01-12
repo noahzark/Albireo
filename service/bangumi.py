@@ -84,6 +84,8 @@ class BangumiService:
                 episode_dict['video_files'] = []
                 video_file_list = session.query(VideoFile).filter(VideoFile.episode_id == episode_id).all()
                 for video_file in video_file_list:
+                    if video_file.status != VideoFile.STATUS_DOWNLOADED:
+                        continue
                     video_file_dict = row2dict(video_file)
                     video_file_dict['url'] = utils.generate_video_link(str(bangumi.id), video_file.file_path)
                     episode_dict['video_files'].append(video_file_dict)
