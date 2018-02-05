@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from flask import request, Blueprint
 
+from service.auth import auth_user
 from service.bangumi import bangumi_service
 from service.watch import watch_service
 from service.announce import announce_service
@@ -21,11 +22,12 @@ def recent_update():
 @home_api.route('/on_air', methods=['GET'])
 @login_required
 def on_air_bangumi():
-    type = request.args.get('type', 2)
-    return bangumi_service.on_air_bangumi(current_user.id, type)
+    bangumi_type = request.args.get('type', 2)
+    return bangumi_service.on_air_bangumi(current_user.id, bangumi_type)
 
 
 @home_api.route('/my_bangumi', methods=['GET'])
+@auth_user(0)
 def my_bangumi():
     status = int(request.args.get('status', Favorites.WATCHING))
     if status == 0:
@@ -34,12 +36,14 @@ def my_bangumi():
 
 
 @home_api.route('/episode/<episode_id>', methods=['GET'])
+@auth_user(0)
 @login_required
 def episode_detail(episode_id):
     return bangumi_service.episode_detail(episode_id, current_user.id)
 
 
 @home_api.route('/bangumi', methods=['GET'])
+@auth_user(0)
 @login_required
 def list_bangumi():
     page = int(request.args.get('page', 1))
@@ -58,6 +62,7 @@ def list_bangumi():
 
 
 @home_api.route('/bangumi/<bangumi_id>', methods=['GET'])
+@auth_user(0)
 @login_required
 def bangumi_detail(bangumi_id):
     return bangumi_service.get_bangumi(bangumi_id, current_user.id)
