@@ -3,6 +3,7 @@ from datetime import datetime
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import func
 from utils.SessionManager import SessionManager
+from utils.exceptions import ClientError
 from utils.http import json_resp, rpc_request
 from utils.db import row2dict
 from domain.Favorites import Favorites
@@ -31,6 +32,26 @@ class WatchService:
                 session.add(favorite)
             else:
                 favorite.status = status
+
+            session.commit()
+
+            rpc_request.send('user_favorite_update', {'user_id': str(user_id)})
+
+            return json_resp({'message': 'ok', 'status': 0})
+        finally:
+            SessionManager.Session.remove()
+
+    def delete_bangumi_favorite(self, bangumi_id, user_id):
+        session = SessionManager.Session()
+        try:
+            favorite = session.query(Favorites). \
+                filter(Favorites.bangumi_id == bangumi_id). \
+                filter(Favorites.user_id == user_id). \
+                first()
+            if not favorite:
+                raise ClientError(ClientError.NOT_FOUND, 404, {bangumi_id: bangumi_id})
+            else:
+                session.delete(favorite)
 
             session.commit()
 
@@ -222,5 +243,6 @@ class WatchService:
 
         finally:
             SessionManager.Session.remove()
+
 
 watch_service = WatchService()
