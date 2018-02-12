@@ -83,7 +83,7 @@ def feed_back():
     data = json.loads(request.get_data(as_text=True))
     episode_id = data.get('episode_id', None)
     video_file_id = data.get('video_file_id', None)
-    message= data.get('message', None)
+    message = data.get('message', None)
     if not episode_id or not video_file_id:
         raise ClientError(ClientError, ClientError.INVALID_REQUEST)
     return bangumi_service.feed_back(episode_id, video_file_id, current_user, message)
