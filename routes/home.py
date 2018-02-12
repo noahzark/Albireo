@@ -7,7 +7,9 @@ from service.watch import watch_service
 from service.announce import announce_service
 from flask_login import login_required, current_user
 from domain.Favorites import Favorites
+import json
 
+from utils.exceptions import ClientError
 
 home_api = Blueprint('home', __name__)
 
@@ -72,3 +74,16 @@ def bangumi_detail(bangumi_id):
 @login_required
 def get_available_announce():
     return announce_service.get_available_announce()
+
+
+@home_api.route('/feedback', methods=['POST'])
+@auth_user(0)
+@login_required
+def feed_back():
+    data = json.loads(request.get_data(as_text=True))
+    episode_id = data.get('episode_id', None)
+    video_file_id = data.get('video_file_id', None)
+    message= data.get('message', None)
+    if not episode_id or not video_file_id:
+        raise ClientError(ClientError, ClientError.INVALID_REQUEST)
+    return bangumi_service.feed_back(episode_id, video_file_id, current_user, message)
