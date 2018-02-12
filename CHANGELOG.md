@@ -1,4 +1,23 @@
-#Changelog
+# Changelog
+
+## 2.8.0
+
+Add api which allow client remove favorite of an bangumi for current user.
+
+From this version, user who hasn't verified his/her email will be denied access from bangumi-detail/episode-detail/bangumi-list API
+
+## 2.7.8
+
+Filter out unfinished video_file at episode_detail API.
+
+## 2.7.7
+
+- Fix no server exception log printed from API exception.
+- Fix bangumi.moe search always return negative result.
+
+## 2.7.6
+
+- Fix bug in update episode API
 
 ## 2.7.5
 

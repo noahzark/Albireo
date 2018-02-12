@@ -20,6 +20,12 @@ def favorite_bangumi(bangumi_id):
     return watch_service.favorite_bangumi(bangumi_id, current_user.id, data['status'])
 
 
+@watch_api.route('/favorite/bangumi/<bangumi_id>', methods=['DELETE'])
+@login_required
+def delete_bangumi_favorite(bangumi_id):
+    return watch_service.delete_bangumi_favorite(bangumi_id, current_user.id)
+
+
 @watch_api.route('/favorite/episode/<episode_id>', methods=['POST'])
 @login_required
 def favorite_episode(episode_id):
