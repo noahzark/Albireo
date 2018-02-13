@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.9.0
+
+Add feedback API, when user report an issue about an episode and a video_file, an email will be sent to the maintainer of this bangumi.
+
 ## 2.8.0
 
 Add api which allow client remove favorite of an bangumi for current user.
