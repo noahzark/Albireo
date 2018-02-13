@@ -86,6 +86,26 @@ Get the episode by specific id
 
     + Attributes (EpisodeExtended)
 
+## Send Feedback [/api/home/feedback]
+
+Send a feedback about current episode and video_file.
+
+### send [POST]
+
++ Request  (application/json)
+
+    + Attributes
+
+        + episode_id: `f0317eb2-d487-4e89-9e8d-9cccffd73e00` (string, required) - current episode id.
+        + video_file_id: `fe4150ee-4b11-46e3-b0ef-31aa6bce1095` (string, required) - current played video_file id.
+        + message: `问题： 有画面无声音，附加信息：xxx` (string, required) - additional description of feedback.
+
++ Response 200 (application/json)
+
+        {
+            "message": "ok",
+            "status": 0
+        }
 
 # Group Favorite And Watch History API
 

@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
+from smtplib import SMTPAuthenticationError
+
+from flask import render_template
+from flask_mail import Message
 from sqlalchemy.orm.exc import NoResultFound
 
+from domain.User import User
 from domain.Episode import Episode
 from domain.Bangumi import Bangumi
 from domain.Favorites import Favorites
@@ -9,7 +14,7 @@ from domain.TorrentFile import TorrentFile
 from domain.VideoFile import VideoFile
 from datetime import datetime, timedelta
 from utils.SessionManager import SessionManager
-from utils.exceptions import ClientError
+from utils.exceptions import ClientError, ServerError
 from utils.http import json_resp
 from utils.db import row2dict
 from sqlalchemy.sql.expression import or_, desc, asc
@@ -253,5 +258,82 @@ class BangumiService:
             raise ClientError(ClientError.NOT_FOUND, 404)
         finally:
             SessionManager.Session.remove()
+
+    def feed_back(self, episode_id, video_file_id, user, message):
+        from server import app
+        session = SessionManager.Session()
+        try:
+            episode = session.query(Episode).\
+                options(joinedload(Episode.bangumi)).\
+                options(joinedload(Episode.video_files)).\
+                filter(Episode.id == episode_id).\
+                one()
+            episode_dict = row2dict(episode)
+            episode_dict['bangumi'] = row2dict(episode.bangumi)
+            episode_dict['video_files'] = []
+            for video_file in episode.video_files:
+                video_file_dict = row2dict(video_file)
+                episode_dict['video_files'].append(video_file_dict)
+
+            bangumi_url = '{0}://{1}/admin/bangumi/{2}'.format(app.config['SITE_PROTOCOL'],
+                                                               app.config['SITE_HOST'],
+                                                               episode_dict['bangumi_id'])
+
+            maintained_by_uid = episode_dict['bangumi'].get('maintained_by_uid')
+            if maintained_by_uid is None:
+                # find all admin
+                admin_list = session.query(User).\
+                    filter(User.level >= 2).\
+                    all()
+
+                self.__send_email_to_all(bangumi_url, episode_dict, video_file_id, row2dict(user), admin_list, message)
+            else:
+                admin = session.query(User).\
+                    filter(User.id == maintained_by_uid).\
+                    one()
+                self.__send_email_to(bangumi_url, episode_dict, video_file_id, row2dict(user), admin, message)
+
+            return json_resp({'message': 'ok'})
+        except NoResultFound:
+            raise ClientError(ClientError.NOT_FOUND, 404)
+        finally:
+            SessionManager.Session.remove()
+
+    def __send_email_to(self, bangumi_url, episode_dict, video_file_id, user_dict, admin, message):
+        from server import mail
+        admin_name = admin.name
+        admin_email = admin.email
+        if admin_email is None:
+            return
+        mail_content = render_template('feed-back-mail.html',
+                                       bangumi_url=bangumi_url,
+                                       admin_name=admin_name,
+                                       episode=episode_dict,
+                                       video_file_id=video_file_id,
+                                       user=user_dict,
+                                       message=message)
+        msg = Message('用户反馈信息', recipients=[admin_email], html=mail_content)
+        mail.send(msg)
+
+    def __send_email_to_all(self, bangumi_url, episode_dict, video_file_id, user_dict, admin_list, message):
+        from server import mail
+        for admin in admin_list:
+            admin_name = admin.name
+            admin_email = admin.email
+            if admin_email is None:
+                continue
+            mail_content = render_template('feed-back-mail.html',
+                                           bangumi_url=bangumi_url,
+                                           admin_name=admin_name,
+                                           episode=episode_dict,
+                                           video_file_id=video_file_id,
+                                           user=user_dict,
+                                           message=message)
+            msg = Message('用户反馈信息', recipients=[admin_email], html=mail_content)
+            try:
+                mail.send(msg)
+            except SMTPAuthenticationError:
+                raise ServerError('SMTP authentication failed', 500)
+
 
 bangumi_service = BangumiService()

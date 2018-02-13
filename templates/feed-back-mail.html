@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户反馈</title>
+</head>
+<body>
+<p>Dear {{ admin_name }},</p>
+<p>我们收到了与下列番組有关的用户反馈</p>
+<p><a href="{{ bangumi_url }}"><strong>{{ episode.bangumi.name }}</strong>:</a> 第 {{ episode.episode_no }} 话</p>
+<div class="video-file-list">Video File list</div>
+<ul>
+    {% for video_file in episode.video_files %}
+        {% if video_file.id == video_file_id %}
+            <li class="active">
+        {% else %}
+            <li></li>
+        {% endif %}
+            <span class="label">{{ video_file.label }}</span>
+            <span class="file-name">{{ video_file.file_name }}</span>
+        </li>
+    {% endfor %}
+</ul>
+<h4>附加说明</h4>
+<div class="message">
+    {{ message }}
+</div>
+<div class="feed-back-user">用户: {{ user.name }}</div>
+<div class="feed-back-user-email">邮件：{{ user.email }}</div>
+</body>
+</html>
