@@ -12,7 +12,7 @@ class NYAA(AbstractScanner):
 
     def __init__(self, bangumi, episode_list):
         super(self.__class__, self).__init__(bangumi, episode_list)
-        self.proxy = self._get_proxy('acg_rip')
+        self.proxy = self._get_proxy('nyaa')
         query_string = bangumi.nyaa
         self.feed_url = 'https://nyaa.si/?page=rss&{0}'.format(query_string,)
         logger.debug(self.feed_url)
