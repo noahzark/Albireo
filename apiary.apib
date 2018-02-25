@@ -820,6 +820,23 @@ Search torrents using tag_ids, for more detail, see https://github.com/BangumiMo
         + page_count (number),
         + torrents (array[object]) - see rin-pr document
 
+## Nyaa [/api/feed/nyaa]
+
+Get the feed result from libyk.com, This API is unstable because it is a proxy API
+
+### Get result [POST]
+
++ Request  (application/json)
+
+    + Attributes
+        + qs (string, required) - querystring will directly used in url. should be f=<number>&c=1_<number>&q=<query>
+
++ Response 200 (application/json)
+
+    + Attributes
+        + data (array[FeedResult]) - the result of query, can be empty array if no result matched.
+        + status: `0` (number)
+
 # Group Task
 
 This is a set of API that related to tasks. All APIs in this group require user.level >= 2

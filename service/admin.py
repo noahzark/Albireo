@@ -316,6 +316,7 @@ class AdminService:
             bangumi.acg_rip = bangumi_dict.get('acg_rip')
             bangumi.libyk_so = bangumi_dict.get('libyk_so')
             bangumi.bangumi_moe = bangumi_dict.get('bangumi_moe')
+            bangumi.nyaa = bangumi_dict.get('nyaa')
 
             bangumi.eps_no_offset = bangumi_dict.get('eps_no_offset')
             if not bangumi.eps_no_offset:
