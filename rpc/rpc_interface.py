@@ -150,14 +150,13 @@ def initialize_web_hook(web_hook_id, web_hook_url, shared_secret):
 
 
 @rpc_export
-def token_add(web_hook_id, token_id, user_id, email):
+def token_add(web_hook_id, token_id, user_id, email=None):
     """
     When user add a token of web hook
     :param web_hook_id:
     :param token_id:
     :param user_id:
     :param email:
-    :param email_confirmed:
     :return:
     """
     def query_user_favorite():

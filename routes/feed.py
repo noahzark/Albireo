@@ -62,3 +62,14 @@ def bangumi_moe_torrent_search():
     content = request.get_data(True, as_text=True)
     tag_ids = json.loads(content)
     return feed_service.parse_bangumi_moe(tag_ids)
+
+
+@feed_api.route('/nyaa', methods=['POST'])
+@login_required
+@auth_user(User.LEVEL_ADMIN)
+def nyaa():
+    qs = json.loads(request.get_data(as_text=True)).get('qs')
+    if qs is None:
+        raise ClientError('qs must have value', 400)
+    else:
+        return feed_service.parse_nyaa(qs)
