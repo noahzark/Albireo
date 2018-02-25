@@ -123,7 +123,7 @@ class WebHookService:
             web_hook.status = web_hook_dict.get('status')
             web_hook.consecutive_failure_count = web_hook_dict.get('consecutive_failure_count')
             web_hook.permissions = web_hook_dict.get('permissions')
-            if 'shared_secret' in web_hook_dict and 'shared_secret' is not None:
+            if 'shared_secret' in web_hook_dict and web_hook_dict.get('shared_secret') is not None:
                 web_hook.shared_secret = web_hook_dict.get('shared_secret')
 
             session.commit()

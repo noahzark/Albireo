@@ -35,6 +35,8 @@ class Bangumi(Base):
     libyk_so = Column(TEXT, nullable=True)
     # bangumi.moe tag id array, this field should be an serialized JSON array contains strings
     bangumi_moe = Column(TEXT, nullable=True)
+    # nyaa search query string. should already be urlencoded
+    nyaa = Column(TEXT, nullable=True)
     # @deprecated
     eps_regex = Column(TEXT, nullable=True)
     status = Column(Integer, nullable=False)
