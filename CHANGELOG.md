@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.11.0
+
+Update announce API, add bangumi field when position is 2. rename announce table column url to content.
+This requires a database upgrade.
+
 ## 2.10.0
 
 Add Nyaa source support, **A database upgrade is required**
