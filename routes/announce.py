@@ -1,4 +1,6 @@
 from flask import Blueprint, request
+
+from domain.Announce import Announce
 from service.announce import announce_service
 from flask_login import login_required
 from service.auth import auth_user
@@ -12,9 +14,11 @@ announce_api = Blueprint('announce', __name__)
 @login_required
 @auth_user(User.LEVEL_ADMIN)
 def list_all():
-    offset = request.args.get('offset', 0)
-    count = request.args.get('count', 10)
-    return announce_service.get_all_announce(offset, count)
+    position = int(request.args.get('position', Announce.POSITION_BANNER))
+    offset = int(request.args.get('offset', 0))
+    count = int(request.args.get('count', 10))
+    content = request.args.get('content')  # for query bangumi id
+    return announce_service.get_all_announce(position, offset, count, content)
 
 
 @announce_api.route('', methods=['POST'])
