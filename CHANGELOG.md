@@ -2,7 +2,7 @@
 
 ## 2.11.0
 
-Update announce API, add bangumi field when position is 2. rename announce table column url to content.
+Update announce API, add a bangumi field when the position is 2. rename announce table column URL for content.
 This requires a database upgrade.
 
 ## 2.10.0
