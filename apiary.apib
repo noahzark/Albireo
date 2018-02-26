@@ -107,6 +107,20 @@ Send a feedback about current episode and video_file.
             "status": 0
         }
 
+## Announce [/api/home/announce]
+
+retrieve current valid Announcements
+
+### Get All Available [GET]
+
+Will only get announcement which current time is between start_time and end_time
+
++ Response 200 (application/json)
+
+    + Attributes
+
+        + `data` (array[Announce]) - the announce list. you need present these announce according to their position property.
+
 # Group Favorite And Watch History API
 
 A set of APIs which allow end user to view and modify favorite status of a bangumi and record watch history of an episode.
