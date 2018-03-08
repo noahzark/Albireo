@@ -11,7 +11,8 @@ from domain.Episode import Episode
 from domain.Bangumi import Bangumi
 from utils.common import utils
 from sqlalchemy.orm import joinedload
-from web_hook.events import UserFavoriteEvent, EpisodeEvent, InitialEvent, TokenAddedEvent, UserEmailChangeEvent
+from web_hook.events import UserFavoriteEvent, EpisodeEvent, InitialEvent, TokenAddedEvent, UserEmailChangeEvent, \
+    TokenRemovedEvent
 from web_hook.dispatcher import dispatcher
 import logging
 import yaml
@@ -191,6 +192,13 @@ def token_add(web_hook_id, token_id, user_id, email=None):
     d = threads.deferToThread(query_user_favorite)
     d.addCallback(on_success)
     d.addErrback(on_fail)
+
+
+@rpc_export
+def token_remove(web_hook_id, token_id):
+    token_remove_event = TokenRemovedEvent(web_hook_id=web_hook_id,
+                                           token_id=token_id)
+    dispatcher.new_event(token_remove_event)
 
 
 @rpc_export

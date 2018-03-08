@@ -107,6 +107,20 @@ Send a feedback about current episode and video_file.
             "status": 0
         }
 
+## Announce [/api/home/announce]
+
+retrieve current valid Announcements
+
+### Get All Available [GET]
+
+Will only get announcement which current time is between start_time and end_time
+
++ Response 200 (application/json)
+
+    + Attributes
+
+        + `data` (array[Announce]) - the announce list. you need present these announce according to their position property.
+
 # Group Favorite And Watch History API
 
 A set of APIs which allow end user to view and modify favorite status of a bangumi and record watch history of an episode.
@@ -1353,9 +1367,9 @@ delete a web hook token
 
 ## Announce
 - `id` : `02981eec-c817-47e5-baed-56d466afbb20` (string)
-- `url`: `http://somesite.com/somepath` (string) - the target url of announcement content.
-- `image_url`: `http://someimagesite.com/image.jpg` (string) - the image for banner
-- `position`: `1` (number) - position of the announcement. currently can only be 1 (banner)
+- `content`: `http://somesite.com/somepath` (string) - when position = 1, content is the target url; when position = 2, content is a bangumi id
+- `image_url`: `http://someimagesite.com/image.jpg` (string) - the image for banner, when position = 2, this field is not exists.
+- `position`: `1` (number) - position of the announcement. currently can be 1 (banner), 2 (recommend)
 - `sort_order`: `0` (number) - when multiple announce in the same position, this is a reference order can be used to make a slide show. but currently not used.
 - `start_time`: `1497574966172` (number) - a timestamp for the start time of the announce.
 - `end_time`:  `1497574966172` (number) - a timestamp for the end time of the announce.
