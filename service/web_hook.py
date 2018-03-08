@@ -253,8 +253,13 @@ class WebHookService:
                 filter(WebHookToken.user_id == user_id).\
                 one()
 
+            token_id = web_hook_token.token_id
+
             session.delete(web_hook_token)
             session.commit()
+
+            rpc_request.send('token_remove', {'web_hook_id': web_hook_id, 'token_id': token_id})
+
             return json_resp({'message': 'ok'})
         except NoResultFound:
             raise ClientError(ClientError.NOT_FOUND, 404)

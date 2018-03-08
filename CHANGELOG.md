@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.12.0
+
+Add new web hook event: TokenRemoved Event.
+
 ## 2.11.0
 
 Update announce API, add a bangumi field when the position is 2. rename announce table column URL for content.
