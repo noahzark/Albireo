@@ -29,6 +29,7 @@ class EventType:
     TYPE_KEEP_ALIVE = 'KEEP_ALIVE'
     TYPE_INITIAL = 'INITIAL'
     TYPE_TOKEN_ADDED = 'TOKEN_ADDED'
+    TYPE_TOKEN_REMOVED = 'TOKEN_REMOVED'
     TYPE_USER_EMAIL = 'USER_EMAIL_CHANGED'
 
 
@@ -190,6 +191,17 @@ class TokenAddedEvent(Event):
             return [(self.web_hook_id, web_hook.url, web_hook.shared_secret)]
         finally:
             SessionManager.Session.remove()
+
+
+class TokenRemovedEvent(Event):
+    """
+    When user remove a token of web hook.
+    """
+    def __init__(self, **kwargs):
+        super(self.__class__, self).__init__(EventType.TYPE_TOKEN_REMOVED, {
+            'token_id': kwargs.get('token_id')
+        })
+        self.web_hook_id = kwargs.get('web_hook_id')
 
 
 class InitialEvent(Event):
