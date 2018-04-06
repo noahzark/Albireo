@@ -82,6 +82,11 @@ class ImportTools:
         try:
             eps_list = session.query(Episode).\
                 filter(Episode.bangumi_id == bangumi_id).all()
+            bangumi = session.query(Bangumi).\
+                filter(Bangumi.id == bangumi_id).one()
+            eps_no_offset = 0
+            if bangumi.eps_no_offset is not None:
+                eps_no_offset = bangumi.eps_no_offset
 
             existed_video_files = session.query(VideoFile).filter(VideoFile.bangumi_id == bangumi_id).all()
 
@@ -92,7 +97,7 @@ class ImportTools:
                     continue
                 episodes[eps.episode_no] = eps
                 for f in files:
-                    if self.__parse_episode_number(f) == eps.episode_no:
+                    if self.__parse_episode_number(f) + eps_no_offset == eps.episode_no:
                         eps.status = Episode.STATUS_DOWNLOADED
                         video_files.append(VideoFile(bangumi_id=bangumi_id,
                                                      episode_id=eps.id,

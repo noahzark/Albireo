@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.12.2
+
+update import.py. add support for bangumi.eps_no_offset
+
 ## 2.12.1
 
 Add new regular expression for episode match.
