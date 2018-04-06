@@ -120,7 +120,8 @@ class BangumiService:
                 filter(Bangumi.delete_mark == None). \
                 filter(Bangumi.type == type).\
                 filter(Episode.airdate >= start_time).\
-                filter(Episode.airdate <= end_time)
+                filter(Episode.airdate <= end_time). \
+                order_by(desc(getattr(Bangumi, 'air_date')))
 
             bangumi_list = []
             bangumi_id_list = [bangumi_id for bangumi_id, bangumi in result]
