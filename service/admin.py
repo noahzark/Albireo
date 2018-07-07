@@ -11,7 +11,7 @@ from datetime import datetime
 from domain.WatchProgress import WatchProgress
 from utils.SessionManager import SessionManager
 from utils.exceptions import ClientError, ServerError
-from utils.http import json_resp, FileDownloader, bangumi_request, rpc_request
+from utils.http import json_resp, FileDownloader, bangumi_request, rpc_request, is_valid_date
 from utils.db import row2dict
 from sqlalchemy.sql.expression import or_, desc, asc
 from sqlalchemy.sql import select, func
@@ -262,8 +262,8 @@ class AdminService:
                               name_cn=eps_item.get('name_cn'),
                               duration=eps_item.get('duration'),
                               status=Episode.STATUS_NOT_DOWNLOADED)
-                if eps_item.get('airdate') != '':
-                    eps.airdate=eps_item.get('airdate')
+                if is_valid_date(eps_item.get('airdate')):
+                    eps.airdate = eps_item.get('airdate')
 
                 eps.bangumi = bangumi
                 bangumi.episodes.append(eps)
@@ -402,6 +402,7 @@ class AdminService:
         try:
             session = SessionManager.Session()
             bangumi = session.query(Bangumi).filter(Bangumi.id == episode_dict['bangumi_id']).one()
+            episode_dict['airdate'] = self.__normalize_date(episode_dict.get('airdate'))
             episode = Episode(bangumi_id=episode_dict['bangumi_id'],
                               bgm_eps_id=episode_dict.get('bgm_eps_id', -1),
                               episode_no=episode_dict['episode_no'],
