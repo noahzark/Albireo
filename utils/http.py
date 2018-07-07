@@ -50,7 +50,12 @@ def json_resp(obj, status=200):
 
 
 def is_valid_date(date_str):
-    return re.match('^\d{4}-\d{2}-\d{2}$', date_str) is not None
+    try:
+        datetime.strptime(date_str, '%Y-%m-%d')
+        return True
+    except Exception as error:
+        logger.warn(error)
+        return False
 
 
 def is_absolute_url(test_url):

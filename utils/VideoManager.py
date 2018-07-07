@@ -50,7 +50,7 @@ class VideoManager:
         return self.create_thumbnail(video_path, time, output_path)
 
     def get_video_meta(self, video_path):
-        '''
+        """
         get video meta information
         :param video_path: the absolute path of video file
         :return: a dictionary
@@ -61,7 +61,7 @@ class VideoManager:
             }
 
         if an error occurred, this method will return None
-        '''
+        """
         try:
             output = subprocess.check_output([
                 'ffprobe',

@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.12.3
+
+Change the sort order of on_air to descending order by air_date of bangumi
+
+## 2.12.2
+
+update import.py. add support for bangumi.eps_no_offset
+
+## 2.12.1
+
+Add new regular expression for episode match.
+
 ## 2.12.0
 
 Add new web hook event: TokenRemoved Event.
