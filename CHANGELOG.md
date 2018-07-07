@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.12.4
+
+Fix a bug when airdate from bgm.tv isn't a valid date format.
+
 ## 2.12.3
 
 Change the sort order of on_air to descending order by air_date of bangumi
