@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.12.5
+
+Fix a bug caused by previous version.
+
 ## 2.12.4
 
 Fix a bug when airdate from bgm.tv isn't a valid date format.

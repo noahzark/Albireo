@@ -402,7 +402,10 @@ class AdminService:
         try:
             session = SessionManager.Session()
             bangumi = session.query(Bangumi).filter(Bangumi.id == episode_dict['bangumi_id']).one()
-            episode_dict['airdate'] = self.__normalize_date(episode_dict.get('airdate'))
+            if is_valid_date(episode_dict.get('airdate')):
+                episode_dict['airdate'] = episode_dict.get('airdate')
+            else:
+                episode_dict['airdate'] = None
             episode = Episode(bangumi_id=episode_dict['bangumi_id'],
                               bgm_eps_id=episode_dict.get('bgm_eps_id', -1),
                               episode_no=episode_dict['episode_no'],
