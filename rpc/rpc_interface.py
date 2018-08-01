@@ -78,7 +78,7 @@ def user_favorite_update(user_id):
                 token_id = web_hook_token.token_id
                 token_fav_dict[token_id] = []
                 for favorite in favorite_list:
-                    fav_dict = row2dict(favorite)
+                    fav_dict = row2dict(favorite, Favorites)
                     fav_dict['token_id'] = token_id
                     fav_dict.pop('user_id', None)
                     token_fav_dict[token_id].append(fav_dict)
@@ -113,8 +113,8 @@ def episode_downloaded(episode_id):
                 filter(Episode.delete_mark == None). \
                 filter(Episode.id == episode_id).\
                 one()
-            episode_dict = row2dict(episode)
-            episode_dict['bangumi'] = row2dict(bangumi)
+            episode_dict = row2dict(episode, Episode)
+            episode_dict['bangumi'] = row2dict(bangumi, Bangumi)
             utils.process_bangumi_dict(bangumi, episode_dict['bangumi'])
             utils.process_episode_dict(episode, episode_dict)
             return episode_dict
@@ -170,7 +170,7 @@ def token_add(web_hook_id, token_id, user_id, email=None):
             fav_dict_list = []
 
             for favorite in favorite_list:
-                fav_dict = row2dict(favorite)
+                fav_dict = row2dict(favorite, Favorites)
                 fav_dict['token_id'] = token_id
                 fav_dict.pop('user_id', None)
                 fav_dict_list.append(fav_dict)
@@ -222,8 +222,8 @@ def email_changed(email, user_id):
                     continue
                 if not token.web_hook.has_permission(WebHook.PERMISSION_EMAIL):
                     continue
-                token_dict = row2dict(token)
-                token_dict['web_hook'] = row2dict(token.web_hook)
+                token_dict = row2dict(token, WebHookToken)
+                token_dict['web_hook'] = row2dict(token.web_hook, WebHook)
                 token_dict_list.append(token_dict)
             return token_dict_list
         finally:

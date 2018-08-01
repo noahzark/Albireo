@@ -7,6 +7,7 @@ from service.auth import auth_user
 from flask_login import login_required, current_user
 from domain.User import User
 from utils.exceptions import ClientError
+from utils.common import utils
 
 
 admin_api = Blueprint('bangumi', __name__)
@@ -39,7 +40,13 @@ def add_bangumi():
 @login_required
 @auth_user(User.LEVEL_ADMIN)
 def update_bangumi(id):
-    return admin_service.update_bangumi(id, json.loads(request.get_data(True, as_text=True)))
+    data = json.loads(request.get_data(True, as_text=True))
+    data['dmhy'] = utils.empty_to_none(data, 'dmhy')
+    data['acg_rip'] = utils.empty_to_none(data, 'acg_rip')
+    data['libyk_so'] = utils.empty_to_none(data, 'libyk_so')
+    data['bangumi_moe'] = utils.empty_to_none(data, 'bangumi_moe')
+    data['nyaa'] = utils.empty_to_none(data, 'nyaa')
+    return admin_service.update_bangumi(id, data)
 
 
 @admin_api.route('/bangumi/<id>', methods=['GET'])

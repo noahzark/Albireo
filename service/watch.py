@@ -229,7 +229,7 @@ class WatchService:
             bangumi_dict_list = []
 
             for fav, bgm in result:
-                bangumi_dict = row2dict(bgm)
+                bangumi_dict = row2dict(bgm, Bangumi)
                 bangumi_dict['favorite_status'] = fav.status
                 bangumi_dict['cover'] = utils.generate_cover_link(bangumi)
                 utils.process_bangumi_dict(bgm, bangumi_dict)

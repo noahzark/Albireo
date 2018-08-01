@@ -37,7 +37,7 @@ class TaskService:
 
             bgm_list = []
             for bangumi in bangumi_list:
-                bgm = row2dict(bangumi)
+                bgm = row2dict(bangumi, Bangumi)
                 # noinspection PyTypeChecker
                 delete_eta = int((bangumi.delete_mark + timedelta(minutes=self.delete_delay['bangumi']) - current).total_seconds() / 60)
                 bgm['delete_eta'] = delete_eta
@@ -58,8 +58,8 @@ class TaskService:
 
             eps_list = []
             for episode, bangumi in result:
-                bgm = row2dict(bangumi)
-                eps = row2dict(episode)
+                bgm = row2dict(bangumi, Bangumi)
+                eps = row2dict(episode. Episode)
                 # noinspection PyTypeChecker
                 delete_eta = int((episode.delete_mark + timedelta(minutes=self.delete_delay['episode']) - current).total_seconds() / 60)
                 eps['delete_eta'] = delete_eta
@@ -73,7 +73,7 @@ class TaskService:
         try:
             session = SessionManager.Session()
             result = session.query(Task).all()
-            task_list = [row2dict(task) for task in result]
+            task_list = [row2dict(task, Task) for task in result]
             return json_resp({'data': task_list})
         finally:
             SessionManager.Session.remove()

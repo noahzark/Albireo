@@ -17,9 +17,10 @@ class NyaaScanner(BangumiScanner):
     def query_bangumi_list(self):
         session = SessionManager.Session()
         try:
-            return session.query(Bangumi).\
+            bangumi_list = session.query(Bangumi).\
                 filter(Bangumi.status != Bangumi.STATUS_FINISHED).\
                 filter(Bangumi.nyaa != None).all()
+            return [bangumi for bangumi in bangumi_list if bangumi.nyaa]
         except Exception as error:
             logger.error(error, exc_info=True)
             return []

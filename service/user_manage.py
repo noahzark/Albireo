@@ -22,20 +22,25 @@ class UserManage:
         (email_name, email_domain) = email.split('@')
         return '{0}**@{1}'.format(email_name[0:2], email_domain)
 
-    def list_user(self, name, count, offset, minlevel):
+    def list_user(self, count, offset, minlevel, query_field, query_value):
         session = SessionManager.Session()
         try:
             query_object = session.query(User).\
                 filter(User.level >= minlevel)
-            if name is not None:
-                name_pattern = '%{0}%'.format(name.encode('utf-8'), )
-                logger.debug(name_pattern)
+            if query_field == 'id' and query_value is not None:
+                query_object = query_object.filter(User.id == query_value)
+                total = session.query(func.count(User.id)). \
+                    filter(User.id == query_value). \
+                    scalar()
+            elif query_field is not None and query_value is not None:
+                value_pattern = '%{0}%'.format(query_value.encode('utf-8'), )
+                logger.debug(value_pattern)
                 query_object = query_object. \
-                    filter(User.name.like(name_pattern))
+                    filter(getattr(User, query_field).like(value_pattern))
 
                 # count total rows
                 total = session.query(func.count(User.id)). \
-                    filter(User.name.like(name_pattern)). \
+                    filter(getattr(User, query_field).like(value_pattern)). \
                     scalar()
             else:
                 total = session.query(func.count(User.id)).scalar()

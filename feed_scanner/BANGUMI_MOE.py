@@ -6,6 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class BANGUMI_MOE(AbstractScanner):
 
     def __init__(self, bangumi, episode_list):
