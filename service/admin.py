@@ -6,6 +6,7 @@ from domain.Bangumi import Bangumi
 from domain.Image import Image
 from domain.TorrentFile import TorrentFile
 from domain.VideoFile import VideoFile
+from domain.User import User
 from datetime import datetime
 
 from domain.WatchProgress import WatchProgress
@@ -102,10 +103,10 @@ class AdminService:
 
     def __process_user_obj_in_bangumi(self, bangumi, bangumi_dict):
         if bangumi.created_by is not None:
-            bangumi_dict['created_by'] = row2dict(bangumi.created_by)
+            bangumi_dict['created_by'] = row2dict(bangumi.created_by, User)
             bangumi_dict['created_by'].pop('password', None)
         if bangumi.maintained_by is not None:
-            bangumi_dict['maintained_by'] = row2dict(bangumi.maintained_by)
+            bangumi_dict['maintained_by'] = row2dict(bangumi.maintained_by, User)
             bangumi_dict['maintained_by'].pop('password', None)
         bangumi_dict.pop('created_by_uid', None)
         bangumi_dict.pop('maintained_by_uid', None)
@@ -214,7 +215,7 @@ class AdminService:
 
             bangumi_dict_list = []
             for bgm in bangumi_list:
-                bangumi = row2dict(bgm)
+                bangumi = row2dict(bgm, Bangumi)
                 bangumi['cover'] = utils.generate_cover_link(bgm)
                 utils.process_bangumi_dict(bgm, bangumi)
                 self.__process_user_obj_in_bangumi(bgm, bangumi)
@@ -358,12 +359,12 @@ class AdminService:
             for episode in bangumi.episodes:
                 if episode.delete_mark is not None:
                     continue
-                eps = row2dict(episode)
+                eps = row2dict(episode, Episode)
                 eps['thumbnail'] = utils.generate_thumbnail_link(episode, bangumi)
                 utils.process_episode_dict(episode, eps)
                 episodes.append(eps)
 
-            bangumi_dict = row2dict(bangumi)
+            bangumi_dict = row2dict(bangumi, Bangumi)
 
             bangumi_dict['episodes'] = episodes
             utils.process_bangumi_dict(bangumi, bangumi_dict)
@@ -402,7 +403,10 @@ class AdminService:
         try:
             session = SessionManager.Session()
             bangumi = session.query(Bangumi).filter(Bangumi.id == episode_dict['bangumi_id']).one()
-            episode_dict['airdate'] = self.__normalize_date(episode_dict.get('airdate'))
+            if is_valid_date(episode_dict.get('airdate')):
+                episode_dict['airdate'] = episode_dict.get('airdate')
+            else:
+                episode_dict['airdate'] = None
             episode = Episode(bangumi_id=episode_dict['bangumi_id'],
                               bgm_eps_id=episode_dict.get('bgm_eps_id', -1),
                               episode_no=episode_dict['episode_no'],
@@ -455,7 +459,7 @@ class AdminService:
                 filter(Episode.delete_mark == None).\
                 all()
 
-            episode_dict = row2dict(episode)
+            episode_dict = row2dict(episode, Episode)
             utils.process_episode_dict(episode, episode_dict)
 
             return json_resp({'data': episode_dict})
@@ -540,7 +544,7 @@ class AdminService:
                     offset(offset).limit(count).\
                     all()
 
-            episode_dict_list = [row2dict(episode) for episode in episode_list]
+            episode_dict_list = [row2dict(episode, Episode) for episode in episode_list]
 
             return json_resp({'data': episode_dict_list, 'total': total})
         finally:
@@ -572,7 +576,7 @@ class AdminService:
                 filter(VideoFile.episode_id == episode_id).\
                 all()
 
-            result = [row2dict(video_file) for video_file in video_file_list]
+            result = [row2dict(video_file, VideoFile) for video_file in video_file_list]
             return json_resp({'data': result})
         finally:
             SessionManager.Session.remove()

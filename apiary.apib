@@ -928,13 +928,14 @@ User related operations
 ### List All User [GET]
 
 + Parameters
-    + `name` (string, optional) - user name to search.
     + `count`: `10` (number, optional) - number of items per page.
         + Default: `10`
     + `offset`: `0` (number, optional) - start position off current page.
         + Default: `0`
     + `minlevel`: `0` (number, optional) - the minimun level of user.
         + Default: `0`
+    + `query-field`: `name` (string, optional) - filter by particular field
+    + `query-value`: `John Doe` (string, optional) - filter value used by query-field
 
 + Response 200 (application)
 

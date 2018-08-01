@@ -42,7 +42,7 @@ class SentryWrapper:
         if web_api_dsn is None:
             return
         from raven.contrib.flask import Sentry
-        self.sentry_middleware = Sentry(app, dsn=web_api_dsn)
+        self.sentry_middleware = Sentry(app, logging=True, level=logging.ERROR, dsn=web_api_dsn)
 
     def scheduler_sentry(self):
         sentry_dsn_dict = SentryWrapper.get_config('sentry_dsn')

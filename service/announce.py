@@ -40,7 +40,7 @@ class AnnounceService:
         for bangumi in bangumi_list:
             for announce_dict in announce_dict_list:
                 if announce_dict['content'] == str(bangumi.id):
-                    announce_dict['bangumi'] = row2dict(bangumi)
+                    announce_dict['bangumi'] = row2dict(bangumi, Bangumi)
                     utils.process_bangumi_dict(bangumi, announce_dict['bangumi'])
                     break
 
@@ -52,7 +52,7 @@ class AnnounceService:
                 filter(Announce.start_time <= current_time).\
                 filter(Announce.end_time >= current_time).\
                 all()
-            announce_dict_list = [row2dict(announce) for announce in announce_list]
+            announce_dict_list = [row2dict(announce, Announce) for announce in announce_list]
             self.__add_bangumi_info(session, announce_dict_list)
             return json_resp({'data': announce_dict_list})
         finally:
@@ -61,7 +61,7 @@ class AnnounceService:
     def get_all_announce(self, position, offset, count, content):
         session = SessionManager.Session()
         try:
-            if content is not None:
+            if content:
                 announce_list = session.query(Announce).\
                     filter(Announce.content == content).\
                     all()
@@ -78,7 +78,7 @@ class AnnounceService:
             announce_dict_list = []
 
             for announce in announce_list:
-                announce_dict = row2dict(announce)
+                announce_dict = row2dict(announce, Announce)
                 announce_dict_list.append(announce_dict)
 
             if position == Announce.POSITION_BANGUMI:
