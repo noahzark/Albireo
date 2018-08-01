@@ -25,8 +25,6 @@ def row2dict(row, cls):
                 d[col.name] = convert[current_type](v)
             except:
                 d[col.name] = "Error: Failed to convert using ", unicode(convert[col.type])
-        elif v is None:
-            d[col.name] = unicode()
-        else:
+        elif v is not None:
             d[col.name] = v
     return d

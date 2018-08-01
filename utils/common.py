@@ -72,7 +72,7 @@ class CommonUtils:
     def process_episode_dict(self, episode, episode_dict):
         if episode.thumbnail_image is not None:
             episode_dict['thumbnail_image'] = self.convert_image_dict(row2dict(episode.thumbnail_image, Image))
-        episode_dict.pop('thumbnail_image_id')
+        episode_dict.pop('thumbnail_image_id', None)
 
     def empty_to_none(self, dict, attr_name):
         return dict.get(attr_name, None) if dict.get(attr_name, None) else None
