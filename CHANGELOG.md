@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.13.0
+
+- Fix a bug #146.
+- Change the HTTP API for user management / list user. Now allow administrator to filter by name and id.
+- Fix bug in announce management. If a related bangumi got deleted, the announcement will also be deleted.
+
 ## 2.12.5
 
 Fix a bug caused by previous version.
