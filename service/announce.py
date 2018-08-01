@@ -61,7 +61,7 @@ class AnnounceService:
     def get_all_announce(self, position, offset, count, content):
         session = SessionManager.Session()
         try:
-            if content is not None:
+            if content:
                 announce_list = session.query(Announce).\
                     filter(Announce.content == content).\
                     all()

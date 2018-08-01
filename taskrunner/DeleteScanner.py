@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 import shutil
 from datetime import datetime, timedelta
 from twisted.internet import threads, reactor
@@ -13,9 +12,10 @@ from domain.Image import Image
 from domain.Task import Task
 from domain.VideoFile import VideoFile
 from domain.WatchProgress import WatchProgress
+from domain.Announce import Announce
 from utils.DownloadManager import download_manager
 from utils.SessionManager import SessionManager
-from utils.db import row2dict
+# from utils.db import row2dict
 from utils.http import DateTimeEncoder
 
 logger = logging.getLogger(__name__)
@@ -47,6 +47,8 @@ class DeleteScanner:
             video_file_list = session.query(VideoFile).filter(VideoFile.bangumi_id == bangumi.id).all()
             watch_progress_list = session.query(WatchProgress).filter(WatchProgress.episode_id.in_(episode_id_list)).all()
             favorite_list = session.query(Favorites).filter(Favorites.bangumi_id == bangumi.id).all()
+            # because Announce.content is text, we need to convert uuid to string
+            announce_list = session.query(Announce).filter(Announce.content == str(bangumi.id)).all()
 
             task_content['torrent_id_list'] = list(set([video_file.torrent_id for video_file in video_file_list]))
             task_content['task_step'] = ['db', 'torrent', 'file_system']
@@ -71,6 +73,10 @@ class DeleteScanner:
             # remove favorites
             for favorite in favorite_list:
                 session.delete(favorite)
+
+            # remove announce
+            for announce in announce_list:
+                session.delete(announce)
 
             # remove image
             if bangumi.cover_image_id is not None:
