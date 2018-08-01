@@ -50,9 +50,9 @@ class BangumiService:
             episode_list = []
 
             for eps, bgm in result:
-                episode = row2dict(eps)
+                episode = row2dict(eps, Episode)
                 episode['thumbnail'] = utils.generate_thumbnail_link(eps, bgm)
-                episode['bangumi'] = row2dict(bgm)
+                episode['bangumi'] = row2dict(bgm, Bangumi)
                 episode['bangumi']['cover'] = utils.generate_cover_link(bgm)
                 episode_list.append(episode)
 
@@ -75,15 +75,15 @@ class BangumiService:
                 filter(WatchProgress.user_id == user_id).\
                 first()
 
-            episode_dict = row2dict(episode)
-            episode_dict['bangumi'] = row2dict(bangumi)
+            episode_dict = row2dict(episode, Episode)
+            episode_dict['bangumi'] = row2dict(bangumi, Bangumi)
             episode_dict['bangumi']['cover'] = utils.generate_cover_link(bangumi)
             utils.process_bangumi_dict(bangumi, episode_dict['bangumi'])
             episode_dict['thumbnail'] = utils.generate_thumbnail_link(episode, bangumi)
             utils.process_episode_dict(episode, episode_dict)
 
             if watch_progress is not None:
-                episode_dict['watch_progress'] = row2dict(watch_progress)
+                episode_dict['watch_progress'] = row2dict(watch_progress, WatchProgress)
 
             if episode.status == Episode.STATUS_DOWNLOADED:
                 episode_dict['video_files'] = []
@@ -91,7 +91,7 @@ class BangumiService:
                 for video_file in video_file_list:
                     if video_file.status != VideoFile.STATUS_DOWNLOADED:
                         continue
-                    video_file_dict = row2dict(video_file)
+                    video_file_dict = row2dict(video_file, VideoFile)
                     video_file_dict['url'] = utils.generate_video_link(str(bangumi.id), video_file.file_path)
                     episode_dict['video_files'].append(video_file_dict)
 
@@ -135,7 +135,7 @@ class BangumiService:
                 all()
 
             for bangumi_id, bangumi in result:
-                bangumi_dict = row2dict(bangumi)
+                bangumi_dict = row2dict(bangumi, Bangumi)
                 bangumi_dict['cover'] = utils.generate_cover_link(bangumi)
                 utils.process_bangumi_dict(bangumi, bangumi_dict)
                 for fav in favorites:
@@ -194,7 +194,7 @@ class BangumiService:
 
             bangumi_dict_list = []
             for bgm in bangumi_list:
-                bangumi = row2dict(bgm)
+                bangumi = row2dict(bgm, Bangumi)
                 bangumi['cover'] = utils.generate_cover_link(bgm)
                 utils.process_bangumi_dict(bgm, bangumi)
                 for fav in favorites:
@@ -231,20 +231,20 @@ class BangumiService:
 
             watch_progress_hash_table = {}
             for watch_progress in watch_progress_list:
-                watch_progress_dict = row2dict(watch_progress)
+                watch_progress_dict = row2dict(watch_progress, WatchProgress)
                 watch_progress_hash_table[watch_progress.episode_id] = watch_progress_dict
 
             for episode in bangumi.episodes:
                 if episode.delete_mark is not None:
                     continue
-                eps = row2dict(episode)
+                eps = row2dict(episode, Episode)
                 eps['thumbnail'] = utils.generate_thumbnail_link(episode, bangumi)
                 utils.process_episode_dict(episode, eps)
                 if episode.id in watch_progress_hash_table:
                     eps['watch_progress'] = watch_progress_hash_table[episode.id]
                 episodes.append(eps)
 
-            bangumi_dict = row2dict(bangumi)
+            bangumi_dict = row2dict(bangumi, Bangumi)
 
             if favorite is not None:
                 bangumi_dict['favorite_status'] = favorite.status
@@ -269,11 +269,11 @@ class BangumiService:
                 options(joinedload(Episode.video_files)).\
                 filter(Episode.id == episode_id).\
                 one()
-            episode_dict = row2dict(episode)
-            episode_dict['bangumi'] = row2dict(episode.bangumi)
+            episode_dict = row2dict(episode, Episode)
+            episode_dict['bangumi'] = row2dict(episode.bangumi, Bangumi)
             episode_dict['video_files'] = []
             for video_file in episode.video_files:
-                video_file_dict = row2dict(video_file)
+                video_file_dict = row2dict(video_file, VideoFile)
                 episode_dict['video_files'].append(video_file_dict)
 
             bangumi_url = '{0}://{1}/admin/bangumi/{2}'.format(app.config['SITE_PROTOCOL'],
@@ -287,12 +287,12 @@ class BangumiService:
                     filter(User.level >= 2).\
                     all()
 
-                self.__send_email_to_all(bangumi_url, episode_dict, video_file_id, row2dict(user), admin_list, message)
+                self.__send_email_to_all(bangumi_url, episode_dict, video_file_id, row2dict(user, User), admin_list, message)
             else:
                 admin = session.query(User).\
                     filter(User.id == maintained_by_uid).\
                     one()
-                self.__send_email_to(bangumi_url, episode_dict, video_file_id, row2dict(user), admin, message)
+                self.__send_email_to(bangumi_url, episode_dict, video_file_id, row2dict(user, User), admin, message)
 
             return json_resp({'message': 'ok'})
         except NoResultFound:

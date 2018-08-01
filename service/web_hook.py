@@ -5,6 +5,7 @@ from utils.exceptions import ClientError
 from domain.WebHook import WebHook
 from domain.WebHookToken import WebHookToken
 from domain.Favorites import Favorites
+from domain.User import User
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import desc
 from sqlalchemy.orm.exc import NoResultFound
@@ -33,7 +34,7 @@ class WebHookService:
 
     def __process_user_obj_in_web_hook(self, web_hook, web_hook_dict):
         if web_hook.created_by is not None:
-            web_hook_dict['created_by'] = row2dict(web_hook.created_by)
+            web_hook_dict['created_by'] = row2dict(web_hook.created_by, User)
             web_hook_dict['created_by'].pop('password', None)
         web_hook_dict.pop('created_by_uid', None)
 
@@ -47,7 +48,7 @@ class WebHookService:
             web_hook_dict_list = []
 
             for web_hook in web_hook_list:
-                web_hook_dict = row2dict(web_hook)
+                web_hook_dict = row2dict(web_hook, WebHook)
                 web_hook_dict.pop('shared_secret', None)
                 self.__process_user_obj_in_web_hook(web_hook, web_hook_dict)
                 web_hook_dict_list.append(web_hook_dict)
@@ -65,7 +66,7 @@ class WebHookService:
             web_hook = session.query(WebHook).\
                 filter(WebHook.id == web_hook_id).\
                 one()
-            web_hook_dict = row2dict(web_hook)
+            web_hook_dict = row2dict(web_hook, WebHook)
             web_hook_dict.pop('shared_secret', None)
             web_hook_dict.pop('created_by_uid', None)
 
@@ -183,7 +184,7 @@ class WebHookService:
                     all()
 
                 for favorite in favorites_list:
-                    fav_dict = row2dict(favorite)
+                    fav_dict = row2dict(favorite, Favorites)
                     for web_hook in web_hook_token_list:
                         if fav_dict['user_id'] == web_hook.user_id:
                             fav_dict['token_id'] = web_hook.token_id
@@ -208,7 +209,7 @@ class WebHookService:
 
             web_hook_dict_list = []
             for web_hook_token in web_hook_token_list:
-                web_hook_dict = row2dict(web_hook_token.web_hook)
+                web_hook_dict = row2dict(web_hook_token.web_hook, WebHook)
                 web_hook_dict.pop('shared_secret', None)
                 web_hook_dict_list.append(web_hook_dict)
 

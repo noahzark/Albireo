@@ -6,14 +6,13 @@ logger = logging.getLogger(__name__)
 
 logger.propagate = True
 
+
 class LIBYK_SO(AbstractScanner):
 
     def __init__(self, bangumi, episode_list):
         super(self.__class__, self).__init__(bangumi, episode_list)
         self.proxy = self._get_proxy('libyk_so')
-
         query_dict = json.loads(bangumi.libyk_so, encoding='utf-8')
-        print query_dict
         t = urllib.quote_plus(query_dict[u't'].replace(u'+', u' ').encode('utf-8'))
         q = urllib.quote_plus(query_dict[u'q'].replace(u'+', u' ').encode('utf-8'))
         self.feed_url = 'https://utils.libyk.com/torrent/rss?m=magnet&t={0}&q={1}'.format(t, q)
