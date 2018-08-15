@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.13.2
+
+- Update UserAgent of DMHY scraper
+
 ## 2.13.1
 
 - Fix a bug that a None value converted to an empty string in the json result.
