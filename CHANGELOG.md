@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.13.3
+
+- Update regex constant
+
 ## 2.13.2
 
 - Update UserAgent of DMHY scraper
