@@ -91,7 +91,7 @@ class DownloadManager:
                             continue
                         video_file.file_path = file_path
                         video_file.status = VideoFile.STATUS_DOWNLOADED
-                        episode.update_time = datetime.now()
+                        episode.update_time = datetime.utcnow()
                         episode.status = Episode.STATUS_DOWNLOADED
                         create_thumbnail(episode, file_path)
                         update_video_meta(video_file)
@@ -102,7 +102,7 @@ class DownloadManager:
                             if video_file.file_name is not None and video_file.file_path is None and file_path.endswith(video_file.file_name):
                                 video_file.file_path = file_path
                                 video_file.status = VideoFile.STATUS_DOWNLOADED
-                                episode.update_time = datetime.now()
+                                episode.update_time = datetime.utcnow()
                                 episode.status = Episode.STATUS_DOWNLOADED
                                 create_thumbnail(episode, file_path)
                                 update_video_meta(video_file)
@@ -110,7 +110,7 @@ class DownloadManager:
                                 break
                             elif video_file.file_path is not None and file_path == video_file.file_path:
                                 video_file.status = VideoFile.STATUS_DOWNLOADED
-                                episode.update_time = datetime.now()
+                                episode.update_time = datetime.utcnow()
                                 episode.status = Episode.STATUS_DOWNLOADED
                                 create_thumbnail(episode, file_path)
                                 update_video_meta(video_file)

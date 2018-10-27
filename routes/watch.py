@@ -51,3 +51,8 @@ def episode_history(episode_id):
 def synchronize_history():
     data = json.loads(request.get_data(True, as_text=True))
     return watch_service.synchronize_history(current_user.id, data.get('records', []))
+
+
+@watch_api.route('/favorite/check/<bangumi_id>', methods=['PUT'])
+def check_favorite(bangumi_id):
+    return watch_service.check_favorite(bangumi_id, current_user.id)

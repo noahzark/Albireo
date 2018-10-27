@@ -135,7 +135,7 @@ class DeleteScanner:
                 content_dict = json.loads(task.content)
                 bangumi_id_in_task.append(content_dict['bangumi_id'])
 
-            latest_delete_time = datetime.now() - timedelta(minutes=self.bangumi_delete_delay)
+            latest_delete_time = datetime.utcnow() - timedelta(minutes=self.bangumi_delete_delay)
 
             query = session.query(Bangumi)
 

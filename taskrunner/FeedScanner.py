@@ -94,7 +94,7 @@ class FeedScanner:
                 filter(Episode.id == video_file.episode_id).\
                 one()
             episode.status = Episode.STATUS_DOWNLOADED
-            episode.update_time = datetime.now()
+            episode.update_time = datetime.utcnow()
             self.__create_thumbnail(episode, video_file.file_path)
             self.__update_video_meta(video_file)
             session.add(video_file)
