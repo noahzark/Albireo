@@ -148,6 +148,25 @@ Change the favorite status of a bangumi
             "status": 0
         }
 
+## Check favorite bangumi [/api/watch/favorite/check/{bangumi_id}]
+
+check current bangumi, update the check_time of current favorite.
+
++ Parameters
+    + `bangumi_id`: `46a469ee-5041-4f7c-8bf3-43ea6166a728` (string, required)
+
+### Update check_time [PUT]
+
+return a timestamp of the check_time in utc timezone
+
++ Response 200 (application/json)
+
+        {
+            "data": 1497574966172,
+            "status": 0
+        }
+
+
 ## Favorite Episode [/api/watch/favorite/episode/{episode_id}]
 
 Change the favorite status of an episode, an episode favorite_status will affect my_bangumi API result if the bangumi of this episode is marked with 3 (WATCHING)
@@ -1284,6 +1303,9 @@ delete a web hook token
 
 ## BangumiUnwatched (BangumiFavorite)
 - `unwatched_count`: `10` (number, required) - how many episodes which is downloaded but not been watched by current user.
+- `eps_update_time`: `1493655186675.0` (number) - timestamp when the latest episode is updated.
+- `favorite_update_time`: `1493655186675.0` - timestamp favorite status changed.
+- `favorite_check_time`: `1493655186675.0` (number) - timestamp when user check this bangumi, by default, this should be updated whenever user visit the bangumi detail page or play page.
 
 ## BangumiPendingDelete (Bangumi)
 - `delete_eta`: `5` (number, required) - estimated time left to delete this bangumi.

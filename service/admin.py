@@ -385,7 +385,7 @@ class AdminService:
 
             bangumi = session.query(Bangumi).filter(Bangumi.id == bangumi_id).one()
 
-            bangumi.delete_mark = datetime.now()
+            bangumi.delete_mark = datetime.utcnow()
 
             session.commit()
 
@@ -436,7 +436,7 @@ class AdminService:
                 episode.airdate = datetime.strptime(episode_dict.get('airdate'), '%Y-%m-%d')
 
             episode.duration = episode_dict.get('duration')
-            episode.update_time = datetime.now()
+            episode.update_time = datetime.utcnow()
 
             if 'status' in episode_dict:
                 episode.status = episode_dict['status']
