@@ -29,7 +29,7 @@ class TaskService:
 
     def list_pending_delete_banguimi(self):
         try:
-            current = datetime.now()
+            current = datetime.utcnow()
             session = SessionManager.Session()
             bangumi_list = session.query(Bangumi).\
                 filter(Bangumi.delete_mark != None).\
@@ -49,7 +49,7 @@ class TaskService:
 
     def list_pending_delete_episode(self):
         try:
-            current = datetime.now()
+            current = datetime.utcnow()
             session = SessionManager.Session()
             result = session.query(Episode, Bangumi).\
                 join(Bangumi).\

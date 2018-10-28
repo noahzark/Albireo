@@ -21,8 +21,8 @@ class Episode(Base):
     duration = Column(String, nullable=True)
     airdate = Column(DATE, nullable=True)
     status = Column(Integer, nullable=False)
-    create_time = Column(TIMESTAMP, default=datetime.now, nullable=False)
-    update_time = Column(TIMESTAMP, default=datetime.now, nullable=False)
+    create_time = Column(TIMESTAMP, default=datetime.utcnow, nullable=False)
+    update_time = Column(TIMESTAMP, default=datetime.utcnow, nullable=False)
 
     delete_mark = Column(TIMESTAMP, nullable=True)
 

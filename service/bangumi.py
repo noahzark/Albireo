@@ -32,7 +32,7 @@ class BangumiService:
 
     def recent_update(self, days):
 
-        current = datetime.now()
+        current = datetime.utcnow()
 
         # from one week ago
         start_time = current - timedelta(days=days)
