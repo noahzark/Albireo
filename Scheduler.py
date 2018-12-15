@@ -1,6 +1,7 @@
 import logging
 import os
 import errno
+
 from utils.sentry import sentry_wrapper
 
 from taskrunner.DownloadStatusScanner import download_status_scanner
@@ -32,7 +33,7 @@ from twisted.internet import reactor, threads
 
 from yaml import load
 from utils.VideoManager import video_manager
-from twisted.internet.task import LoopingCall, deferLater
+from twisted.internet.task import deferLater
 from utils.DownloadManager import download_manager
 
 from taskrunner.InfoScanner import info_scanner
@@ -41,7 +42,10 @@ from taskrunner.DmhyScanner import DmhyScanner
 from taskrunner.BangumiMoeScanner import BangumiMoeScanner
 from taskrunner.AcgripScanner import AcgripScanner
 from taskrunner.LibyksoScanner import LibyksoScanner
+from taskrunner.NyaaScanner import NyaaScanner
 from taskrunner.DeleteScanner import DeleteScanner
+from rpc.rpc_interface import setup_server
+from web_hook.keep_alive_checker import keep_alive_checker
 
 
 class Scheduler:
@@ -73,7 +77,9 @@ class Scheduler:
         self.start_scan_bangumi_moe()
         deferLater(reactor, int(self.interval / 4), self.start_scan_dmhy)
         deferLater(reactor, int(self.interval / 2), self.start_scan_acgrip)
-        self.start_scan_libykso() # libyk scanner don't have chance conflict with other scanner, so we can start simultaneously
+        # libyk scanner don't have chance conflict with other scanner, so we can start simultaneously
+        self.start_scan_libykso()
+        self.start_scan_nyaa()  # usually this doesn't conflict
 
     def scheduleFail(self, failure):
         logger.error(failure)
@@ -101,6 +107,11 @@ class Scheduler:
         bangumi_moe_scanner = BangumiMoeScanner(self.base_path, self.interval)
         bangumi_moe_scanner.start()
 
+    def start_scan_nyaa(self):
+        logger.debug('start nyaa')
+        nyaa_scanner = NyaaScanner(self.base_path, self.interval)
+        nyaa_scanner.start()
+
     def start_scan_feed(self):
         feed_scanner = FeedScanner(self.base_path)
         feed_scanner.start()
@@ -119,9 +130,14 @@ sentry_wrapper.scheduler_sentry()
 
 def on_connected(result):
     logger.info(result)
+
+    # set disconnect callback
+    download_manager.set_disconnect_cb(on_disconnect)
+
     scheduler.start()
     info_scanner.start()
     download_status_scanner.start()
+    keep_alive_checker.start()
     scheduler.start_scan_feed()
     scheduler.start_scan_delete()
 
@@ -132,8 +148,22 @@ def on_connect_fail(result):
     reactor.stop()
 
 
+def on_disconnect():
+    sentry_wrapper.client.captureMessage('deluge disconnect unexpectedly')
+    reactor.stop()
+
+
+def stop_tasks():
+    logger.info('shutting down...')
+    logger.info('stopping InfoScanner...')
+    info_scanner.stop()
+
+
 d = download_manager.connect()
 d.addCallback(on_connected)
 d.addErrback(on_connect_fail)
 
+setup_server()
+
+reactor.addSystemEventTrigger('before', 'shutdown', stop_tasks)
 reactor.run()

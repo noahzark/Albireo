@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
+from smtplib import SMTPAuthenticationError
+
+from flask import render_template
+from flask_mail import Message
 from sqlalchemy.orm.exc import NoResultFound
 
+from domain.User import User
 from domain.Episode import Episode
 from domain.Bangumi import Bangumi
 from domain.Favorites import Favorites
@@ -9,14 +14,14 @@ from domain.TorrentFile import TorrentFile
 from domain.VideoFile import VideoFile
 from datetime import datetime, timedelta
 from utils.SessionManager import SessionManager
-from utils.exceptions import ClientError
+from utils.exceptions import ClientError, ServerError
 from utils.http import json_resp
 from utils.db import row2dict
 from sqlalchemy.sql.expression import or_, desc, asc
 from sqlalchemy.sql import select, func, distinct
 from sqlalchemy.orm import joinedload, subqueryload
 import json
-from service.common import utils
+from utils.common import utils
 
 import logging
 
@@ -27,7 +32,7 @@ class BangumiService:
 
     def recent_update(self, days):
 
-        current = datetime.now()
+        current = datetime.utcnow()
 
         # from one week ago
         start_time = current - timedelta(days=days)
@@ -45,9 +50,9 @@ class BangumiService:
             episode_list = []
 
             for eps, bgm in result:
-                episode = row2dict(eps)
+                episode = row2dict(eps, Episode)
                 episode['thumbnail'] = utils.generate_thumbnail_link(eps, bgm)
-                episode['bangumi'] = row2dict(bgm)
+                episode['bangumi'] = row2dict(bgm, Bangumi)
                 episode['bangumi']['cover'] = utils.generate_cover_link(bgm)
                 episode_list.append(episode)
 
@@ -70,21 +75,23 @@ class BangumiService:
                 filter(WatchProgress.user_id == user_id).\
                 first()
 
-            episode_dict = row2dict(episode)
-            episode_dict['bangumi'] = row2dict(bangumi)
+            episode_dict = row2dict(episode, Episode)
+            episode_dict['bangumi'] = row2dict(bangumi, Bangumi)
             episode_dict['bangumi']['cover'] = utils.generate_cover_link(bangumi)
             utils.process_bangumi_dict(bangumi, episode_dict['bangumi'])
             episode_dict['thumbnail'] = utils.generate_thumbnail_link(episode, bangumi)
             utils.process_episode_dict(episode, episode_dict)
 
             if watch_progress is not None:
-                episode_dict['watch_progress'] = row2dict(watch_progress)
+                episode_dict['watch_progress'] = row2dict(watch_progress, WatchProgress)
 
             if episode.status == Episode.STATUS_DOWNLOADED:
                 episode_dict['video_files'] = []
                 video_file_list = session.query(VideoFile).filter(VideoFile.episode_id == episode_id).all()
                 for video_file in video_file_list:
-                    video_file_dict = row2dict(video_file)
+                    if video_file.status != VideoFile.STATUS_DOWNLOADED:
+                        continue
+                    video_file_dict = row2dict(video_file, VideoFile)
                     video_file_dict['url'] = utils.generate_video_link(str(bangumi.id), video_file.file_path)
                     episode_dict['video_files'].append(video_file_dict)
 
@@ -113,7 +120,8 @@ class BangumiService:
                 filter(Bangumi.delete_mark == None). \
                 filter(Bangumi.type == type).\
                 filter(Episode.airdate >= start_time).\
-                filter(Episode.airdate <= end_time)
+                filter(Episode.airdate <= end_time). \
+                order_by(desc(getattr(Bangumi, 'air_date')))
 
             bangumi_list = []
             bangumi_id_list = [bangumi_id for bangumi_id, bangumi in result]
@@ -127,7 +135,7 @@ class BangumiService:
                 all()
 
             for bangumi_id, bangumi in result:
-                bangumi_dict = row2dict(bangumi)
+                bangumi_dict = row2dict(bangumi, Bangumi)
                 bangumi_dict['cover'] = utils.generate_cover_link(bangumi)
                 utils.process_bangumi_dict(bangumi, bangumi_dict)
                 for fav in favorites:
@@ -186,7 +194,7 @@ class BangumiService:
 
             bangumi_dict_list = []
             for bgm in bangumi_list:
-                bangumi = row2dict(bgm)
+                bangumi = row2dict(bgm, Bangumi)
                 bangumi['cover'] = utils.generate_cover_link(bgm)
                 utils.process_bangumi_dict(bgm, bangumi)
                 for fav in favorites:
@@ -223,20 +231,20 @@ class BangumiService:
 
             watch_progress_hash_table = {}
             for watch_progress in watch_progress_list:
-                watch_progress_dict = row2dict(watch_progress)
+                watch_progress_dict = row2dict(watch_progress, WatchProgress)
                 watch_progress_hash_table[watch_progress.episode_id] = watch_progress_dict
 
             for episode in bangumi.episodes:
                 if episode.delete_mark is not None:
                     continue
-                eps = row2dict(episode)
+                eps = row2dict(episode, Episode)
                 eps['thumbnail'] = utils.generate_thumbnail_link(episode, bangumi)
                 utils.process_episode_dict(episode, eps)
                 if episode.id in watch_progress_hash_table:
                     eps['watch_progress'] = watch_progress_hash_table[episode.id]
                 episodes.append(eps)
 
-            bangumi_dict = row2dict(bangumi)
+            bangumi_dict = row2dict(bangumi, Bangumi)
 
             if favorite is not None:
                 bangumi_dict['favorite_status'] = favorite.status
@@ -251,5 +259,82 @@ class BangumiService:
             raise ClientError(ClientError.NOT_FOUND, 404)
         finally:
             SessionManager.Session.remove()
+
+    def feed_back(self, episode_id, video_file_id, user, message):
+        from server import app
+        session = SessionManager.Session()
+        try:
+            episode = session.query(Episode).\
+                options(joinedload(Episode.bangumi)).\
+                options(joinedload(Episode.video_files)).\
+                filter(Episode.id == episode_id).\
+                one()
+            episode_dict = row2dict(episode, Episode)
+            episode_dict['bangumi'] = row2dict(episode.bangumi, Bangumi)
+            episode_dict['video_files'] = []
+            for video_file in episode.video_files:
+                video_file_dict = row2dict(video_file, VideoFile)
+                episode_dict['video_files'].append(video_file_dict)
+
+            bangumi_url = '{0}://{1}/admin/bangumi/{2}'.format(app.config['SITE_PROTOCOL'],
+                                                               app.config['SITE_HOST'],
+                                                               episode_dict['bangumi_id'])
+
+            maintained_by_uid = episode_dict['bangumi'].get('maintained_by_uid')
+            if maintained_by_uid is None:
+                # find all admin
+                admin_list = session.query(User).\
+                    filter(User.level >= 2).\
+                    all()
+
+                self.__send_email_to_all(bangumi_url, episode_dict, video_file_id, row2dict(user, User), admin_list, message)
+            else:
+                admin = session.query(User).\
+                    filter(User.id == maintained_by_uid).\
+                    one()
+                self.__send_email_to(bangumi_url, episode_dict, video_file_id, row2dict(user, User), admin, message)
+
+            return json_resp({'message': 'ok'})
+        except NoResultFound:
+            raise ClientError(ClientError.NOT_FOUND, 404)
+        finally:
+            SessionManager.Session.remove()
+
+    def __send_email_to(self, bangumi_url, episode_dict, video_file_id, user_dict, admin, message):
+        from server import mail
+        admin_name = admin.name
+        admin_email = admin.email
+        if admin_email is None:
+            return
+        mail_content = render_template('feed-back-mail.html',
+                                       bangumi_url=bangumi_url,
+                                       admin_name=admin_name,
+                                       episode=episode_dict,
+                                       video_file_id=video_file_id,
+                                       user=user_dict,
+                                       message=message)
+        msg = Message('用户反馈信息', recipients=[admin_email], html=mail_content)
+        mail.send(msg)
+
+    def __send_email_to_all(self, bangumi_url, episode_dict, video_file_id, user_dict, admin_list, message):
+        from server import mail
+        for admin in admin_list:
+            admin_name = admin.name
+            admin_email = admin.email
+            if admin_email is None:
+                continue
+            mail_content = render_template('feed-back-mail.html',
+                                           bangumi_url=bangumi_url,
+                                           admin_name=admin_name,
+                                           episode=episode_dict,
+                                           video_file_id=video_file_id,
+                                           user=user_dict,
+                                           message=message)
+            msg = Message('用户反馈信息', recipients=[admin_email], html=mail_content)
+            try:
+                mail.send(msg)
+            except SMTPAuthenticationError:
+                raise ServerError('SMTP authentication failed', 500)
+
 
 bangumi_service = BangumiService()

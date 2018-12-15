@@ -1,6 +1,7 @@
+import urlparse
+
 from flask import jsonify, make_response
 from datetime import date, datetime
-import time
 import json
 import uuid
 import requests
@@ -9,8 +10,12 @@ import errno
 import logging
 import traceback
 import pickle
+import yaml
+import re
 
 from requests import Request
+
+from utils.sentry import sentry_wrapper
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +47,19 @@ def json_resp(obj, status=200):
     resp = make_response(json.dumps(obj, cls=DateTimeEncoder), status)
     resp.headers['Content-Type'] = 'application/json'
     return resp
+
+
+def is_valid_date(date_str):
+    try:
+        datetime.strptime(date_str, '%Y-%m-%d')
+        return True
+    except Exception as error:
+        logger.warn(error)
+        return False
+
+
+def is_absolute_url(test_url):
+    return bool(urlparse.urlparse(test_url).netloc)
 
 
 class FileDownloader:
@@ -153,6 +171,33 @@ class BangumiMoeRequest:
         self.__save_cookie_to_storage()
         return r
 
+    def send(self, url, method, payload):
+        self.__get_cookie_from_storage()
+        req = Request(method, url)
+        if payload is not None:
+            req = Request(method=method, url=url, json=payload)
+        prepped = self.session.prepare_request(req)
+        r = self.session.send(prepped)
+        self.__save_cookie_to_storage()
+        return r
+
+
+class RPCRequest:
+
+    def __init__(self):
+        config = yaml.load(open('./config/config.yml', 'r'))
+        if 'rpc' in config:
+            self.server_host = config['rpc']['server_host']
+            self.server_port = config['rpc']['server_port']
+
+    def send(self, method, method_args):
+        try:
+            requests.get('http://{0}:{1}/{2}'.format(self.server_host, self.server_port, method), params=method_args)
+        except Exception as error:
+            logger.error(error)
+            sentry_wrapper.sentry_middleware.captureException()
+
 
 bangumi_request = BangumiRequest()
 bangumi_moe_request = BangumiMoeRequest()
+rpc_request = RPCRequest()

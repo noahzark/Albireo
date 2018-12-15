@@ -29,14 +29,14 @@ class FeedService(object):
             self.timeout = None
 
     def _get_proxy(self, site_name):
-        '''
+        """
         get the proxy config from config and given url,
         if url specific config is not found using the default config.
         if config is an string, treat it as proxy url, use it for all three schemes
         if config is an dict, make sure it has all scheme set and use it directly
         :param site_name:
         :return: an dict of config
-        '''
+        """
         if 'proxy' in self.feedparser_config:
             proxy_config = self.feedparser_config['proxy']
             # find config by name, if not found, use default, if default is not set, return None
@@ -55,12 +55,12 @@ class FeedService(object):
                 return None
 
     def parse_episode_number(self, eps_title):
-        '''
+        """
         parse the episode number from episode title, it use a list of regular expressions. the position in the list
         is the priority of the regular expression.
         :param eps_title: the title of episode.
         :return: episode number if matched, otherwise, -1
-        '''
+        """
         try:
             for regex in episode_regex_tuple:
                 search_result = re.search(regex, eps_title, re.U | re.I)
@@ -134,10 +134,10 @@ class FeedService(object):
 
         return json_resp({'data': title_list, 'status': 0})
 
-    def bangumi_moe_proxy(self, url, payload):
+    def bangumi_moe_proxy(self, url, method, payload):
         result = {}
 
-        r = bangumi_moe_request.post(url, payload)
+        r = bangumi_moe_request.send(url, method, payload)
         if r.status_code > 399:
             r.raise_for_status()
 
@@ -172,6 +172,17 @@ class FeedService(object):
                 torrent['eps_no_list'].append(eps_no)
 
         return json_resp(search_result)
+
+    def parse_nyaa(self, qs):
+        feed_url = 'https://nyaa.si/?page=rss&{0}'.format(qs,)
+        feed_dict = self.parse_feed('nyaa', feed_url)
+        title_list = []
+        for item in feed_dict.entries:
+            item_title = item['title']
+            eps_no = self.parse_episode_number(item_title)
+            title_list.append({'title': item_title, 'eps_no': eps_no})
+
+        return json_resp({'data': title_list, 'status': 0})
 
 
 feed_service = FeedService()

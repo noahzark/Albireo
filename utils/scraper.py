@@ -2,7 +2,7 @@
 # from HTMLParser import HTMLParser
 import cfscrape, os, errno, logging, requests, pickle, traceback
 logger = logging.getLogger(__name__)
-user_agent = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0'
+user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36'
 
 # class DMHYFileListScraper(HTMLParser):
 #

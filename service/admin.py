@@ -6,10 +6,13 @@ from domain.Bangumi import Bangumi
 from domain.Image import Image
 from domain.TorrentFile import TorrentFile
 from domain.VideoFile import VideoFile
+from domain.User import User
 from datetime import datetime
+
+from domain.WatchProgress import WatchProgress
 from utils.SessionManager import SessionManager
 from utils.exceptions import ClientError, ServerError
-from utils.http import json_resp, FileDownloader, bangumi_request
+from utils.http import json_resp, FileDownloader, bangumi_request, rpc_request, is_valid_date
 from utils.db import row2dict
 from sqlalchemy.sql.expression import or_, desc, asc
 from sqlalchemy.sql import select, func
@@ -20,7 +23,7 @@ import os
 import errno
 from urlparse import urlparse
 from utils.VideoManager import video_manager
-from service.common import utils
+from utils.common import utils
 from utils.image import get_dominant_color, get_dimension
 # from werkzeug.utils import secure_filename
 from utils.sentry import sentry_wrapper
@@ -100,10 +103,10 @@ class AdminService:
 
     def __process_user_obj_in_bangumi(self, bangumi, bangumi_dict):
         if bangumi.created_by is not None:
-            bangumi_dict['created_by'] = row2dict(bangumi.created_by)
+            bangumi_dict['created_by'] = row2dict(bangumi.created_by, User)
             bangumi_dict['created_by'].pop('password', None)
         if bangumi.maintained_by is not None:
-            bangumi_dict['maintained_by'] = row2dict(bangumi.maintained_by)
+            bangumi_dict['maintained_by'] = row2dict(bangumi.maintained_by, User)
             bangumi_dict['maintained_by'].pop('password', None)
         bangumi_dict.pop('created_by_uid', None)
         bangumi_dict.pop('maintained_by_uid', None)
@@ -212,7 +215,7 @@ class AdminService:
 
             bangumi_dict_list = []
             for bgm in bangumi_list:
-                bangumi = row2dict(bgm)
+                bangumi = row2dict(bgm, Bangumi)
                 bangumi['cover'] = utils.generate_cover_link(bgm)
                 utils.process_bangumi_dict(bgm, bangumi)
                 self.__process_user_obj_in_bangumi(bgm, bangumi)
@@ -260,8 +263,8 @@ class AdminService:
                               name_cn=eps_item.get('name_cn'),
                               duration=eps_item.get('duration'),
                               status=Episode.STATUS_NOT_DOWNLOADED)
-                if eps_item.get('airdate') != '':
-                    eps.airdate=eps_item.get('airdate')
+                if is_valid_date(eps_item.get('airdate')):
+                    eps.airdate = eps_item.get('airdate')
 
                 eps.bangumi = bangumi
                 bangumi.episodes.append(eps)
@@ -314,6 +317,7 @@ class AdminService:
             bangumi.acg_rip = bangumi_dict.get('acg_rip')
             bangumi.libyk_so = bangumi_dict.get('libyk_so')
             bangumi.bangumi_moe = bangumi_dict.get('bangumi_moe')
+            bangumi.nyaa = bangumi_dict.get('nyaa')
 
             bangumi.eps_no_offset = bangumi_dict.get('eps_no_offset')
             if not bangumi.eps_no_offset:
@@ -355,12 +359,12 @@ class AdminService:
             for episode in bangumi.episodes:
                 if episode.delete_mark is not None:
                     continue
-                eps = row2dict(episode)
+                eps = row2dict(episode, Episode)
                 eps['thumbnail'] = utils.generate_thumbnail_link(episode, bangumi)
                 utils.process_episode_dict(episode, eps)
                 episodes.append(eps)
 
-            bangumi_dict = row2dict(bangumi)
+            bangumi_dict = row2dict(bangumi, Bangumi)
 
             bangumi_dict['episodes'] = episodes
             utils.process_bangumi_dict(bangumi, bangumi_dict)
@@ -381,7 +385,7 @@ class AdminService:
 
             bangumi = session.query(Bangumi).filter(Bangumi.id == bangumi_id).one()
 
-            bangumi.delete_mark = datetime.now()
+            bangumi.delete_mark = datetime.utcnow()
 
             session.commit()
 
@@ -399,6 +403,10 @@ class AdminService:
         try:
             session = SessionManager.Session()
             bangumi = session.query(Bangumi).filter(Bangumi.id == episode_dict['bangumi_id']).one()
+            if is_valid_date(episode_dict.get('airdate')):
+                episode_dict['airdate'] = episode_dict.get('airdate')
+            else:
+                episode_dict['airdate'] = None
             episode = Episode(bangumi_id=episode_dict['bangumi_id'],
                               bgm_eps_id=episode_dict.get('bgm_eps_id', -1),
                               episode_no=episode_dict['episode_no'],
@@ -419,12 +427,16 @@ class AdminService:
         try:
             session = SessionManager.Session()
             episode = session.query(Episode).filter(Episode.id == episode_id).one()
-            episode.episode_no = episode_dict['episode_no']
-            episode.name = episode_dict['name']
-            episode.name_cn = episode_dict['name_cn']
-            episode.airdate = datetime.strptime(episode_dict['airdate'], '%Y-%m-%d')
-            episode.duration = episode_dict['duration']
-            episode.update_time = datetime.now()
+            episode.episode_no = episode_dict.get('episode_no')
+            episode.bgm_eps_id = episode_dict.get('bgm_eps_id')
+            episode.name = episode_dict.get('name')
+            episode.name_cn = episode_dict.get('name_cn')
+
+            if 'airdate' in episode_dict:
+                episode.airdate = datetime.strptime(episode_dict.get('airdate'), '%Y-%m-%d')
+
+            episode.duration = episode_dict.get('duration')
+            episode.update_time = datetime.utcnow()
 
             if 'status' in episode_dict:
                 episode.status = episode_dict['status']
@@ -447,7 +459,7 @@ class AdminService:
                 filter(Episode.delete_mark == None).\
                 all()
 
-            episode_dict = row2dict(episode)
+            episode_dict = row2dict(episode, Episode)
             utils.process_episode_dict(episode, episode_dict)
 
             return json_resp({'data': episode_dict})
@@ -457,15 +469,50 @@ class AdminService:
             SessionManager.Session.remove()
 
     def delete_episode(self, episode_id):
+        session = SessionManager.Session()
         try:
-            session = SessionManager.Session()
-            episode = session.query(Episode).\
-                options(joinedload(Episode.bangumi)).\
+            (episode, bangumi) = session.query(Episode, Bangumi).\
+                join(Bangumi).\
                 filter(Episode.id == episode_id).one()
-            episode.delete_mark = datetime.now()
-            episode.bangumi.eps = episode.bangumi.eps - 1
+
+            # remove files of episode
+            bangumi_folder_path = '{0}/{1}'.format(self.base_path, str(episode.bangumi_id))
+
+            video_file_list = session.query(VideoFile). \
+                filter(VideoFile.episode_id == episode_id). \
+                all()
+
+            watch_progress_list = session.query(WatchProgress).filter(
+                WatchProgress.episode_id == episode_id).all()
+
+            for video_file in video_file_list:
+                # remove torrent
+                try:
+                    file_path = '{0}/{1}'.format(bangumi_folder_path, video_file.file_path)
+                    os.remove(file_path)
+                except Exception as error:
+                    logger.error(error)
+                # remove torrent from deluge
+                rpc_request.send('delete_deluge_torrent', {'torrent_id': video_file.torrent_id})
+                # remove video_file
+                session.delete(video_file)
+
+            # remove watch-progress
+            for watch_progress in watch_progress_list:
+                session.delete(watch_progress)
+
+            # remove image
+            if episode.thumbnail_image_id is not None:
+                image = session.query(Image).filter(Image.id == episode.thumbnail_image_id).one()
+                session.delete(image)
+
+            # remove episode
+            session.delete(episode)
+
+            bangumi.eps = bangumi.eps - 1
+
             session.commit()
-            return json_resp({'data': {'delete_delay': self.delete_delay['episode']}})
+            return json_resp({'message': 'ok'})
         finally:
             SessionManager.Session.remove()
 
@@ -497,7 +544,7 @@ class AdminService:
                     offset(offset).limit(count).\
                     all()
 
-            episode_dict_list = [row2dict(episode) for episode in episode_list]
+            episode_dict_list = [row2dict(episode, Episode) for episode in episode_list]
 
             return json_resp({'data': episode_dict_list, 'total': total})
         finally:
@@ -529,7 +576,7 @@ class AdminService:
                 filter(VideoFile.episode_id == episode_id).\
                 all()
 
-            result = [row2dict(video_file) for video_file in video_file_list]
+            result = [row2dict(video_file, VideoFile) for video_file in video_file_list]
             return json_resp({'data': result})
         finally:
             SessionManager.Session.remove()
@@ -584,7 +631,9 @@ class AdminService:
                 except Exception as error:
                     logger.warn(error)
 
+            rpc_request.send('delete_deluge_torrent', {'torrent_id': video_file.torrent_id})
             session.delete(video_file)
+
             session.commit()
             return json_resp({'msg': 'ok'})
         except NoResultFound:

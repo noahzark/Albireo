@@ -1,8 +1,10 @@
 import yaml
-import os, errno
+import os
+import errno
 from urlparse import urlparse
 from datetime import datetime
 import logging
+from domain.Image import Image
 
 from utils.db import row2dict
 
@@ -64,13 +66,16 @@ class CommonUtils:
 
     def process_bangumi_dict(self, bangumi, bangumi_dict):
         if bangumi.cover_image is not None:
-            bangumi_dict['cover_image'] = self.convert_image_dict(row2dict(bangumi.cover_image))
+            bangumi_dict['cover_image'] = self.convert_image_dict(row2dict(bangumi.cover_image, Image))
         bangumi_dict.pop('cover_image_id', None)
 
     def process_episode_dict(self, episode, episode_dict):
         if episode.thumbnail_image is not None:
-            episode_dict['thumbnail_image'] = self.convert_image_dict(row2dict(episode.thumbnail_image))
-        episode_dict.pop('thumbnail_image_id')
+            episode_dict['thumbnail_image'] = self.convert_image_dict(row2dict(episode.thumbnail_image, Image))
+        episode_dict.pop('thumbnail_image_id', None)
+
+    def empty_to_none(self, dict, attr_name):
+        return dict.get(attr_name, None) if dict.get(attr_name, None) else None
 
 
 utils = CommonUtils()

@@ -14,11 +14,12 @@ user_manage_service = user_manage_service
 @login_required
 @auth_user(User.LEVEL_ADMIN)
 def list_user():
-    name = request.args.get('name')
     count = int(request.args.get('count', 10))
     offset = int(request.args.get('offset', 0))
     minlevel = int(request.args.get('minlevel', 0))
-    return user_manage_service.list_user(name, count, offset, minlevel)
+    query_field = request.args.get('query_field', None)
+    query_value = request.args.get('query_value', None)
+    return user_manage_service.list_user(count, offset, minlevel, query_field, query_value)
 
 
 @user_manage_api.route('/promote', methods=['POST'])

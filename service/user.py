@@ -9,7 +9,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer
 
 from utils.exceptions import ClientError, ServerError
-from utils.http import json_resp
+from utils.http import json_resp, rpc_request
 from flask_mail import Message
 from flask import render_template
 from smtplib import SMTPAuthenticationError
@@ -48,7 +48,7 @@ class UserCredential(UserMixin):
                 session.commit()
                 if user.email is not None and user.email_confirmed:
                     # send notification mail
-                    subject = '[{0}] Password Update Notification'.format(app.config['SITE_NAME'])
+                    subject = u'[{0}] Password Update Notification'.format(app.config['SITE_NAME'])
                     email_content = render_template('update-pass-notification.html', info={
                         'title': subject,
                         'user_name': user.name,
@@ -74,7 +74,7 @@ class UserCredential(UserMixin):
             user = session.query(User).filter(User.id == self.id).one()
             if user.email is not None and user.email_confirmed:
                 # send notification mail
-                subject = '[{0}] Email Address Update Notification'.format(app.config['SITE_NAME'])
+                subject = u'[{0}] Email Address Update Notification'.format(app.config['SITE_NAME'])
                 email_content = render_template('email-change-notification.html', info={
                     'title': subject,
                     'user_name': user.name,
@@ -125,6 +125,7 @@ class UserCredential(UserMixin):
                 user = session.query(User).filter(User.id == self.id).one()
                 user.email_confirmed = True
                 session.commit()
+                rpc_request.send('email_changed', {'email': self.email, 'user_id': user.id})
                 return json_resp({'message': 'ok'})
             else:
                 raise ClientError('Invalid Token')
@@ -143,7 +144,7 @@ class UserCredential(UserMixin):
         confirm_url = '{0}://{1}/email-confirm?token={2}'.format(app.config['SITE_PROTOCOL'],
                                                                  app.config['SITE_HOST'],
                                                                  token)
-        subject = '[{0}] Email Address Confirmation'.format(app.config['SITE_NAME'])
+        subject = u'[{0}] Email Address Confirmation'.format(app.config['SITE_NAME'])
         email_content = render_template('email-confirm.html', info={
             'confirm_title': subject,
             'confirm_url': confirm_url,
@@ -167,7 +168,7 @@ class UserCredential(UserMixin):
     @staticmethod
     def generate_reset_email_token(user):
         """
-        Generate a one-time token used for resetting password, this token contains a digest of current password and 
+        Generate a one-time token used for resetting password, this token contains a digest of current password and
         email of a valid user.
         :return: a serialized token contains email, a password digest and a token timestamp
         """
@@ -180,10 +181,10 @@ class UserCredential(UserMixin):
     def send_pass_reset_email(email):
         """
         Send a password reset email which includes a link to navigate user to a endpoint to reset his/her password.
-        The link contains a token get from self.generate_reset_email_token method. end point has the responsibility 
+        The link contains a token get from self.generate_reset_email_token method. end point has the responsibility
         to verify the token.
         :param email: the user email from user input. this must be a confirmed email of a valid user.
-        :return: 
+        :return:
         """
         from server import app, mail
         session = SessionManager.Session()
@@ -200,7 +201,7 @@ class UserCredential(UserMixin):
             reset_url = '{0}://{1}/reset-pass?token={2}'.format(app.config['SITE_PROTOCOL'],
                                                                 app.config['SITE_HOST'],
                                                                 token)
-            subject = '[{0}] Password Request for {1}'.format(app.config['SITE_NAME'], user.name)
+            subject = u'[{0}] Password Request for {1}'.format(app.config['SITE_NAME'], user.name)
             reset_content = render_template('reset-pass.html', info={
                 'reset_title': subject,
                 'reset_url': reset_url,

@@ -29,6 +29,7 @@ list all bangumi which is favorite by current user
 ### List All [GET]
 
 List all bangumi which is currently on air, on air means current date is between air_date and the last episode airdate plus one week.
+The order is descending order by air_date of bangumi
 
 + Response 200 (application/json)
 
@@ -86,6 +87,40 @@ Get the episode by specific id
 
     + Attributes (EpisodeExtended)
 
+## Send Feedback [/api/home/feedback]
+
+Send a feedback about current episode and video_file.
+
+### send [POST]
+
++ Request  (application/json)
+
+    + Attributes
+
+        + episode_id: `f0317eb2-d487-4e89-9e8d-9cccffd73e00` (string, required) - current episode id.
+        + video_file_id: `fe4150ee-4b11-46e3-b0ef-31aa6bce1095` (string, required) - current played video_file id.
+        + message: `问题： 有画面无声音，附加信息：xxx` (string, required) - additional description of feedback.
+
++ Response 200 (application/json)
+
+        {
+            "message": "ok",
+            "status": 0
+        }
+
+## Announce [/api/home/announce]
+
+retrieve current valid Announcements
+
+### Get All Available [GET]
+
+Will only get announcement which current time is between start_time and end_time
+
++ Response 200 (application/json)
+
+    + Attributes
+
+        + `data` (array[Announce]) - the announce list. you need present these announce according to their position property.
 
 # Group Favorite And Watch History API
 
@@ -112,6 +147,25 @@ Change the favorite status of a bangumi
             "message": "ok",
             "status": 0
         }
+
+## Check favorite bangumi [/api/watch/favorite/check/{bangumi_id}]
+
+check current bangumi, update the check_time of current favorite.
+
++ Parameters
+    + `bangumi_id`: `46a469ee-5041-4f7c-8bf3-43ea6166a728` (string, required)
+
+### Update check_time [PUT]
+
+return a timestamp of the check_time in utc timezone
+
++ Response 200 (application/json)
+
+        {
+            "data": 1497574966172,
+            "status": 0
+        }
+
 
 ## Favorite Episode [/api/watch/favorite/episode/{episode_id}]
 
@@ -633,17 +687,17 @@ Update an episode, only a few property will be updated, for more detail, read th
 
 ### Delete an episode [DELETE /api/admin/episode/{episode_id}]
 
-Delete an episode, this operation will only add an delete_mark property to episode as current time.
-after a delay, task will run and delete this episode. user can undo the delete operation by remove the delete_mark before it is actually deleted.
+Delete an episode. *In the previous version, this operation will only add an delete_mark property to episode as current time.*
+*after a delay, task will run and delete this episode. user can undo the delete operation by remove the delete_mark before it is actually deleted.*
+
+**In current version. This operation make effective immediately.**
 
 + Parameters
     + `episode_id` (string, required)
 
 + Response 200 (application/json)
 
-    + Attributes
-        + data
-            + `delete_delay` (number) - delete_delay for episode, read from config file, unit is minute
+        {"message": "ok"}
 
 ## Video File [/api/video-file{?episode_id}]
 
@@ -763,7 +817,7 @@ Get the feed result from libyk.com, This API is unstable because it is a proxy A
 
 ## Bangumi.moe Proxy [/api/feed/bangumi-moe]
 
-Proxy for bangumi.moe API which method is POST
+Proxy for bangumi.moe API
 
 ### Proxy [POST]
 
@@ -774,6 +828,8 @@ Return response of this method can be any
     + Attributes
         + url (string, required) - target bangumi.moe url to reach
         + payload (object, required) - bangumi.moe request payload
+        + method (string, optional) - bangumi.moe request method
+            + Default: `POST`
 
 + Response 200 (application/json)
 
@@ -797,6 +853,23 @@ Search torrents using tag_ids, for more detail, see https://github.com/BangumiMo
         + count (number)
         + page_count (number),
         + torrents (array[object]) - see rin-pr document
+
+## Nyaa [/api/feed/nyaa]
+
+Get the feed result from libyk.com, This API is unstable because it is a proxy API
+
+### Get result [POST]
+
++ Request  (application/json)
+
+    + Attributes
+        + qs (string, required) - querystring will directly used in url. should be f=<number>&c=1_<number>&q=<query>
+
++ Response 200 (application/json)
+
+    + Attributes
+        + data (array[FeedResult]) - the result of query, can be empty array if no result matched.
+        + status: `0` (number)
 
 # Group Task
 
@@ -874,13 +947,14 @@ User related operations
 ### List All User [GET]
 
 + Parameters
-    + `name` (string, optional) - user name to search.
     + `count`: `10` (number, optional) - number of items per page.
         + Default: `10`
     + `offset`: `0` (number, optional) - start position off current page.
         + Default: `0`
     + `minlevel`: `0` (number, optional) - the minimun level of user.
         + Default: `0`
+    + `query-field`: `name` (string, optional) - filter by particular field
+    + `query-value`: `John Doe` (string, optional) - filter value used by query-field
 
 + Response 200 (application)
 
@@ -930,7 +1004,7 @@ List all unused invite code
 
 A set of API which is used to management announce.
 
-## List All Announce [/api/announce{offset,count}]
+## List All Announce [/api/announce{?offset,count}]
 
 List all announce including those already out of date.
 
@@ -983,6 +1057,133 @@ Delete an announce
 
 + Parameters
     + `announce_id`: `fe4150ee-4b11-46e3-b0ef-31aa6bce1095` (string) - id of announce
+
++ Response 200 (application/json)
+
+        {'message': 'ok'}
+
+
+# Group Web Hook Management
+
+A set of API management web hook registeration and lifecyle.
+
+## Web Hooks [/api/web-hook/]
+
+List all web hook registered. THIS API doesn't require an Admin permission.
+
+Notice: the tailing slash is required for this API.
+
+### GET ALL [GET]
+
+List all
+
++ Response 200 (application/json)
+
+    + Attributes
+        + `data` (WebHook) - list of web hook
+        + `total` (number) - total count
+
+### Register [POST /api/web-hook/register]
+
+Register a web hook. Make sure your web hook is ready to respond the KEEP_ALIVE event and handle the event correctly. Once the web hook is registered a KEEP_ALIVE
+event will be emitted. If your web hook does not respond correctly. Its status will always be INITIAL and will not emit any other event.
+
++ Request  (application/json)
+
+    + Attributes
+        + `name`: `Awesome Web Hook` (string) - name of web hook, must be unique.
+        + `description` (string) - a plaint text.
+        + `url`: `http://localhost:9800/` (string) - the url of web hook ,must be http/https scheme.
+        + `shared_secret`: `abc` (string) - a shared_secret which is used to make signature in both event and API.
+
++ Response 200 (application/json)
+
+    + Attributes
+        + `data`: `d92db89d-54f2-43aa-82d9-205aad99b96e` (string) - id of web hook
+
+## Update Web Hook [PUT /api/web-hook/{web_hook_id}]
+
+update some property of a certain web hook
+
++ Parameters
+    + `web_hook_id`: `d92db89d-54f2-43aa-82d9-205aad99b96e` (string) - id of a web hook
+
++ Request  (application/json)
+
+    + Attributes (WebHook)
+
++ Response 200 (application/json)
+
+        {'message': 'ok'}
+
+## DELETE Web HooK [DELETE /api/web-hook/{web_hook_id}]
+
+Delete a certain web hook and delete all web hook token associated with this web hook.
+
++ Parameters
+    + `web_hook_id`: `d92db89d-54f2-43aa-82d9-205aad99b96e` (string) - id of a web hook
+
++ Response 200 (application/json)
+
+        {'message': 'ok'}
+
+# Group Web Hook Life Cycle
+
+API for the web hook to invoke by itself. affect the status of the web hook
+
+## Revive [POST /api/web-hook/revive]
+
+Revive a HAS ERROR or DEAD status web hook. Besides, can be also used to initialize a web hook with an empty token_id_list.
+
+About the signature: token_id_list is a comma-separated string of token ids.
+
++ Request  (application/json)
+
+    + Attributes
+        + `web_hook_id`: `d92db89d-54f2-43aa-82d9-205aad99b96e` (string, required) - the id of web hook
+        + `token_id_list` (array[string], optional) - a token id list which indicates which user's favorite info is need for the web hook.
+        + `signature` (string) - a signature generated by web hook which is a hash using hmac with sha256 combine shared_secret and message, message format is `web_hook_id=<web_hook_id>&token_id_list=<token id list>`
+
++ Response 200 (application/json)
+
+    + Attributes
+        + `data` (array[TokenFavoriteList]) - a list of favorite object with user_id replaced by token_id
+
+# Group Web Hook Token For User
+
+## Web Hook Tokens [/api/web-hook/token{?web_hook_id,token_id}]
+
+token related APIs
+
+### GET ALL [GET]
+
+List web hook by user_id, actually this API will return all web_hook which user has a token associated with.
+
++ Response 200 (application/json)
+
+    + Attributes
+        + `data` (array[WebHook])
+        + `total` (number)
+
+
+### Add Web Hook Token [POST]
+
+Add a web hook token and associate with current user.
+
++ Parameters
+    + `web_hook_id`: `d92db89d-54f2-43aa-82d9-205aad99b96e` (string) - id of the web hook to be added.
+    + `token_id`: `` (string) - the token id
+
++ Response 200 (application/json)
+
+        {'message': 'ok'}
+
+### Delete Web Hook Token [DELETE]
+
+delete a web hook token
+
++ Parameters
+    + `web_hook_id`: `d92db89d-54f2-43aa-82d9-205aad99b96e` (string) - id of the web hook to be added.
 
 + Response 200 (application/json)
 
@@ -1094,7 +1295,7 @@ Delete an announce
 
 ## BangumiExtended (Bangumi)
 - `episodes` (array[EpisodeWithWatchProgress]) - episode list of the bangumi
-- `created_by` (User, optional) - user object, who is the creator of the bangumi item. 
+- `created_by` (User, optional) - user object, who is the creator of the bangumi item.
 - `maintained_by` (User, optional) - user object, who is the maintainer of the bangumi item.
 
 ## BangumiFavorite (Bangumi)
@@ -1102,6 +1303,9 @@ Delete an announce
 
 ## BangumiUnwatched (BangumiFavorite)
 - `unwatched_count`: `10` (number, required) - how many episodes which is downloaded but not been watched by current user.
+- `eps_update_time`: `1493655186675.0` (number) - timestamp when the latest episode is updated.
+- `favorite_update_time`: `1493655186675.0` - timestamp favorite status changed.
+- `favorite_check_time`: `1493655186675.0` (number) - timestamp when user check this bangumi, by default, this should be updated whenever user visit the bangumi detail page or play page.
 
 ## BangumiPendingDelete (Bangumi)
 - `delete_eta`: `5` (number, required) - estimated time left to delete this bangumi.
@@ -1186,10 +1390,27 @@ Delete an announce
 - `is_finished` (boolean) - whether this watch history is finished watching. when this field is true, watch_status of watch_progress will be 2 (WATCHED).
 
 ## Announce
-- `id` : 02981eec-c817-47e5-baed-56d466afbb20 (string)
-- `url`: `http://somesite.com/somepath` (string) - the target url of announcement content.
-- `image_url`: `http://someimagesite.com/image.jpg` (string) - the image for banner
-- `position`: `1` (number) - position of the announcement. currently can only be 1 (banner)
+- `id` : `02981eec-c817-47e5-baed-56d466afbb20` (string)
+- `content`: `http://somesite.com/somepath` (string) - when position = 1, content is the target url; when position = 2, content is a bangumi id
+- `image_url`: `http://someimagesite.com/image.jpg` (string) - the image for banner, when position = 2, this field is not exists.
+- `position`: `1` (number) - position of the announcement. currently can be 1 (banner), 2 (recommend)
 - `sort_order`: `0` (number) - when multiple announce in the same position, this is a reference order can be used to make a slide show. but currently not used.
 - `start_time`: `1497574966172` (number) - a timestamp for the start time of the announce.
 - `end_time`:  `1497574966172` (number) - a timestamp for the end time of the announce.
+- `bangumi` (Bangumi) - only available when position is 2
+
+## WebHook
+- `id`: `d92db89d-54f2-43aa-82d9-205aad99b96e` (string)
+- `name`: `Awesome Webhook` (string) - the name of web hook, must be unique
+- `description`: `A Web hook description` (string) - the description of web hook, this is plain text.
+- `url`: `http://localhost:9800/` (string) - the url of web hook
+- `status`: `1` (string) - the status of a web hook, can be 1 (ALIVE), 2 (HAS ERROR), 3 (DEAD), 4 (INTIAL)
+- `register_time`: `1497574966172` (number) - the web hook register time (UTC +0)
+- `consecutive_failure_count`: `1` (number) - indicates how many times this web hook has failed to responded event. when a max count exceeds this web hook status will be DEAD.
+- `shared_secret`: `abc` (string) - a shared secret string to make signature.
+
+## TokenFavoriteList
+- `id`:`808a7d09-629f-41a3-a1bc-0924a95c5cc6` (string) - id of favorite
+- `token_id`: `afb23de8d` (string) - token of a web hook
+- `bangumi_id`: `46a469ee-5041-4f7c-8bf3-43ea6166a728` (string) - id of the favorite bangumi
+- `status`: `3` (number) - favroite status, can be 1 (WISH), 2 (WATCHED), 3 (WATCHING), 4 (PAUSE), 5 (ABANDONED)

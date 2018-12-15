@@ -45,6 +45,7 @@ requirements: python 2.7, deluge ( >= 1.3.13 ), postgresql 9.3 and above, ffmpeg
 - Flask-Mail
 - colorthief
 - raven
+- bleach
 
 NOTE: ffmpeg is presume accessible with `ffmpeg` command
 
@@ -171,6 +172,10 @@ Web App + Admin Console: https://github.com/lordfriend/Deneb
 [Megumin](https://github.com/RoyaAoki/Megumin) contains all function except the admin console. support Android TV and mobile. 
 
 [![Get On Google Play](https://play.google.com/intl/en_us/badges/images/badge_new.png)](https://play.google.com/store/apps/details?id=com.sqrtf.megumin)
+
+[Mana](https://github.com/WindFi/mana) Android client for Albireo.Use todo-mvp pattern
+
+[![Get On Google Play](https://play.google.com/intl/en_us/badges/images/badge_new.png)](https://play.google.com/store/apps/details?id=me.sunzheng.mana)
 
 
 ## Sentry

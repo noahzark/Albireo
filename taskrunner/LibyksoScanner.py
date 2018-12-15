@@ -16,10 +16,11 @@ class LibyksoScanner(BangumiScanner):
     def query_bangumi_list(self):
         session = SessionManager.Session()
         try:
-            return session.query(Bangumi).\
+            bangumi_list = session.query(Bangumi).\
                 filter(Bangumi.status != Bangumi.STATUS_FINISHED).\
                 filter(Bangumi.libyk_so != None).\
                 all()
+            return [bangumi for bangumi in bangumi_list if bangumi.libyk_so]
         except Exception as error:
             logger.error(error, exc_info=True)
             return []

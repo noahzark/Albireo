@@ -11,6 +11,7 @@ from utils.VideoManager import video_manager
 from datetime import datetime
 from sqlalchemy import exc
 from utils.image import get_dominant_color, get_dimension
+from rpc.rpc_interface import episode_downloaded
 import logging
 import yaml
 
@@ -31,6 +32,9 @@ class DownloadManager:
         :return: a Deferred object
         """
         return self.downloader.connect_to_daemon()
+
+    def set_disconnect_cb(self, cb):
+        self.downloader.set_on_disconnect_cb(cb)
 
     def on_download_completed(self, torrent_id):
         logger.info('Download complete: %s', torrent_id)
@@ -60,6 +64,7 @@ class DownloadManager:
 
         def update_video_files(file_list):
             session = SessionManager.Session()
+            episode_id = None
             try:
                 result = session.query(VideoFile, Episode).\
                     join(Episode).\
@@ -86,30 +91,34 @@ class DownloadManager:
                             continue
                         video_file.file_path = file_path
                         video_file.status = VideoFile.STATUS_DOWNLOADED
-                        episode.update_time = datetime.now()
+                        episode.update_time = datetime.utcnow()
                         episode.status = Episode.STATUS_DOWNLOADED
                         create_thumbnail(episode, file_path)
                         update_video_meta(video_file)
+                        episode_id = str(episode.id)
                     else:
                         file_path_list = [file['path'] for file in file_list]
                         for file_path in file_path_list:
                             if video_file.file_name is not None and video_file.file_path is None and file_path.endswith(video_file.file_name):
                                 video_file.file_path = file_path
                                 video_file.status = VideoFile.STATUS_DOWNLOADED
-                                episode.update_time = datetime.now()
+                                episode.update_time = datetime.utcnow()
                                 episode.status = Episode.STATUS_DOWNLOADED
                                 create_thumbnail(episode, file_path)
                                 update_video_meta(video_file)
+                                episode_id = str(episode.id)
                                 break
                             elif video_file.file_path is not None and file_path == video_file.file_path:
                                 video_file.status = VideoFile.STATUS_DOWNLOADED
-                                episode.update_time = datetime.now()
+                                episode.update_time = datetime.utcnow()
                                 episode.status = Episode.STATUS_DOWNLOADED
                                 create_thumbnail(episode, file_path)
                                 update_video_meta(video_file)
+                                episode_id = str(episode.id)
                                 break
 
                 session.commit()
+                return episode_id
             except exc.DBAPIError as db_error:
                 if db_error.connection_invalidated:
                     session.rollback()
@@ -119,7 +128,9 @@ class DownloadManager:
         @inlineCallbacks
         def get_files(files):
             logger.debug(files)
-            yield threads.deferToThread(update_video_files, files)
+            episode_id = yield threads.deferToThread(update_video_files, files)
+            # send an event to web_hook
+            episode_downloaded(episode_id=episode_id)
 
         def fail_to_get_files(result):
             logger.warn('fail to get files of %s', torrent_id)
@@ -146,5 +157,6 @@ class DownloadManager:
     def get_complete_torrents(self):
         torrent_dict = yield self.downloader.get_complete_torrents()
         returnValue(torrent_dict)
+
 
 download_manager = DownloadManager(DelugeDownloader)
