@@ -101,6 +101,7 @@ def user_favorite_update(user_id):
     d.addErrback(on_fail)
 
 
+@rpc_export
 def episode_downloaded(episode_id):
 
     def query_episode():
