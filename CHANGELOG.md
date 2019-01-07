@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.14.1
+
+- Webhook event allow new empty field in episode dictionary 
+
 ## 2.14.0
 
 - change my_bangumi API returns, add `eps_update_time`, `favorite_update_time` and `favorite_check_time`. for more details, check API document.
