@@ -46,6 +46,12 @@ class ImportTools:
 
         return False
 
+    def __video_path_already_added(self, existed_video_files, file_path):
+        for video_file in existed_video_files:
+            if video_file.file_path == file_path:
+                return True
+        return False
+
     def __list_file_recursively(self, download_dir):
         file_list = []
         for dp, dn, fn in os.walk(download_dir):
@@ -58,7 +64,7 @@ class ImportTools:
 
         return file_list
 
-    def check_and_update_bangumi_stataus(self, bangumi_id):
+    def check_and_update_bangumi_status(self, bangumi_id):
         session = SessionManager.Session()
         try:
             bangumi = session.query(Bangumi).filter(Bangumi.id == bangumi_id).one()
@@ -93,10 +99,12 @@ class ImportTools:
             episodes = {}
             video_files = []
             for eps in eps_list:
-                if self.__episode_has_video_file(existed_video_files, eps):
-                    continue
+                # if self.__episode_has_video_file(existed_video_files, eps):
+                #     continue
                 episodes[eps.episode_no] = eps
                 for f in files:
+                    if self.__video_path_already_added(existed_video_files, f.decode('utf-8')):
+                        continue
                     if self.__parse_episode_number(f) + eps_no_offset == eps.episode_no:
                         eps.status = Episode.STATUS_DOWNLOADED
                         video_files.append(VideoFile(bangumi_id=bangumi_id,
@@ -109,12 +117,20 @@ class ImportTools:
                     if not eps:
                         continue
                     episode_num = str(eps.episode_no)
-                    file_name = "None"
+                    line = episode_num + ": \t"
+                    file_name = None
                     for video_file in video_files:
                         if video_file.episode_id == eps.id:
+                            if file_name is None:
+                                line = line + video_file.file_path
+                            else:
+                                line = line + "\n  \t" + video_file.file_path
+                            if video_file.label is not None:
+                                line = line + "\t" + video_file.label.decode('utf-8')
                             file_name = video_file.file_path
-                            break
-                    print (episode_num + ": \t" + file_name)
+                    if file_name is None:
+                        line = line + "None"
+                    print (line)
 
                 print("Right? Y/N")
                 x = raw_input(">>> Input: ")
@@ -138,17 +154,21 @@ class ImportTools:
                                     video_file.resolution_h = meta_dict['height']
                                     video_file.duration = meta_dict['duration']
                                     session.add(video_file)
-                                break
+                                # break
                     session.commit()
                     return
                 else:
                     video_files = []
                     for f in files:
                         print f
-                        x = raw_input(">>> Episode Num")
+                        x = raw_input(">>> Episode Num and Label (separated by comma)")
                         if not x:
                             continue
-                        x = int(x)
+                        arguments = x.split(',')
+                        x = int(arguments[0])
+                        label = None
+                        if len(arguments) > 1:
+                            label = arguments[1]
                         eps = episodes[x]
                         if not eps:
                             continue
@@ -156,6 +176,7 @@ class ImportTools:
                         video_files.append(VideoFile(bangumi_id=bangumi_id,
                                                      episode_id=eps.id,
                                                      file_path=f.decode('utf-8'),
+                                                     label=label,
                                                      status=VideoFile.STATUS_DOWNLOADED))
         finally:
             SessionManager.Session.remove()
@@ -181,4 +202,4 @@ if __name__ == '__main__':
         print 'create bangumi not supported, please use web admin'
     elif args.operate == 'update':
         import_tools.update_bangumi(args.uuid)
-        import_tools.check_and_update_bangumi_stataus(args.uuid)
+        import_tools.check_and_update_bangumi_status(args.uuid)

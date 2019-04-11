@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.14.2
+
+- update import.py allow it to add multiple video files into an episode and provide a label for an episode.
+
 ## 2.14.1
 
 - Webhook event allow new empty field in episode dictionary 
