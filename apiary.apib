@@ -336,10 +336,12 @@ get user information, this api can be used for check session validation
 + Response 200 (application/json)
 
         {
-            "name": "john_doe",
-            "level": 0,
-            "email": "john_doe@example.com",
-            "email_confirmed": True
+            "data": {
+                "name": "john_doe",
+                "level": 0,
+                "email": "john_doe@example.com",
+                "email_confirmed": True
+            }
         }
 
 + Response 401 (application/json)
@@ -668,7 +670,8 @@ Get an episode detail
 
 + Response 200 (application/json)
 
-    + Attributes (Episode)
+    + Attributes
+        + data (Episode)
 
 ### Update Episode [PUT /api/admin/episode/{episode_id}]
 
@@ -690,7 +693,7 @@ Update an episode, only a few property will be updated, for more detail, read th
 Delete an episode. *In the previous version, this operation will only add an delete_mark property to episode as current time.*
 *after a delay, task will run and delete this episode. user can undo the delete operation by remove the delete_mark before it is actually deleted.*
 
-**In current version. This operation make effective immediately.**
+**In current version. This operation takes effective immediately.**
 
 + Parameters
     + `episode_id` (string, required)
@@ -1080,7 +1083,7 @@ List all
 + Response 200 (application/json)
 
     + Attributes
-        + `data` (WebHook) - list of web hook
+        + `data` (array[WebHook]) - list of web hook
         + `total` (number) - total count
 
 ### Register [POST /api/web-hook/register]

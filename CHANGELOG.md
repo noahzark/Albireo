@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.14.3
+
+- fix typo in API Blueprint file, fix the incorrect return format of get episode API (although currently not used) in API Blueprint.
+
 ## 2.14.2
 
 - update import.py allow it to add multiple video files into an episode and provide a label for an episode.
