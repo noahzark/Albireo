@@ -3,6 +3,7 @@
 ## 2.14.3
 
 - fix typo in API Blueprint file, fix the incorrect return format of get episode API (although currently not used) in API Blueprint.
+- fix #150
 
 ## 2.14.2
 
