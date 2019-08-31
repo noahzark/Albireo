@@ -42,8 +42,7 @@ def episode_history(episode_id):
                                          user_id=current_user.id,
                                          last_watch_position=data['last_watch_position'],
                                          percentage=data['percentage'],
-                                         is_finished=data['is_finished'],
-                                         last_watch_time=data.get('last_watch_time'))
+                                         is_finished=data['is_finished'])
 
 
 @watch_api.route('/history/synchronize', methods=['POST'])
