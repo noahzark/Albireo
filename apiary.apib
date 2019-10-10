@@ -505,23 +505,23 @@ Add a bangumi
 + Request  (application/json)
 
     + Attributes
-        + `bgm_id`: `174138` (number) - the id of this bangumi in bgm.tv
-        + `name`: `ロクでなし魔術講師と禁忌教典` (string) - the original name (usually the original language) of the bangumi
-        + `name_cn`: `不正经的魔术讲师与禁忌教典` (string) - the chinese translated name of the bangumi, can be null.
-        + `summary`: `厌恶魔术的魔术讲师所展开的叛逆英雄幻想剧！魔术与科学共同发展的世界——卢瓦佛斯。位于魔导大国·阿尔扎诺帝国南部的“阿尔扎诺帝国魔法学院”，是学习世界最先端魔术的最高学舍...` (string) - description for bangumi, can be null
-        + `image`: `http://lain.bgm.tv/pic/cover/l/fb/9a/212500_858ip.jpg` (string) - the original image url from bgm.tv, this should not be used except the bangumi is not saved into database yet. A client should use cover property.
+        + `bgm_id`: `13131` (number) - the id of this bangumi in bgm.tv
+        + `name`: `喜羊羊与灰太狼` (string) - the original name (usually the original language) of the bangumi
+        + `name_cn`: `喜羊羊与灰太狼` (string) - the chinese translated name of the bangumi, can be null.
+        + `summary`: `羊历3010年（故事中的虚构历法），一个绵羊群的先祖为了避开狼群的追杀而去到“青青草原”，并建立了一个有着坚固防御的小村。` (string) - description for bangumi, can be null
+        + `image`: `http://lain.bgm.tv/pic/cover/l/05/2a/13131_1GmZy.jpg` (string) - the original image url from bgm.tv, this should not be used except the bangumi is not saved into database yet. A client should use cover property.
         + `eps_no_offset` (number) - A offset is used for adjust episode number matching issue. offset = <episode.episode_no> - <feed episode number>, can be null
         + `type`: `2` (number)
-        + `air_date`: `2017-04-29` (string) - air date (aka on air starting date of bangumi)
-        + `air_weekday`: `6` (number) - Which day of a week this bangumi is on air.
-        + `eps`: `1` (number) - how many episodes the bangumi has
+        + `air_date`: `2005-06-01` (string) - air date (aka on air starting date of bangumi)
+        + `air_weekday`: `3` (number) - Which day of a week this bangumi is on air.
+        + `eps`: `530` (number) - how many episodes the bangumi has
         + `episodes`
-            + `bgm_eps_id`: `288990` (number)
+            + `bgm_eps_id`: `75724` (number)
             + `episode_no`: `1` (number)
-            + `name`: `納涼床の女神` (string)
-            + `name_cn`: `纳凉露台的女神` (string)
+            + `name`: `狼来了（上）` (string)
+            + `name_cn`: `狼来了（上）` (string)
             + `duration`: `00:24:00` (string)
-            + `airdate`: `2013-07-07` (string)
+            + `airdate`: `2005-06-01` (string)
 
 + Response 200 (application/json)
 
@@ -1196,16 +1196,16 @@ delete a web hook token
 # Data Structures
 
 ## BangumiRaw
-- `bgm_id`: `193042` (number)
+- `bgm_id`: `13131` (number)
 - `rating` (Rating)
-- `name`: `有頂天家族2` (string)
-- `air_date`: `2017-04-09` (string)
-- `image`: `http://lain.bgm.tv/pic/cover/l/0d/e4/193042_So0pa.jpg` (string)
-- `name_cn`: `有顶天家族2` (string)
-- `eps`: `12` (number)
-- `rank`: `428` (number)
-- `summary`: `人居市街内，狸猫匍地行，天狗翱长空。居于京都下鸭神社糺之森的下鸭一家。...。` (string)
-- `air_weekday`: `7` (number)
+- `name`: `喜羊羊与灰太狼` (string)
+- `air_date`: `2005-06-01` (string)
+- `image`: `http://lain.bgm.tv/pic/cover/l/05/2a/13131_1GmZy.jpg` (string)
+- `name_cn`: `喜羊羊与灰太狼` (string)
+- `eps`: `530` (number)
+- `rank`: `5400` (number)
+- `summary`: `羊历3010年（故事中的虚构历法），一个绵羊群的先祖为了避开狼群的追杀而去到“青青草原”，并建立了一个有着坚固防御的小村。...。` (string)
+- `air_weekday`: `3` (number)
 - `id`: `587b0a9b-c2ba-4f01-b553-6d14ed60f311` (string, optional) - this is the bangumi id in database, if this id is found, client should let user know that this bangumi already exists in database.
 
 ## Rating
@@ -1232,17 +1232,17 @@ delete a web hook token
 - `height`: 400 (number) - the height of the image in pixel.
 
 ## BangumiRawLarge
-- `id`: `68035` (number)
-- `url`: `http://bgm.tv/subject/68035` (string)
+- `id`: `13131` (number)
+- `url`: `http://bgm.tv/subject/13131` (string)
 - `type`: `2` (number)
-- `name`: `有頂天家族` (string)
-- `name_cn`: `有顶天家族` (string)
-- `summary`: `作品讲述原狸猫一族名门下鸭家的家主被人类下火锅后，不中用的下鸭四兄弟与其老母撑起家道中落的下鸭家的故事。老大矢一郎个性认真，但一到紧要关头就手足无措；老二变身为青蛙，不肯出井底；老三最爱看好戏，喜欢恶作剧；老幺胆子小，变身总是忘了藏尾巴。不靠谱的四兄弟………困境重重、霉运不断，四兄弟有机会保护母亲，重振家威吗？` (string)
+- `name`: `喜羊羊与灰太狼` (string)
+- `name_cn`: `喜羊羊与灰太狼` (string)
+- `summary`: `羊历3010年（故事中的虚构历法），一个绵羊群的先祖为了避开狼群的追杀而去到“青青草原”，并建立了一个有着坚固防御的小村。` (string)
 - `eps` (array[EpisodeRaw])
-- `air_date`: `2013-07-07` (string)
-- `air_weekday`: `7` (number)
+- `air_date`: `2005-06-01` (string)
+- `air_weekday`: `3` (number)
 - `rating` (Rating)
-- `rank`: `247` (number)
+- `rank`: `5400` (number)
 - `images` (BgmImage) - you should use the `large` property of image.
 - `collection` (object) - this is a trivial object for Albireo. for more detail, visit: https://github.com/jabbany/dhufufu/blob/master/bangumi/api.txt
 - `crt` (array[object]) - this is a trivial object for Albireo. for more detail, visit: https://github.com/jabbany/dhufufu/blob/master/bangumi/api.txt
@@ -1251,45 +1251,45 @@ delete a web hook token
 - `blog` (array[object]) - this is a trivial object for Albireo. for more detail, visit: https://github.com/jabbany/dhufufu/blob/master/bangumi/api.txt
 
 ## EpisodeRaw
-- `id`: `288990` (number)
-- `url`: `http://bgm.tv/ep/288990` (string)
+- `id`: `75724` (number)
+- `url`: `http://bgm.tv/ep/75724` (string)
 - `type`: `0` (number)
 - `sort`: `1` (number)
-- `name`: `納涼床の女神` (string)
-- `name_cn`: `纳凉露台的女神` (string)
+- `name`: `狼来了（上）` (string)
+- `name_cn`: `狼来了（上）` (string)
 - `duration`: `00:24:00` (string)
-- `airdate`: `2013-07-07` (string)
+- `airdate`: `2005-06-01` (string)
 - `comment`: `99` (number)
-- `desc`: `脚本：菅正太郎 / 絵コンテ：吉原正行 / 演出：菅沼芙実彦 / 作画監督：川面恒介
+- `desc`: `` (string)
 
 ## BgmImage
-- `large`: `http://lain.bgm.tv/pic/crt/l/a6/73/5807_prsn_Igcj1.jpg` (string)
-- `medium`: `http://lain.bgm.tv/pic/crt/m/a6/73/5807_prsn_Igcj1.jpg` (string)
-- `small`: `http://lain.bgm.tv/pic/crt/s/a6/73/5807_prsn_Igcj1.jpg` (string)
-- `grid`: `http://lain.bgm.tv/pic/crt/g/a6/73/5807_prsn_Igcj1.jpg` (string)
+- `large`: `http://lain.bgm.tv/pic/cover/l/05/2a/13131_1GmZy.jpg` (string)
+- `medium`: `http://lain.bgm.tv/pic/cover/c/05/2a/13131_1GmZy.jpg` (string)
+- `small`: `http://lain.bgm.tv/pic/cover/s/05/2a/13131_1GmZy.jpg` (string)
+- `grid`: `http://lain.bgm.tv/pic/cover/g/05/2a/13131_1GmZy.jpg` (string)
 
 ## Bangumi
 - `id`: `46a469ee-5041-4f7c-8bf3-43ea6166a728` (string)
 - `bgm_id`: `174138` (number) - the id of this bangumi in bgm.tv
-- `name`: `ロクでなし魔術講師と禁忌教典` (string) - the original name (usually the original language) of the bangumi
-- `name_cn`: `不正经的魔术讲师与禁忌教典` (string) - the chinese translated name of the bangumi, can be null.
-- `summary`: `厌恶魔术的魔术讲师所展开的叛逆英雄幻想剧！魔术与科学共同发展的世界——卢瓦佛斯。位于魔导大国·阿尔扎诺帝国南部的“阿尔扎诺帝国魔法学院”，是学习世界最先端魔术的最高学舍...` (string) - description for bangumi, can be null
-- `image`: `http://lain.bgm.tv/pic/cover/l/fb/9a/212500_858ip.jpg` (string) - the original image url from bgm.tv, this should not be used except the bangumi is not saved into database yet. A client should use cover property.
+- `name`: `喜羊羊与灰太狼` (string) - the original name (usually the original language) of the bangumi
+- `name_cn`: `喜羊羊与灰太狼` (string) - the chinese translated name of the bangumi, can be null.
+- `summary`: `羊历3010年（故事中的虚构历法），一个绵羊群的先祖为了避开狼群的追杀而去到“青青草原”，并建立了一个有着坚固防御的小村。...` (string) - description for bangumi, can be null
+- `image`: `http://lain.bgm.tv/pic/cover/l/05/2a/13131_1GmZy.jpg` (string) - the original image url from bgm.tv, this should not be used except the bangumi is not saved into database yet. A client should use cover property.
 - `cover`: `https://yourdomain.com/pic/46a469ee-5041-4f7c-8bf3-43ea6166a728/cover.jpg` (string) - the image url of bangumi, which is stored locally. **Note that this field is DEPRECATED**
 - `cover_color`: `#ffcfc3` (string, optional) - the dominant color of bangumi cover image. **Note that this field is DEPRECATED**
 - `cover_image` (Image, optional) - cover image object.
 - `create_time`: `1493655186672.0` (number)
 - `update_time`: `1493655186672.0` (number)
 - `eps_no_offset` (number) - A offset is used for adjust episode number matching issue. offset = <episode.episode_no> - <feed episode number>, can be null
-- `bangumi_moe`: `[{"_id":"58df79c779c3a0541f4b61bb","name":"ロクでなし魔術講師と禁忌教典","type":"bangumi"}]` (string) - the search term for bangumi.moe, this string is in fact a json string. For detail of this format, see https://github.com/BangumiMoe/rin-pr-apidoc/blob/master/DOC/api/tag.md
-- `libyk_so`: `{q: "不正经的魔术讲师与禁忌教典 简体 MP4", t: "dmhy"}` (string) - search term for libyk.com. The string is in fact a json string
-- `dmhy`: `不正经的魔术讲师与禁忌教典 简体 MP4` (string) - search term for dmhy
+- `bangumi_moe`: `[{"_id":"58df79c779c3a0541f4b61bb","name":"喜羊羊与灰太狼","type":"bangumi"}]` (string) - the search term for bangumi.moe, this string is in fact a json string. For detail of this format, see https://github.com/BangumiMoe/rin-pr-apidoc/blob/master/DOC/api/tag.md
+- `libyk_so`: `{q: "喜羊羊与灰太狼 简体 MP4", t: "dmhy"}` (string) - search term for libyk.com. The string is in fact a json string
+- `dmhy`: `喜羊羊与灰太狼 简体 MP4` (string) - search term for dmhy
 - `type`: `2` (number)
 - `status`: `1` (number) - status of a bangumi, can be 0 (pending), 1 (on air), 2 (finished)
 - `air_date`: `2017-04-29` (string) - air date (aka on air starting date of bangumi)
 - `air_weekday`: `6` (number) - Which day of a week this bangumi is on air.
 - `delete_mark`: `1493655186672.0` (number) - used for mark the delete action timestamp, can be null
-- `acg_rip`: `世界奇妙物语 720 MP4`, (string) - the search term for acg.rip
+- `acg_rip`: `喜羊羊与灰太狼 720 MP4`, (string) - the search term for acg.rip
 - `rss` (string) - DEPRECATED, will be removed in the future
 - `eps_regex` (string) - DEPRECATED, will be removed in the future
 - `eps`: `1` (number) - how many episodes the bangumi has
@@ -1317,8 +1317,8 @@ delete a web hook token
 - `id`: `f0317eb2-d487-4e89-9e8d-9cccffd73e00` (string)
 - `bangumi_id`: `46a469ee-5041-4f7c-8bf3-43ea6166a728` (string) - Id of bangumi that is the episode belong to.
 - `bgm_eps_id`: `711764` (number) - id of this episode in bgm.tv
-- `name`: `01` (string) - the original name (usually the original language) of the episode
-- `name_cn`: `没干劲的不正经老师` (string) - the chinese translated name of the episode, can be null
+- `name`: `狼来了（上）` (string) - the original name (usually the original language) of the episode
+- `name_cn`: `狼来了（上）` (string) - the chinese translated name of the episode, can be null
 - `thumbnail`: `https://yourdomain.com/pic/46a469ee-5041-4f7c-8bf3-43ea6166a728/thumbnails/1.png` (string, optional) **Note that this field is DEPRECATED**
 - `status`: `2` (number) - the status of episode, can be: 0 (not downloaded), 1 (downloading), 2 (downloaded)
 - `episode_no`: `1` (number) - the number of the episode

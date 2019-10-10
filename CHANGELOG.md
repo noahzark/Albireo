@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.14.5
+
+- update example info in API Blueprint file. this change has no effect in anywhere.
+
 ## 2.14.4
 
 - fix #150
