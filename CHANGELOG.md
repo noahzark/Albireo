@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.14.6
+
+- update regex constants
+
 ## 2.14.5
 
 - update example info in API Blueprint file. this change has no effect in anywhere.
