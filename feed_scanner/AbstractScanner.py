@@ -31,6 +31,10 @@ class AbstractScanner(object):
             self.timeout = int(self.feedparser['timeout'])
         else:
             self.timeout = None
+        if 'universal' in config:
+            self.universal = config['universal']
+        else:
+            self.universal = None
 
         try:
             # create an path for bangumi using bangumi.id

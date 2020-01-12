@@ -6,10 +6,15 @@ from flask_login import login_required
 from service.auth import auth_user
 from utils.exceptions import ClientError
 from domain.User import User
+from yaml import load
 
 import json
 
 feed_api = Blueprint('feed', __name__)
+
+fr = open('./config/config.yml', 'r')
+config = load(fr)
+universal_config = config.get('universal')
 
 
 @feed_api.route('/dmhy/<keywords>', methods=['GET'])
@@ -73,3 +78,27 @@ def nyaa():
         raise ClientError('qs must have value', 400)
     else:
         return feed_service.parse_nyaa(qs)
+
+
+@feed_api.route('/universal', methods=['POST'])
+@login_required
+@auth_user(User.LEVEL_ADMIN)
+def universal():
+    if universal_config is None:
+        raise ClientError('Universal disabled. contact admin', 400)
+    universal_req = json.loads(request.get_data(True, as_text=True))
+    mode = universal_req.get('mode')
+    keyword = universal_req.get('keyword')
+    if mode is None or keyword is None:
+        raise ClientError('mode and keyword cannot be empty', 400)
+    elif mode not in universal_config:
+        raise ClientError('no mode named {0}'.format(mode,))
+    else:
+        return feed_service.parse_universal(mode, keyword)
+
+
+@feed_api.route('/universal/meta', methods=['GET'])
+@login_required
+@auth_user(User.LEVEL_ADMIN)
+def universal_meta():
+    return feed_service.get_universal_meta()
