@@ -224,6 +224,8 @@ Batch synchronize episode history to server. By comparing with last_watch_time b
 a watch_progress record may be updated or untouched. if last_watch_time from client is later or equal than server,
 server watch_progress record will be updated, otherwise the record from client will be dropped.
 
+is_finished is only useful when the episode doesn't have a watch status or watch status isn't WATCHED.
+
 **This API always return success even the operation actually failed.**
 
 Note that the last_watch_time must be UTC time.

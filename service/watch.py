@@ -173,7 +173,9 @@ class WatchService:
                     if str(watch_progress.episode_id) == record['episode_id']:
                         record_found = True
                         if watch_progress.last_watch_time <= last_watch_time:
-                            watch_progress.watch_status = watch_status
+                            # Once watch status is Watch. we should not change it to other status
+                            if watch_progress.watch_status is not WatchProgress.WATCHED:
+                                watch_progress.watch_status = watch_status
                             watch_progress.last_watch_time = last_watch_time
                             watch_progress.last_watch_position = record['last_watch_position']
                             watch_progress.percentage = record['percentage']

@@ -137,7 +137,7 @@ class AdminService:
 
         bgm_list = bgm_content['list']
         total_count = bgm_content['results']
-        if len(bgm_list) == 0:
+        if bgm_list is None or len(bgm_list) == 0:
             return json_resp(result)
 
         bgm_id_list = [bgm['id'] for bgm in bgm_list]
@@ -318,6 +318,7 @@ class AdminService:
             bangumi.libyk_so = bangumi_dict.get('libyk_so')
             bangumi.bangumi_moe = bangumi_dict.get('bangumi_moe')
             bangumi.nyaa = bangumi_dict.get('nyaa')
+            bangumi.universal = bangumi_dict.get('universal')
 
             bangumi.eps_no_offset = bangumi_dict.get('eps_no_offset')
             if not bangumi.eps_no_offset:

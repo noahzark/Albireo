@@ -43,6 +43,7 @@ from taskrunner.BangumiMoeScanner import BangumiMoeScanner
 from taskrunner.AcgripScanner import AcgripScanner
 from taskrunner.LibyksoScanner import LibyksoScanner
 from taskrunner.NyaaScanner import NyaaScanner
+from taskrunner.UniversalScanner import UniversalScanner
 from taskrunner.DeleteScanner import DeleteScanner
 from rpc.rpc_interface import setup_server
 from web_hook.keep_alive_checker import keep_alive_checker
@@ -61,7 +62,10 @@ class Scheduler:
             logger.warn('delete delay section is not set, please update your config file!')
         else:
             self.delete_delay = config['task']['delete_delay']
-
+        if 'universal' in config:
+            self.universal = config['universal']
+        else:
+            self.universal = None
         try:
             if not os.path.exists(self.base_path):
                 os.makedirs(self.base_path)
@@ -80,6 +84,8 @@ class Scheduler:
         # libyk scanner don't have chance conflict with other scanner, so we can start simultaneously
         self.start_scan_libykso()
         self.start_scan_nyaa()  # usually this doesn't conflict
+        # consider using universal instead of old dmhy scanner
+        self.start_scan_universal()
 
     def scheduleFail(self, failure):
         logger.error(failure)
@@ -119,6 +125,14 @@ class Scheduler:
     def start_scan_delete(self):
         delete_scanner = DeleteScanner(self.base_path, self.delete_delay)
         delete_scanner.start()
+
+    def start_scan_universal(self):
+        if self.universal is None:
+            return
+        logger.debug('start universal')
+        for mode in self.universal:
+            universal_scanner = UniversalScanner(self.base_path, self.interval, mode)
+            universal_scanner.start()
 
 
 scheduler = Scheduler()

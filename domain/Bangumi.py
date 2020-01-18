@@ -27,16 +27,19 @@ class Bangumi(Base):
     # @deprecated
     rss = Column(TEXT, nullable=True)
     # dmhy search criteria
+    # @deprecated
     dmhy = Column(TEXT, nullable=True)
     eps_no_offset = Column(Integer, nullable=True)
     # acg.rip search criteria
     acg_rip = Column(TEXT, nullable=True)
-    # libyk.so search criteria, this field should be an JSON string contains two fields: {t: string, q: string}
+    # libyk.so search criteria, this field should be a JSON string contains two fields: {t: string, q: string}
     libyk_so = Column(TEXT, nullable=True)
-    # bangumi.moe tag id array, this field should be an serialized JSON array contains strings
+    # bangumi.moe tag id array, this field should be a serialized JSON array contains strings
     bangumi_moe = Column(TEXT, nullable=True)
     # nyaa search query string. should already be urlencoded
     nyaa = Column(TEXT, nullable=True)
+    # new scanner for dmhy and bangumi_moe
+    universal = Column(TEXT, nullable=True)
     # @deprecated
     eps_regex = Column(TEXT, nullable=True)
     status = Column(Integer, nullable=False)

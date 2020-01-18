@@ -7,6 +7,7 @@ import urllib
 import socket
 import re
 import logging
+import requests
 
 from utils.exceptions import ClientError
 from utils.http import json_resp, bangumi_moe_request
@@ -17,11 +18,11 @@ logger = logging.getLogger(__name__)
 
 class FeedService(object):
 
-
     def __init__(self):
         fr = open('./config/config.yml', 'r')
         config = yaml.load(fr)
         self.feedparser_config = config['feedparser']
+        self.universal = config.get('universal')
 
         if 'timeout' in self.feedparser_config:
             self.timeout = int(self.feedparser_config['timeout'])
@@ -183,6 +184,34 @@ class FeedService(object):
             title_list.append({'title': item_title, 'eps_no': eps_no})
 
         return json_resp({'data': title_list, 'status': 0})
+
+    def parse_universal(self, mode, keyword):
+        result = {}
+        r = requests.get(self.universal[mode], params={'keyword': keyword})
+        if r.status_code > 399:
+            r.raise_for_status()
+
+        try:
+            search_result = r.json()
+        except Exception as error:
+            logger.warn(error)
+            result['message'] = 'fail to query universal {0}'.format(mode)
+            return json_resp(result, 500)
+        for item in search_result:
+            media_files = item['files']
+            item['eps_no_list'] = []
+            for media_file in media_files:
+                if media_file['ext'] != '.mp4':
+                    continue
+                eps_no = self.parse_episode_number(media_file['name'])
+                item['eps_no_list'].append(eps_no)
+        return json_resp({'data': search_result, 'status': 0})
+
+    def get_universal_meta(self):
+        if self.universal is None:
+            return json_resp({'data': [], 'status': 0})
+        else:
+            return json_resp({'data': list(self.universal.keys()), 'status': 0})
 
 
 feed_service = FeedService()
