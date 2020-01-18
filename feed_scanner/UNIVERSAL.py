@@ -18,7 +18,7 @@ class UNIVERSAL(AbstractScanner):
         universal_list = json.loads(self.bangumi.universal)
         for res in universal_list:
             if res['mode'] == mode:
-                self.keyword = res.keyword
+                self.keyword = res['keyword']
                 break
 
     def parse_feed(self):
