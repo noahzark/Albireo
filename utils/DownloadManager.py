@@ -142,7 +142,7 @@ class DownloadManager:
 
     @inlineCallbacks
     def download(self, download_url, download_location):
-        torrent_id = yield self.downloader.download(download_url, download_location)
+        torrent_id = yield self.downloader.download(download_url.strip(), download_location)
         returnValue(torrent_id)
 
     @inlineCallbacks

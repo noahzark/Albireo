@@ -12,6 +12,8 @@ You also need to upgrade your `config/config.yml` file by adding `universal sect
 
 - fix bug that watch status of episode can be change from WATCHED to WATCHING.
     this will affect the API usage.
+- fix bug (#159) trim download url.
+- fix bug (#154) sometimes the bgm_list from bgm.tv is None
 
 ## 2.14.6
 

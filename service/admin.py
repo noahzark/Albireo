@@ -137,7 +137,7 @@ class AdminService:
 
         bgm_list = bgm_content['list']
         total_count = bgm_content['results']
-        if len(bgm_list) == 0:
+        if bgm_list is None or len(bgm_list) == 0:
             return json_resp(result)
 
         bgm_id_list = [bgm['id'] for bgm in bgm_list]
