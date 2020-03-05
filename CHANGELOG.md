@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.1
+
+Add nyaa url of universal in config-sample.yml
+
 ## 3.0.0
 
 ### New Feature
