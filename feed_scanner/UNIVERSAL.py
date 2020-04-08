@@ -3,7 +3,6 @@ from utils.exceptions import SchedulerError
 import json
 import socket
 import requests
-import os
 
 import logging
 
@@ -14,6 +13,7 @@ class UNIVERSAL(AbstractScanner):
 
     def __init__(self, bangumi, episode_list, mode):
         super(self.__class__, self).__init__(bangumi, episode_list)
+        self.mode = mode
         self.feed_url = self.universal[mode]
         universal_list = json.loads(self.bangumi.universal)
         for res in universal_list:
@@ -42,7 +42,7 @@ class UNIVERSAL(AbstractScanner):
         for item in item_array:
             eps_list = []
             for media_file in item['files']:
-                if media_file['ext'] != '.mp4':
+                if media_file['ext'] is not None and media_file['ext'].lower() != '.mp4':
                     continue
                 eps_no = self.parse_episode_number(media_file['name'])
                 if eps_no in eps_no_list:
@@ -54,7 +54,11 @@ class UNIVERSAL(AbstractScanner):
             if len(eps_list) == 0:
                 continue
             for eps in eps_list:
-                result_list.append((item['torrent_url'], eps['eps_no'], eps['file_path'], eps['file_name']))
+                if self.mode == 'nyaa':
+                    download_uri = item['magnet_uri']
+                else:
+                    download_uri = item['torrent_url']
+                result_list.append((download_uri, eps['eps_no'], eps['file_path'], eps['file_name']))
 
         logger.debug(result_list)
 

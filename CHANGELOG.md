@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.1
+
+- Add nyaa url of universal in config-sample.yml
+- fix bug that nyaa cannot be accessed in some region.
+- fix bug in universal scanner which cannot recognize capital mp4 file extension.
+
 ## 3.0.0
 
 ### New Feature
