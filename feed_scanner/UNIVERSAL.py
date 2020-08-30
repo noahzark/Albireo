@@ -54,7 +54,7 @@ class UNIVERSAL(AbstractScanner):
             if len(eps_list) == 0:
                 continue
             for eps in eps_list:
-                if self.mode == 'nyaa':
+                if self.mode == 'nyaa' or self.mode == 'dmhy':
                     download_uri = item['magnet_uri']
                 else:
                     download_uri = item['torrent_url']

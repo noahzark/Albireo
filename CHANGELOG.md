@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.2
+
+- Using magnet for dmhy in unversal scanner against a high rate of download torrent file failure.
+
 ## 3.0.1
 
 - Add nyaa url of universal in config-sample.yml
