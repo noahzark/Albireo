@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.3
+
+- Force use https link to download image from bgm.tv. #167
+- Add version restriction for feedparser, #166
+- remove the Dockerfile from root dir. add docker-sample to show how to run with docker-compose
+
 ## 3.0.2
 
 - Using magnet for dmhy in unversal scanner against a high rate of download torrent file failure.

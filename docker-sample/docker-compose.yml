@@ -1,0 +1,52 @@
+version: "2"
+services:
+  postgres:
+    image: postgres
+    ports:
+      - 127.0.0.1:5433:5432
+#    environment:
+#      POSTGRES_USER: "${POSTGRES_USER}"
+#      POSTGRES_PASSWORD: "${POSTGRES_USER}"
+    volumes:
+      - /docker_data/postgres/:/var/lib/postgresql/data:rw
+    restart: always
+  albireo-web:
+    build:
+      context: albireo
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - 127.0.0.1:30001:5000
+    volumes:
+      - ./config/albireo/config.yml:/usr/app/config/config.yml:ro
+      - ./config/albireo/sentry.yml:/usr/app/config/sentry.yml:ro
+      - ./config/albireo/alembic.ini:/usr/app/alembic.ini:ro
+      - /docker_data/albireo/data:/data/Albireo:rw
+    command: "twistd -n --pidfile= web --port 5000 --wsgi appd.app"
+  albireo-schedule:
+    build:
+      context: albireo
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+    volumes:
+      - ./config/albireo/config.yml:/usr/app/config/config.yml:ro
+      - ./config/albireo/sentry.yml:/usr/app/config/sentry.yml:ro
+      - ./config/albireo/alembic.ini:/usr/app/alembic.ini:ro
+      - /docker_data/albireo/data:/data/Albireo:rw
+    command: "/usr/bin/python Scheduler.py"
+  deluge:
+    image: linuxserver/deluge
+    environment:
+      PUID: 1000
+      PGID: 1000
+    ports:
+      - 30002:8112
+      - 30003:30003/tcp
+      - 30003:30003/udp
+    volumes:
+      - ./data/downloads:/downloads
+      - ./config/deluge:/config
+      - /docker_data/albireo/data:/data/Albireo:rw
+    restart: always
