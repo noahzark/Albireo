@@ -12,6 +12,8 @@ further more, the information can be used for more user friendly function.
 
 [Server](#server)
 
+[Run with Docker](https://github.com/lordfriend/Albireo/blob/master/docker-sample/README.md)
+
 [Nginx Configuration](#nginx-configuration)
 
 [Scheduler](#scheduler)
@@ -84,16 +86,6 @@ $ python tools.py --user-promote admin 3  # admin is username 3 is the level, cu
 ### set your server locale
 
 To avoid some unicode issues, it is recommended to set locale of your server
-
-### Docker
-you can also set up the development environment with [Docker](https://www.docker.com/)
-
-Make sure you have copied config.yml
-
-```bash
-docker build .
-docker run --rm -it -v "`pwd`:/albireo" -p 127.0.0.1:5000:5000 albireo
-```
 
 ## Server
 
