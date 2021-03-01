@@ -98,7 +98,7 @@ class AdminService:
         extname = os.path.splitext(path)[1]
         cover_path = '{0}/cover{1}'.format(str(bangumi.id), extname)
         file_path = '{0}/{1}'.format(self.base_path, cover_path)
-        self.file_downloader.download_file(bangumi.image, file_path)
+        self.file_downloader.download_file(bangumi.image, file_path, True)
         return file_path, cover_path
 
     def __process_user_obj_in_bangumi(self, bangumi, bangumi_dict):
